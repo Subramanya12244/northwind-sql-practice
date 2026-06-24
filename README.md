@@ -12,6 +12,56 @@ This repo is intended as a portfolio artifact demonstrating SQL proficiency acro
 
 ---
 
+## 📈 Learning Progress
+
+This repository is being built as part of a structured SQL learning journey using the Northwind database. Topics are completed incrementally, with each section containing business-focused problems, detailed explanations, and PostgreSQL solutions.
+
+### SQL Roadmap Progress
+
+- [x] Aggregations
+- [x] GROUP BY & HAVING
+- [x] Correlated Subqueries
+- [x] Common Table Expressions (CTEs)
+- [x] LEFT JOIN
+- [ ] RIGHT JOIN
+- [ ] FULL OUTER JOIN
+- [ ] SELF JOIN
+- [ ] CROSS JOIN
+- [ ] Window Functions
+- [ ] Ranking Functions
+- [ ] Advanced Analytics
+- [ ] Query Optimization
+- [ ] PostgreSQL Advanced Concepts
+
+### Current Status
+
+**Completed: 29 Northwind SQL Problems**
+
+### Skills Demonstrated
+
+- Data Aggregation and Analysis
+- Revenue Analytics
+- Customer Analytics
+- Product Analytics
+- Join Operations
+- Subqueries
+- Correlated Subqueries
+- Common Table Expressions (CTEs)
+- Business-Oriented SQL Problem Solving
+
+### Next Milestones
+
+1. Complete all JOIN types
+2. Master Window Functions
+3. Solve Advanced Analytical SQL Problems
+4. Build End-to-End SQL Case Studies
+5. Perform Query Optimization Exercises
+6. Create Business Intelligence Style Reports
+
+This repository will continue to grow as more SQL concepts and real-world business scenarios are explored.
+
+---
+
 ## 🗂️ Repository Structure
 
 ```
@@ -26,8 +76,19 @@ northwind-sql-practice/
 ├── 05_CTE/                           → Q19–Q24
 ├── 06_Left_Join/                     → Q25–Q29
 │
+├── 07_Right_Join/                    → planned
+├── 08_Full_Outer_Join/               → planned
+├── 09_Self_Join/                     → planned
+├── 10_Cross_Join/                    → planned
+├── 11_Window_Functions/              → planned
+├── 12_Ranking_Functions/             → planned
+├── 13_Advanced_Analytics/            → planned
+├── 14_Query_Optimization/            → planned
+│
 └── Assets/                           → (reserved for ER diagrams / schema images)
 ```
+
+Folders 07–14 will be added as those roadmap topics are completed.
 
 Each numbered folder contains a `.md` (documentation) and `.sql` (commented solution) file per question.
 
