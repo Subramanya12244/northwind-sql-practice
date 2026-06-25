@@ -61,11 +61,38 @@ Return only the products that have never appeared in any order, with no aggregat
 
 ## Interview Follow-up Questions
 
-1. How is this query structurally identical to Q28? What's the only thing that changes?
-2. Does it matter whether you filter on `od.product_id IS NULL` or `od.order_id IS NULL`? Why or why not?
-3. What real-world business scenarios could explain a product showing up in this result — and how would you investigate further?
-4. If `products` had millions of rows and `order_details` had hundreds of millions, how would you tune this query for performance?
-5. How would you combine this with a revenue/quantity query to show both 'never ordered' products and their listing price, to prioritize a discontinuation review?
+**1. How is this query structurally identical to Q28? What's the only thing that changes?**
+
+Both queries follow the exact same skeleton: `LEFT JOIN <parent> to <child>`, then `WHERE <child>.<column> IS NULL`. Q28 applies this to `customers`/`orders`; this query applies it to `products`/`order_details`. The join type, the filter logic, and the overall shape of the query are identical — only the table and column names change. Once the anti-join pattern is internalized, it transfers directly to any "find entities with no matching child row" question.
+
+**2. Does it matter whether you filter on `od.product_id IS NULL` or `od.order_id IS NULL`? Why or why not?**
+
+No, they're equivalent here. When a `LEFT JOIN` finds no matching row in `order_details`, it produces one fully NULL-padded row for *every* column that would have come from that table — not just the join key. So testing `product_id`, `order_id`, or any other `order_details` column for `NULL` catches exactly the same set of unmatched products. The one case where it would matter is if a column could legitimately be `NULL` even in a real, matched row — but `product_id` (the join key) and `order_id` are both guaranteed non-null in any real row, so either is a safe choice.
+
+**3. What real-world business scenarios could explain a product showing up in this result — and how would you investigate further?**
+
+Several distinct possibilities, each implying a different next step: the product could be genuinely new and just hasn't sold yet (monitor); discontinued by the supplier but never removed from the catalog (archive/flag inactive); priced or positioned poorly (review pricing, not necessarily delist); a seasonal item being checked outside its selling season (re-check later); or a data entry issue, such as a duplicate `product_id` where real sales are recorded against a different row (investigate before concluding zero sales is accurate). The SQL only confirms *that* a product has zero matching order lines — distinguishing between these causes requires business context the query itself can't provide.
+
+**4. If `products` had millions of rows and `order_details` had hundreds of millions, how would you tune this query for performance?**
+
+Key levers: ensure `order_details.product_id` is indexed, since it's both the join and filter column; prefer `NOT EXISTS` over `LEFT JOIN ... IS NULL` at this scale, since it lets the planner stop searching as soon as it finds one match rather than materializing a join row for every product first; avoid `SELECT *` to minimize I/O; and check `EXPLAIN ANALYZE` to confirm the planner is choosing an efficient anti-join strategy (e.g. a hash anti join) rather than a slow nested loop.
+
+**5. How would you combine this with a revenue/quantity query to show both 'never ordered' products and their listing price, to prioritize a discontinuation review?**
+
+Since these products have no `order_details` rows by definition, there's no historical revenue to compute — instead, join in `products.unit_price` (the current catalog price) directly:
+
+```sql
+SELECT
+    p.product_id,
+    p.product_name,
+    p.unit_price AS list_price
+FROM products p
+LEFT JOIN order_details od ON od.product_id = p.product_id
+WHERE od.product_id IS NULL
+ORDER BY p.unit_price DESC;
+```
+
+Sorting by `list_price DESC` surfaces the highest-priced never-sold products first — typically the most urgent discontinuation or repricing candidates, since they tie up the most potential revenue per unit with zero turnover.
 
 ## Learning Outcomes
 
