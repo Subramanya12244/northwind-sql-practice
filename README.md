@@ -23,7 +23,7 @@ This repository is being built as part of a structured SQL learning journey usin
 - [x] Correlated Subqueries
 - [x] Common Table Expressions (CTEs)
 - [x] LEFT JOIN
-- [ ] RIGHT JOIN
+- [x] RIGHT JOIN
 - [ ] FULL OUTER JOIN
 - [ ] SELF JOIN
 - [ ] CROSS JOIN
