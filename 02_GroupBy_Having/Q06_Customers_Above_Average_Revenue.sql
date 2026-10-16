@@ -1,33 +1,19 @@
-/*
-Question:
-Return all customers whose total revenue is strictly greater than the average total revenue computed across all customers.
-
-Business Requirement:
-The business wants to identify customers whose total revenue is greater than the average customer revenue, to differentiate above-average accounts from below-average ones.
-
-Approach:
-1. Build a CTE (customer_revenue) that calculates each customer's total discounted revenue.
-2. In the outer query, select from that CTE.
-3. Filter using a scalar subquery that computes AVG(total_revenue) across the entire CTE.
-4. Sort by total revenue descending.
-
-Expected Output:
-| customer_id | company_name | total_revenue |
-|-------------|--------------|---------------|
-| QUICK | QUICK-Stop | 117483.39 |
-| ERNSH | Ernst Handel | 104874.98 |
-| SAVEA | Save-a-lot Markets | 104361.95 |
-
-Concepts Used:
-- INNER JOIN
-- GROUP BY
-- CTE
-- Aggregate Functions (SUM, AVG)
-- Subquery
-
-Complexity:
-Medium
-*/
+/* =====================================================================
+   Q06 · Customers Above Average Revenue
+   Category : GROUP BY & HAVING     Difficulty : Medium
+   Concepts : INNER JOIN · GROUP BY · CTE · SUM/AVG · Scalar Subquery
+   ---------------------------------------------------------------------
+   PROBLEM : Return all customers whose total revenue is strictly greater
+             than the average total revenue across all customers.
+   APPROACH:
+     1. CTE (customer_revenue): each customer's total discounted revenue.
+     2. Select from the CTE in the outer query.
+     3. Filter with a scalar subquery computing AVG(total_revenue)
+        across the entire CTE.
+     4. ORDER BY total_revenue DESC.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
 WITH customer_revenue AS (
     SELECT

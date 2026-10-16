@@ -1,33 +1,19 @@
-/*
-Question:
-Return all employees whose total revenue exceeds the average total revenue computed across all employees.
-
-Business Requirement:
-The business wants to identify employees whose total revenue is greater than the average employee revenue, supporting performance review conversations.
-
-Approach:
-1. Build a CTE (employee_revenue) that calculates each employee's total discounted revenue.
-2. Select from that CTE in the outer query.
-3. Filter using a scalar subquery computing AVG(total_revenue) over the whole CTE.
-4. Sort by total revenue descending.
-
-Expected Output:
-| employee_id | first_name | last_name | total_revenue |
-|-------------|------------|-----------|---------------|
-| 4 | Margaret | Peacock | 232890.85 |
-| 3 | Janet | Leverling | 202812.84 |
-| 1 | Nancy | Davolio | 192107.60 |
-
-Concepts Used:
-- INNER JOIN
-- GROUP BY
-- CTE
-- Aggregate Functions (SUM, AVG)
-- Subquery
-
-Complexity:
-Medium
-*/
+/* =====================================================================
+   Q07 · Employees Above Average Revenue
+   Category : GROUP BY & HAVING     Difficulty : Medium
+   Concepts : INNER JOIN · GROUP BY · CTE · SUM/AVG · Scalar Subquery
+   ---------------------------------------------------------------------
+   PROBLEM : Return all employees whose total revenue exceeds the average
+             total revenue across all employees.
+   APPROACH:
+     1. CTE (employee_revenue): each employee's total discounted revenue.
+     2. Select from the CTE in the outer query.
+     3. Filter with a scalar subquery computing AVG(total_revenue)
+        over the whole CTE.
+     4. ORDER BY total_revenue DESC.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
 WITH employee_revenue AS (
     SELECT
