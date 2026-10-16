@@ -1,25 +1,20 @@
-# Q81. Company Name Directory
+# Q81 · Company Name Directory
 
-**Category:** Set Operators (UNION — three-way)
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Set Operators (UNION — three-way) | **Difficulty:** Easy
+> **Concepts:** UNION (three-way) · Set Operators
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `ORDER BY` appears **once**, at the very end of the whole UNION chain — never inside an individual SELECT.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Create a single list containing the company names of all customers, all suppliers, and all shippers in one unified column.
 
-## Objective
+**Objective:** Return a single column containing every company name from all three tables, with duplicates removed.
 
-Return a single column containing every company name from all three tables, with duplicates removed.
+**Tables:** `customers`, `suppliers`, `shippers`
 
-## Tables Used
-
-- `customers`
-- `suppliers`
-- `shippers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -37,12 +32,36 @@ Return a single column containing every company name from all three tables, with
 
 *(In Northwind, company names across these three tables are distinct — UNION and UNION ALL would produce the same row count. The deduplication step of UNION is a safety net for real-world data.)*
 
-## Concepts Used
+## 2. My Approach
 
-- UNION (three-way)
-- Set Operators
+1. `SELECT company_name FROM customers` — 91 customer company names.
+2. `UNION SELECT company_name FROM suppliers` — 29 supplier names.
+3. `UNION SELECT company_name FROM shippers` — 3 shipper names.
+4. `UNION` deduplicates across the ENTIRE combined result (not pair by pair).
+5. All three tables share a column named `company_name` — no aliasing needed.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT company_name
+FROM customers
+UNION
+SELECT company_name
+FROM suppliers
+UNION
+SELECT company_name
+FROM shippers;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why three SELECT statements chained with UNION:** UNION is not limited to two queries. Any number of SELECT statements can be chained: `SELECT ... UNION SELECT ... UNION SELECT ...`. The deduplication applies across the entire combined result — not just between adjacent pairs. A name appearing in all three tables would still appear only once.
 
@@ -52,17 +71,13 @@ Return a single column containing every company name from all three tables, with
 
 **Real-world use case:** this type of query is commonly used to build a master entity list — e.g. a single table of all business entities in a system, regardless of their role (buyer, seller, logistics partner). The result can then be used as a lookup reference or joined to a unified communication log.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Adding `ORDER BY` inside one of the individual SELECT statements — invalid in a UNION chain. `ORDER BY` can only appear once, at the very end of the entire UNION expression.
 - Assuming UNION deduplicates across only adjacent pairs — it deduplicates across the entire combined result. If "Speedy Express" appeared in both `suppliers` and `shippers`, it would appear only once.
 - Using `UNION ALL` when the requirement is a deduplicated directory — produces duplicate entries for any company name that spans multiple tables.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. How does UNION handle deduplication across three tables — does it work pair by pair or across all three at once?**
 
@@ -93,12 +108,9 @@ No — `ORDER BY` inside an individual SELECT in a UNION chain is invalid in mos
 
 `INTERSECT` returns only rows that appear in ALL the combined results — company names present in all three tables simultaneously. In Northwind that would return nothing (no company is simultaneously a customer, supplier, and shipper). `EXCEPT` returns rows from the first query that do not appear in the second — e.g. `SELECT company_name FROM customers EXCEPT SELECT company_name FROM suppliers` returns customer company names that are not also supplier names. These are the other two set operators alongside UNION.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Confirm that UNION chains work with any number of SELECT statements and deduplicates across the entire result, not just adjacent pairs.
-- Understand the real-world use case for multi-table UNION: building master entity lists from independent source tables.
-- Know the `ORDER BY` rule: only one instance, always at the end of the full UNION expression.
+UNION chains accept any number of SELECTs and deduplicate across the entire combined result, not adjacent pairs — ideal for building master entity lists from independent tables. Keep the single `ORDER BY` at the very end of the chain.
 
 ---
-
 📄 **SQL File:** [`Q81_Company_Name_Directory.sql`](./Q81_Company_Name_Directory.sql)

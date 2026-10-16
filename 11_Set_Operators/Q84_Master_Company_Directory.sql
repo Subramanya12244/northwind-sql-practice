@@ -1,62 +1,46 @@
-/*
-Question:
-Return a unified Master Company Directory combining company names,
-countries, and entity type labels from customers, suppliers, and shippers.
+/* =====================================================================
+   Q84 · Master Company Directory
+   Category : Set Operators (UNION — three-way, schema-aware)  Difficulty : Medium
+   Concepts : UNION (three-way) · Set Operators · Literal String Columns · Schema Awareness
+   ---------------------------------------------------------------------
+   PROBLEM : Return a unified Master Company Directory combining company
+             names, countries, and entity-type labels from customers,
+             suppliers, and shippers.
+   APPROACH:
+     1. Schema check: customers & suppliers have company_name + country;
+        shippers has company_name but NO country column.
+     2. SELECT 1 — customers: company_name, country, 'Customer'.
+     3. SELECT 2 — suppliers: company_name, country, 'Supplier'.
+     4. SELECT 3 — shippers: company_name, 'N/A' placeholder, 'Shipper'.
+     5. Three-way UNION combines all three and deduplicates.
+   MISTAKES I MADE:
+     • First column aliased as 'Name' instead of 'Company_Name' (and country
+       not aliased 'Country') → output headers didn't match the required
+       Company_Name / Country → fix: alias the FIRST SELECT's columns.
+   ===================================================================== */
 
-Business Requirement:
-The management team wants one searchable company directory covering
-all business entities — buyers, sellers, and logistics partners.
+-- ── MY SUBMITTED ATTEMPT (buggy: output labels Name/country, not Company_Name/Country) ──
+-- select c.company_name as Name,
+-- c.country,
+-- 'Customer' as Entity_Type
+-- from customers c
+-- Union
+-- select s.company_name as Name,
+-- s.country,
+-- 'Supplier' as Entity_Type
+-- from suppliers s
+-- union
+-- select sh.company_name as Name,
+-- 'N/A' as country,
+-- 'Shipper' as Entity_Type
+-- from shippers sh;
 
-Schema check (critical — verify before writing):
-   customers: company_name ✅  country ✅
-   suppliers: company_name ✅  country ✅
-   shippers:  company_name ✅  country ❌ (column does not exist)
-
-Approach:
-1. SELECT 1 — customers: company_name, country, 'Customer'
-2. SELECT 2 — suppliers: company_name, country, 'Supplier'
-3. SELECT 3 — shippers: company_name, 'N/A' as country placeholder, 'Shipper'
-   Shippers have no country column — substitute 'N/A' to maintain
-   structural compatibility (same column count and compatible types).
-4. Three-way UNION combines all three and deduplicates.
-
-'N/A' vs NULL for missing country:
-   NULL is semantically precise (unknown) but may be excluded by
-   downstream WHERE country IS NOT NULL filters.
-   'N/A' is explicit — clearly signals unavailable data in reports.
-   Choose based on business convention.
-
-Result size:
-   91 customers + 29 suppliers + 3 shippers = 123 rows
-
-Expected Output:
-| Company_Name                       | Country | Entity_Type |
-|------------------------------------|---------|-------------|
-| Alfreds Futterkiste                | Germany | Customer    |
-| Exotic Liquids                     | UK      | Supplier    |
-| Speedy Express                     | N/A     | Shipper     |
-
-Concepts Used:
-- UNION (three-way)
-- Set Operators
-- Literal String Columns
-- Schema Awareness (placeholder for missing column)
-
-Complexity:
-Medium
-*/
-
-select c.company_name as Name,
-c.country,
-'Customer' as Entity_Type
-from customers c
-Union
-select s.company_name as Name,
-s.country,
-'Supplier' as Entity_Type
-from suppliers s
-union
-select sh.company_name as Name,
-'N/A' as country,
-'Shipper' as Entity_Type
-from shippers sh;
+-- ── FINAL CORRECT SOLUTION (first SELECT aliases set the output names) ──
+SELECT c.company_name AS Company_Name, c.country AS Country, 'Customer' AS Entity_Type
+FROM customers c
+UNION
+SELECT s.company_name, s.country, 'Supplier'
+FROM suppliers s
+UNION
+SELECT sh.company_name, 'N/A', 'Shipper'
+FROM shippers sh;

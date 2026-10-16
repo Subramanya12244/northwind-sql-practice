@@ -1,24 +1,20 @@
-# Q79. Customer and Supplier Contact Directory
+# Q79 · Customer and Supplier Contact Directory
 
-**Category:** Set Operators (UNION)
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Set Operators (UNION) | **Difficulty:** Easy
+> **Concepts:** UNION · Set Operators
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** UNION combines **rows** (taller list); JOIN combines **columns** — these tables share no key, so UNION is the only right tool.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Create a single contact list combining the contact names of all customers and all suppliers.
 
-## Objective
+**Objective:** Return a single column containing every customer contact name and every supplier contact name as one unified list, with duplicates removed.
 
-Return a single column containing every customer contact name and every supplier contact name as one unified list, with duplicates removed.
+**Tables:** `customers`, `suppliers`
 
-## Tables Used
-
-- `customers`
-- `suppliers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,12 +32,30 @@ Return a single column containing every customer contact name and every supplier
 
 *(Sample values are illustrative. In standard Northwind, customers and suppliers are completely separate entities with no overlapping contact names — but UNION deduplicates regardless.)*
 
-## Concepts Used
+## 2. My Approach
 
-- UNION
-- Set Operators
+1. `SELECT contact_name FROM customers` — all customer contacts.
+2. `UNION SELECT contact_name FROM suppliers` — all supplier contacts.
+3. `UNION` (not `UNION ALL`) automatically removes duplicate names that appear in both tables.
+4. Both SELECTs return one column of compatible type (`varchar`) — the two UNION rules are satisfied.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select c.contact_name from customers c
+union
+select s.contact_name from suppliers s;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **What UNION does:** `UNION` combines the result sets of two or more `SELECT` statements into a single result set. It automatically removes duplicate rows — if the same contact name appears in both `customers` and `suppliers`, it appears only once in the output.
 
@@ -59,18 +73,14 @@ Here both queries return exactly one column (`contact_name` / `contact_name`) of
 - `JOIN` — combines **columns** from rows that share a key relationship
 - `UNION` — combines **rows** from queries that share the same column structure
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `JOIN` instead of `UNION` — `customers` and `suppliers` share no foreign key, making a meaningful JOIN impossible for this requirement.
 - Using `UNION ALL` when duplicates should be removed — produces double entries for names that appear in both tables.
 - Selecting different numbers of columns in each part of the UNION — causes a column count mismatch error.
 - Selecting columns in a different order — UNION maps by position, not by name. `SELECT first_name, last_name UNION SELECT last_name, first_name` would silently swap the columns.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What is the difference between UNION and UNION ALL?**
 
@@ -106,13 +116,9 @@ ORDER BY contact_name;
 ```
 `ORDER BY` can only appear once, at the very end of the full UNION expression. Placing it inside one of the individual SELECT statements is invalid syntax.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that `UNION` is for stacking rows from independent result sets — fundamentally different from `JOIN` which combines columns from related rows.
-- Know the two rules: same column count, compatible column types.
-- Know when to use `UNION` (deduplicate) vs `UNION ALL` (keep all rows, faster).
-- Understand that column names in the output come from the first SELECT statement.
+`UNION` stacks rows from independent result sets (taller), fundamentally different from `JOIN` which combines columns from related rows (wider). Remember the two rules — same column count, compatible types — and use `UNION` to deduplicate, `UNION ALL` to keep all rows.
 
 ---
-
 📄 **SQL File:** [`Q79_Customer_And_Supplier_Contact_Directory.sql`](./Q79_Customer_And_Supplier_Contact_Directory.sql)

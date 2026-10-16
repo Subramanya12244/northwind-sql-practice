@@ -1,25 +1,20 @@
-# Q83. Master Contact Directory
+# Q83 · Master Contact Directory
 
-**Category:** Set Operators (UNION — three-way with type label)
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** Set Operators (UNION — three-way with type label) | **Difficulty:** Medium
+> **Concepts:** UNION (three-way) · Set Operators · Literal String Columns · String Concatenation (CONCAT)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** keep literal labels case-consistent across all branches — `'employee'` vs `'Employee'` is a silent downstream filtering bug.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The Sales department wants a single Master Contact Directory combining contacts from customers, suppliers, and employees so they can search for any business contact from one place.
 
-## Objective
+**Objective:** Return a unified three-column result containing the contact name, city, and entity type for every customer, supplier, and employee — labelled so the reader knows which source each contact came from.
 
-Return a unified three-column result containing the contact name, city, and entity type for every customer, supplier, and employee — labelled so the reader knows which source each contact came from.
+**Tables:** `customers`, `suppliers`, `employees`
 
-## Tables Used
-
-- `customers`
-- `suppliers`
-- `employees`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -39,31 +34,40 @@ Return a unified three-column result containing the contact name, city, and enti
 
 *(Order depends on storage order unless `ORDER BY` is specified. Total rows: 91 customers + 9 employees + 29 suppliers = 129 rows — assuming no duplicate name+city+type combinations.)*
 
-## Concepts Used
+## 2. My Approach
 
-- UNION (three-way)
-- Set Operators
-- Literal String Columns
-- String Concatenation (CONCAT)
+1. SELECT 1 — customers: `contact_name`, `city`, literal `'Customer'`.
+2. SELECT 2 — employees: `CONCAT(first_name,' ',last_name)`, `city`, literal `'Employee'`. CONCAT is required because employees split names across two columns; customers and suppliers have a single `contact_name` column.
+3. SELECT 3 — suppliers: `contact_name`, `city`, literal `'Supplier'`.
+4. Three-way `UNION` combines all three result sets and deduplicates.
+5. All three SELECTs return exactly 3 columns with compatible types.
+6. Output column names (`Name`, `City`, `Entity_Type`) come from the first SELECT.
 
-## Why This Approach
+## 3. My Solution (as submitted)
 
-**Why three-way UNION:** the contacts come from three completely independent tables with no shared foreign key that would make a JOIN useful. UNION is the correct tool for stacking independent result sets of the same shape into one list. Each SELECT contributes one table's worth of rows; UNION combines all three into a single result.
+```sql
+select c.contact_name as Name,
+c.city,
+'Customer' as Entity_Type
+from customers c
+union
+select concat(e.first_name,' ',e.last_name) as Name,
+e.city,
+'employee' as Entity_Type
+from employees e
+Union
+select s.contact_name as Name,
+s.city,
+'Supplier' as Entity_Type
+from suppliers s;
+```
 
-**Why each SELECT has the same three-column structure:** UNION maps columns by position — column 1 of SELECT 1 maps to column 1 of SELECT 2, and so on. All three SELECTs must return exactly three columns in the same order (`Name`, `City`, `Entity_Type`) with compatible types. The output column labels (`Name`, `City`, `Entity_Type`) come from the first SELECT statement.
+## 4. Mistakes I Made
 
-**Why `CONCAT` is only needed for employees:** `customers.contact_name` and `suppliers.contact_name` are already single-column full names. `employees` splits names into `first_name` and `last_name` — two separate columns. `CONCAT(e.first_name, ' ', e.last_name)` combines them into the same single-name format, so all three SELECTs produce one name column.
+- ⚠️ **Capitalisation inconsistency in the type literal** — I used `'employee'` (lowercase) for employees while using `'Customer'` and `'Supplier'` (title case) for the other two branches. **Why it's wrong:** the combined output then shows `Entity_Type = 'employee'` for employee rows, and because PostgreSQL string comparison is case-sensitive, any downstream `WHERE Entity_Type = 'Employee'` returns **zero rows** for employees — a silent bug — while a `GROUP BY Entity_Type` report shows three groups (`Customer`, `Supplier`, `employee`) instead of three clean title-case groups. **The fix:** change `'employee'` to `'Employee'` so all three branches match.
 
-**Why literal string columns (`'Customer'`, `'Supplier'`, `'Employee'`):** without a type label, the combined list is anonymous — there's no way to tell from the output whether a contact is a customer or a supplier. The literal column tags every row at the time of the UNION, making the directory self-describing. This is the standard pattern for typed UNION directories.
+## 5. Correct / Optimal Solution
 
-**⚠️ Minor issue — capitalisation inconsistency:** your SQL uses `'employee'` (lowercase) for employees while using `'Customer'` and `'Supplier'` (capitalised) for the other two. In the combined output this produces:
-- Customer rows: `Entity_Type = 'Customer'` ✅
-- Supplier rows: `Entity_Type = 'Supplier'` ✅
-- Employee rows: `Entity_Type = 'employee'` ⚠️
-
-This is inconsistent visually, and any downstream query filtering with `WHERE Entity_Type = 'Employee'` (capitalised) would return **zero rows** for employees — a silent bug. Always match capitalisation consistently across all UNION branches.
-
-**Corrected version:**
 ```sql
 SELECT c.contact_name AS Name, c.city, 'Customer' AS Entity_Type FROM customers c
 UNION
@@ -73,7 +77,19 @@ SELECT s.contact_name, s.city, 'Supplier' FROM suppliers s
 ORDER BY Entity_Type, Name;
 ```
 
-## Common Mistakes
+## 6. Why This Works
+
+**Why three-way UNION:** the contacts come from three completely independent tables with no shared foreign key that would make a JOIN useful. UNION is the correct tool for stacking independent result sets of the same shape into one list. Each SELECT contributes one table's worth of rows; UNION combines all three into a single result.
+
+**Why each SELECT has the same three-column structure:** UNION maps columns by position — column 1 of SELECT 1 maps to column 1 of SELECT 2, and so on. All three SELECTs must return exactly three columns in the same order (`Name`, `City`, `Entity_Type`) with compatible types. The output column labels (`Name`, `City`, `Entity_Type`) come from the first SELECT statement.
+
+**Why `CONCAT` is only needed for employees:** `customers.contact_name` and `suppliers.contact_name` are already single-column full names. `employees` splits names into `first_name` and `last_name` — two separate columns. `CONCAT(e.first_name, ' ', e.last_name)` combines them into the same single-name format, so all three SELECTs produce one name column.
+
+**Why literal string columns (`'Customer'`, `'Supplier'`, `'Employee'`):** without a type label, the combined list is anonymous — there's no way to tell from the output whether a contact is a customer or a supplier. The literal column tags every row at the time of the UNION, making the directory self-describing. This is the standard pattern for typed UNION directories.
+
+**Why capitalisation consistency is a correctness issue, not cosmetics:** the type label is a filter/group key. A single lowercase `'employee'` produces zero rows under `WHERE Entity_Type = 'Employee'` and splits grouped reports. Always match capitalisation across all UNION branches.
+
+## 7. Common Pitfalls (generic)
 
 - **Inconsistent literal capitalisation** — `'employee'` vs `'Employee'` — causes silent filtering bugs in downstream queries.
 - **Selecting different column counts** across the three SELECTs — e.g. adding `phone` to one SELECT but not the others — causes a column count mismatch error.
@@ -81,11 +97,7 @@ ORDER BY Entity_Type, Name;
 - **Placing `ORDER BY` inside an individual SELECT** — invalid in a UNION chain. `ORDER BY` can only appear once at the very end.
 - **Using `UNION ALL` when deduplication is intended** — if a person happens to be both a customer contact and a supplier contact with the same name and city, `UNION` would deduplicate them; `UNION ALL` would show them twice.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What is the capitalisation issue in this query and why does it matter beyond aesthetics?**
 
@@ -135,13 +147,9 @@ GROUP BY city
 ORDER BY total_contacts DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Master the three-way UNION pattern with type labels — a directly transferable template for any "master entity directory" requirement combining multiple independent source tables.
-- Understand why literal string capitalisation consistency matters for downstream query correctness — not just visual appearance.
-- Confirm the UNION column name rule: output labels always come from the first SELECT; subsequent SELECTs only need structural (type and count) compatibility.
-- Know when `CONCAT` is required in a UNION context — whenever one source table splits what should be a single display column across multiple physical columns.
+The three-way typed UNION is the master-directory template — but literal labels must share consistent capitalisation across every branch, since case-sensitive comparison turns `'employee'` vs `'Employee'` into a silent correctness bug downstream.
 
 ---
-
 📄 **SQL File:** [`Q83_Master_Contact_Directory.sql`](./Q83_Master_Contact_Directory.sql)

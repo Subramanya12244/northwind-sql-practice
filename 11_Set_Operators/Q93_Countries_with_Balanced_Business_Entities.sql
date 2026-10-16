@@ -1,6 +1,20 @@
-/* Q93. Countries with Balanced Business Entities */
+/* =====================================================================
+   Q93 · Countries with Balanced Business Entities
+   Category : Set Operators (UNION ALL + Conditional Aggregation)  Difficulty : Advanced
+   Concepts : UNION ALL · CTE · SUM+CASE · GROUP BY · HAVING
+   ---------------------------------------------------------------------
+   PROBLEM : Return countries that contain at least one employee, one
+             supplier, and one customer, with each entity count shown.
+   APPROACH:
+     1. CTE: UNION ALL of (country, entity) from employees/suppliers/customers.
+     2. Conditional aggregation: SUM(CASE ...) per entity type.
+     3. GROUP BY country.
+     4. HAVING each per-entity SUM(CASE ...) != 0 → all three present.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
--- Correct Approach
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH cte AS (
      SELECT    e.country,
      'employees' AS entity
@@ -52,4 +66,4 @@ AND sum(
        WHEN entity = 'customers' THEN 1
        ELSE 0
        END
-       )!=0;
+       ) != 0;

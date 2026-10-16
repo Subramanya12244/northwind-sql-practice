@@ -1,25 +1,20 @@
-# Q84. Master Company Directory
+# Q84 · Master Company Directory
 
-**Category:** Set Operators (UNION — three-way with schema awareness)
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** Set Operators (UNION — three-way with schema awareness) | **Difficulty:** Medium
+> **Concepts:** UNION (three-way) · Set Operators · Literal String Columns · Schema Awareness (placeholder for missing column)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** `shippers` has no `country` column — substitute a placeholder; and the first SELECT's alias sets the output column name, so it must be `Company_Name`.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The management team wants a Master Company Directory combining company names and countries from customers, suppliers, and shippers into one unified list.
 
-## Objective
+**Objective:** Return `Company_Name`, `Country`, and `Entity_Type` for every company from all three tables, with a label identifying the source.
 
-Return `Company_Name`, `Country`, and `Entity_Type` for every company from all three tables, with a label identifying the source.
+**Tables:** `customers`, `suppliers`, `shippers`
 
-## Tables Used
-
-- `customers`
-- `suppliers`
-- `shippers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -38,14 +33,51 @@ Return `Company_Name`, `Country`, and `Entity_Type` for every company from all t
 
 *(Total rows: 91 customers + 29 suppliers + 3 shippers = 123 rows)*
 
-## Concepts Used
+## 2. My Approach
 
-- UNION (three-way)
-- Set Operators
-- Literal String Columns
-- Schema Awareness (handling missing columns with placeholder values)
+1. SELECT 1 — customers: `company_name`, `country`, `'Customer'`.
+2. SELECT 2 — suppliers: `company_name`, `country`, `'Supplier'`.
+3. SELECT 3 — shippers: `company_name`, `'N/A'` as country placeholder, `'Shipper'`. Shippers have no `country` column — substitute `'N/A'` to maintain structural compatibility (same column count and compatible types).
+4. Three-way `UNION` combines all three and deduplicates.
+5. Schema check first: `customers` and `suppliers` have `company_name` + `country`; `shippers` has `company_name` but **no** `country`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select c.company_name as Name,
+c.country,
+'Customer' as Entity_Type
+from customers c
+Union
+select s.company_name as Name,
+s.country,
+'Supplier' as Entity_Type
+from suppliers s
+union
+select sh.company_name as Name,
+'N/A' as country,
+'Shipper' as Entity_Type
+from shippers sh;
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ **First column aliased as `Name` instead of `Company_Name`** — the output column is labelled by the first SELECT's alias, so my result header read `Name` / `country` rather than the required `Company_Name` / `Country`. **Why it's wrong:** the expected output specifies exact column names `Company_Name` and `Country`; a mismatch fails exact-output validation even though the data is correct. **The fix:** alias the first SELECT's columns `AS Company_Name` and `AS Country`. (The schema-awareness part — using `'N/A'` for the missing shipper `country` — was handled correctly.)
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT c.company_name AS Company_Name, c.country AS Country, 'Customer' AS Entity_Type
+FROM customers c
+UNION
+SELECT s.company_name, s.country, 'Supplier'
+FROM suppliers s
+UNION
+SELECT sh.company_name, 'N/A', 'Shipper'
+FROM shippers sh;
+```
+
+## 6. Why This Works
 
 **Why this question is harder than Q83:** Q83's three tables all had `contact_name` and `city`. This question requires `country` — but checking the Northwind schema reveals that `shippers` has no `country` column. The `shippers` table only has `shipper_id`, `company_name`, and `phone`. A naive query copying the Q83 pattern would fail immediately with a column-not-found error.
 
@@ -58,19 +90,17 @@ Return `Company_Name`, `Country`, and `Entity_Type` for every company from all t
 
 This is exactly the kind of real-world consideration that distinguishes experienced SQL writers — knowing that column availability must be verified across all sources before writing a UNION.
 
+**Why the first SELECT's aliases matter:** UNION takes output column names from the first SELECT only. To produce `Company_Name` and `Country` headers exactly as the spec requires, the first SELECT must alias its columns accordingly — a `Name` alias would silently mislabel the output.
+
 **Capitalisation:** all three entity type literals use consistent title case — `'Customer'`, `'Supplier'`, `'Shipper'`. No inconsistency issue this time.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Trying to select `sh.country` from `shippers` — column doesn't exist, causes an error. Must check schema before assuming column availability.
 - Using `NULL` instead of `'N/A'` — `NULL` works structurally but may cause issues if downstream reports filter `WHERE country IS NOT NULL` and inadvertently exclude shippers. `'N/A'` is more explicit.
-- Forgetting to alias the first column consistently — the output column is labelled by the first SELECT's alias (`Name` in your SQL, which would need to be `Company_Name` to match the expected output exactly).
+- Forgetting to alias the first column consistently — the output column is labelled by the first SELECT's alias, which must be `Company_Name` to match the expected output exactly.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why did `shippers` require special handling in this query, and how did you identify it?**
 
@@ -104,12 +134,9 @@ GROUP BY country
 ORDER BY total_companies DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Build the habit of checking column availability in every source table before writing a multi-table UNION — schema awareness is as important as syntax.
-- Know the `'N/A'` / `NULL` / placeholder pattern for handling missing columns in UNION queries.
-- Reinforce that UNION maps by position — a missing column must be substituted with a compatible placeholder in the correct position, not skipped.
+Verify column availability in every source table before a multi-table UNION — substitute a placeholder (`'N/A'`) for a missing column — and remember the first SELECT's aliases set the exact output column names (`Company_Name`, `Country`).
 
 ---
-
 📄 **SQL File:** [`Q84_Master_Company_Directory.sql`](./Q84_Master_Company_Directory.sql)

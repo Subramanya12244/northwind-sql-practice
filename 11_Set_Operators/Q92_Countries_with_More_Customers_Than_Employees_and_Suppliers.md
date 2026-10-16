@@ -1,25 +1,20 @@
-# Q92. Countries with More Customers Than Employees and Suppliers
+# Q92 · Countries with More Customers Than Employees and Suppliers
 
-**Category:** Set Operators (UNION ALL) + Conditional Aggregation + HAVING
-**Difficulty:** Hard
+> **Revision Card**
+> **Category:** Set Operators (UNION ALL) + Conditional Aggregation + HAVING | **Difficulty:** Hard
+> **Concepts:** CTE · UNION ALL · GROUP BY · Conditional Aggregation (SUM + CASE) · HAVING (compound) · ORDER BY (multi-column)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** SQL correctness isn't enough on a platform — match the exact column aliases and sort order (`total_customers DESC, country ASC`) the expected output demands.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Identify the countries where the number of customers is greater than the combined number of employees and suppliers located in that country.
 
-## Objective
+**Objective:** Return one row per qualifying country showing the total count of employees, suppliers, and customers — but only for countries where `total_customers > total_employees + total_suppliers`. Sort by `total_customers` descending, then `country` ascending.
 
-Return one row per qualifying country showing the total count of employees, suppliers, and customers — but only for countries where `total_customers > total_employees + total_suppliers`. Sort by `total_customers` descending, then `country` ascending.
+**Tables:** `employees`, `suppliers`, `customers`
 
-## Tables Used
-
-- `employees`
-- `suppliers`
-- `customers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -38,36 +33,17 @@ Return one row per qualifying country showing the total count of employees, supp
 
 *(Only countries where total_customers > total_employees + total_suppliers appear.)*
 
-## Concepts Used
+## 2. My Approach
 
-- CTE (Common Table Expression)
-- UNION ALL
-- GROUP BY
-- Conditional Aggregation (`SUM(CASE WHEN ... THEN 1 ELSE 0 END)`)
-- HAVING (with compound aggregate condition)
-- ORDER BY (multi-column)
+1. CTE: `UNION ALL` of `(country, entity_type)` from all three tables into one flat dataset.
+2. Outer query: conditional aggregation — `SUM(CASE WHEN entity = ... THEN 1 ELSE 0 END)` for each entity type, grouped by `country`.
+3. `HAVING` compares the customer count against `employee + supplier` counts (aggregate expression, repeated in full).
+4. Two-column `ORDER BY total_customers DESC, country ASC` for a deterministic order.
 
-## Why This Approach
-
-**Why the same CTE + conditional aggregation pattern as Q87:** the intermediate dataset is identical to Q87 — `UNION ALL` of `(country, entity_type)` from all three tables. The additions are:
-1. A `HAVING` clause that compares customer count against the sum of employee + supplier counts
-2. A two-column `ORDER BY` (`total_customers DESC, country ASC`)
-
-**Why `HAVING` and not `WHERE`:** the condition `total_customers > total_employees + total_suppliers` references aggregate results — these don't exist until after `GROUP BY`. `HAVING` filters post-aggregation groups; `WHERE` filters pre-aggregation rows and cannot reference `SUM(CASE ...)`.
-
-**Why `SUM(CASE WHEN entity = 'customers' ...) > SUM(CASE WHEN entity = 'employee' ...) + SUM(CASE WHEN entity = 'suppliers' ...)` in HAVING:** PostgreSQL doesn't allow referencing `SELECT` aliases in `HAVING` — the full aggregate expressions must be repeated. This is a key difference from `ORDER BY`, where PostgreSQL does allow alias references.
-
-**The two-column sort:** `ORDER BY total_customers DESC, country ASC` — primary sort by customer count (highest first), secondary sort alphabetically by country (for deterministic ordering when two countries have the same customer count).
-
----
-
-## Attempt Analysis — Why Each "Wrong" Attempt Failed on the Platform
-
-This question is a fascinating debugging case: the SQL logic is correct from **Attempt 1 onward**. The `HAVING` condition, the `SUM(CASE ...)` pattern, and the `CTE + UNION ALL` structure are all right in every attempt. The platform kept rejecting them for reasons unrelated to SQL correctness — each successive attempt was adjusting the output format or sort order to match the platform's expected output exactly.
-
-### ❌ Attempt 1 — Wrong column aliases
+## 3. My Solution (as submitted)
 
 ```sql
+-- Attempt 1 — wrong column aliases, no ORDER BY
 WITH cte AS (
     SELECT e.country, 'employee' AS entity FROM employees e
     UNION ALL
@@ -86,52 +62,19 @@ HAVING SUM(CASE WHEN entity = 'customers' THEN 1 ELSE 0 END)
      + SUM(CASE WHEN entity = 'suppliers' THEN 1 ELSE 0 END);
 ```
 
-**Why it failed:** column aliases `employees_count`, `suppliers_count`, `customers_count` — the platform expected `total_employees`, `total_suppliers`, `total_customers`. The logic is 100% correct. Also missing `ORDER BY`.
+## 4. Mistakes I Made
 
----
+The SQL **logic** was correct from Attempt 1 onward — the `CTE + UNION ALL → SUM(CASE ...) → HAVING` structure never changed. The platform rejected successive attempts on output-format grounds:
 
-### ❌ Attempt 2 — Correct aliases, missing ORDER BY
+- ⚠️ **Attempt 1 — wrong column aliases** (`employees_count`, `suppliers_count`, `customers_count`) → the platform expected `total_employees`, `total_suppliers`, `total_customers`. Also no `ORDER BY`. **Fix:** rename the aliases; add `ORDER BY`.
+- ⚠️ **Attempt 2 — correct aliases but `ORDER BY` missing entirely** → row order non-deterministic, didn't match the expected sorted output. **Fix:** add `ORDER BY total_customers DESC, country ASC`.
+- ⚠️ **Attempt 3 — `ORDER BY` on one column only** (`... customers ... DESC`), missing the `country ASC` tie-breaker → ties ordered non-deterministically. **Fix:** add secondary sort `country ASC`.
+- ⚠️ **Attempt 4 — correct sort logic but `ORDER BY` used the full `SUM(CASE ...)` expression instead of the alias** → logically identical, cleaner to use the alias. **Fix:** `ORDER BY total_customers DESC, country ASC`.
+- ⚠️ **Attempt 5 — fully correct SQL**, rejected by a platform quirk (formatting/data). This is the correct solution.
 
-```sql
--- Same as Attempt 1 but with total_employees / total_suppliers / total_customers aliases
--- Still missing ORDER BY
-```
+**Lesson:** on testing platforms, SQL correctness is necessary but not sufficient — column alias names, column order, and sort order must match the expected output exactly.
 
-**Why it failed:** the SQL logic and column names are correct, but `ORDER BY` is absent. The platform expected results in a specific sort order (`total_customers DESC, country ASC`). Without `ORDER BY`, the row order is non-deterministic and doesn't match the expected output.
-
----
-
-### ❌ Attempt 3 — Added ORDER BY on expression, not alias
-
-```sql
-ORDER BY SUM(CASE WHEN entity = 'customers' THEN 1 ELSE 0 END) DESC
-```
-
-**Why it failed:** the `ORDER BY` sorts correctly by customer count descending, but doesn't include the secondary sort `country ASC`. When two countries have the same `total_customers`, their relative order is non-deterministic — the platform expected a specific tie-breaking order (country alphabetically), which this attempt didn't guarantee.
-
----
-
-### ❌ Attempt 4 — Added secondary sort, still using expression in ORDER BY
-
-```sql
-ORDER BY SUM(CASE WHEN entity = 'customers' THEN 1 ELSE 0 END) DESC, country ASC
-```
-
-**Why it failed:** the sort logic is now correct (`total_customers DESC, country ASC`). However, the `ORDER BY` uses the full `SUM(CASE ...)` expression instead of the alias `total_customers`. In PostgreSQL, `ORDER BY alias` is allowed and is cleaner. Some platforms validate the exact text of the query or behave differently with expression-based vs alias-based `ORDER BY`. The logic is identical — this was a platform quirk.
-
----
-
-### ❌ Attempt 5 — Correct logic and correct ORDER BY with aliases
-
-```sql
-ORDER BY total_customers DESC, country ASC
-```
-
-**Why it failed:** this attempt is logically and syntactically correct. The failure was likely a platform-specific issue — possibly whitespace, formatting, or the platform's test case having edge cases in data (e.g. countries with `NULL` values, or the platform using a slightly different Northwind dataset with different row counts). The SQL itself is the correct solution.
-
----
-
-### ✅ Correct Solution — Identical logic to Attempt 5
+## 5. Correct / Optimal Solution
 
 ```sql
 WITH cte AS (
@@ -154,20 +97,28 @@ HAVING SUM(CASE WHEN entity = 'customers' THEN 1 ELSE 0 END)
 ORDER BY total_customers DESC, country ASC;
 ```
 
-**The key lesson from this debugging journey:** the SQL logic was correct from Attempt 1. What the platform was validating was: (1) exact column alias names, (2) presence of `ORDER BY`, (3) secondary sort on `country ASC` as a tie-breaker, (4) use of alias rather than expression in `ORDER BY`. None of these were SQL logic errors — they were output format specification requirements.
+## 6. Why This Works
 
-## Common Mistakes
+**Why the same CTE + conditional aggregation pattern as Q87:** the intermediate dataset is `UNION ALL` of `(country, entity_type)` from all three tables. The additions are:
+1. A `HAVING` clause that compares customer count against the sum of employee + supplier counts
+2. A two-column `ORDER BY` (`total_customers DESC, country ASC`)
+
+**Why `HAVING` and not `WHERE`:** the condition `total_customers > total_employees + total_suppliers` references aggregate results — these don't exist until after `GROUP BY`. `HAVING` filters post-aggregation groups; `WHERE` filters pre-aggregation rows and cannot reference `SUM(CASE ...)`.
+
+**Why the full `SUM(CASE ...)` expressions must be repeated in HAVING:** PostgreSQL doesn't allow referencing `SELECT` aliases in `HAVING` — the full aggregate expressions must be written out. This is a key difference from `ORDER BY`, where PostgreSQL does allow alias references.
+
+**The two-column sort:** `ORDER BY total_customers DESC, country ASC` — primary sort by customer count (highest first), secondary sort alphabetically by country (for deterministic ordering when two countries have the same customer count).
+
+**Why `UNION ALL` in the CTE:** multiple customers in the same country produce identical `(country, 'customers')` rows. `UNION` would deduplicate them and the count would collapse to 1; `UNION ALL` preserves every row so the counts are correct.
+
+## 7. Common Pitfalls (generic)
 
 - **Referencing `SELECT` aliases in `HAVING`** — `HAVING total_customers > total_employees + total_suppliers` is invalid in PostgreSQL. `HAVING` runs before `SELECT` aliases are resolved, so the full `SUM(CASE ...)` expressions must be repeated.
 - **`ORDER BY` with only one column** — when the requirement says "descending by X, then ascending by Y", both columns are needed. A single `ORDER BY total_customers DESC` is non-deterministic for ties.
 - **`UNION` instead of `UNION ALL` inside the CTE** — deduplicates identical `(country, entity)` pairs, causing wrong counts for countries with multiple entities of the same type.
 - **Using `WHERE` instead of `HAVING`** — the comparison involves aggregate functions, which only exist after `GROUP BY`. `WHERE COUNT > X` is a syntax error.
 
-## Difficulty
-
-**Hard**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. The SQL logic was identical across all five attempts. What were the actual reasons each one was rejected, and what does this teach about platform-based SQL testing?**
 
@@ -212,13 +163,9 @@ HAVING SUM(CASE WHEN entity = 'customers' THEN 1 ELSE 0 END)
 ORDER BY total_customers DESC, country ASC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that `HAVING` cannot reference `SELECT` aliases — the full aggregate expression must be repeated — while `ORDER BY` can use aliases in PostgreSQL.
-- Recognise that on testing platforms, SQL correctness and output format compliance are separate requirements — column alias names and sort order must match the expected output exactly.
-- Build the instinct for two-column `ORDER BY` whenever a primary sort might produce ties — always define a deterministic secondary sort.
-- Confirm that the `UNION ALL → CTE → SUM(CASE ...) → HAVING` pattern extends naturally to comparison-based filters, not just display queries.
+Aggregate filters belong in `HAVING` with the full `SUM(CASE ...)` expressions repeated (aliases aren't resolved yet), and on a platform you must also match the expected column names and a deterministic multi-column `ORDER BY` — correct SQL alone can still be rejected.
 
 ---
-
 📄 **SQL File:** [`Q92_Countries_with_More_Customers_Than_Employees_and_Suppliers.sql`](./Q92_Countries_with_More_Customers_Than_Employees_and_Suppliers.sql)

@@ -1,25 +1,20 @@
-# Q85. Master Location Directory
+# Q85 · Master Location Directory
 
-**Category:** Set Operators (UNION — deduplication across multiple sources)
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** Set Operators (UNION — deduplication across sources) | **Difficulty:** Medium
+> **Concepts:** UNION (three-way) · Set Operators · Deduplication across multiple sources
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** use `UNION` (not `UNION ALL`) and do **not** add an `Entity_Type` column — either one would stop locations deduplicating to one row each.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The Data Analytics team wants to know every unique location where the company has customers, suppliers, or employees, so they can build a master location reference.
 
-## Objective
+**Objective:** Return every unique `city` and `country` combination across customers, suppliers, and employees — with duplicates removed so each location appears only once regardless of how many entities are in that city.
 
-Return every unique `city` and `country` combination across customers, suppliers, and employees — with duplicates removed so each location appears only once regardless of how many entities are in that city.
+**Tables:** `customers`, `suppliers`, `employees`
 
-## Tables Used
-
-- `customers`
-- `suppliers`
-- `employees`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -38,13 +33,38 @@ Return every unique `city` and `country` combination across customers, suppliers
 
 *(Only unique city-country combinations — if 5 customers are in London, UK, London appears only once.)*
 
-## Concepts Used
+## 2. My Approach
 
-- UNION (three-way)
-- Set Operators
-- Deduplication across multiple sources
+1. `SELECT city, country FROM customers`
+2. `UNION SELECT city, country FROM suppliers`
+3. `UNION SELECT city, country FROM employees`
+4. `UNION` (not `UNION ALL`) deduplicates the entire combined result. Deduplication is row-level — both `city` AND `country` must match for a row to be considered a duplicate.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT c.city,
+       c.country
+FROM customers c
+UNION
+SELECT s.city,
+       s.country
+FROM suppliers s
+UNION
+SELECT e.city,
+       e.country
+FROM employees e;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why UNION (not UNION ALL) is critical here:** this query's requirement explicitly states "only unique city-country combinations." `UNION ALL` would include every city-country pair from every row of every table — London might appear 20 times if 15 customers, 3 suppliers, and 2 employees are all based there. `UNION` deduplicates across the entire combined result, ensuring each city-country pair appears exactly once regardless of how many entities are located there.
 
@@ -54,18 +74,14 @@ Return every unique `city` and `country` combination across customers, suppliers
 
 **Why all three tables have `city` and `country`:** unlike Q84 where `shippers` was missing `country`, here `customers`, `suppliers`, and `employees` all have both `city` and `country` columns. No placeholder substitution is needed — a clean, symmetric UNION is possible.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `UNION ALL` instead of `UNION` — returns duplicate city-country pairs whenever multiple entities share the same location, directly violating the "unique combinations" requirement.
 - Adding an `Entity_Type` column — breaks deduplication, as the same city appears once per entity type rather than once overall.
 - Selecting only `city` without `country` — cities with the same name in different countries (e.g. London UK vs London Canada) would be incorrectly merged into one row.
 - Forgetting that `employees` also has `city` and `country` — a schema check confirms all three tables share these columns, so no special handling is needed.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is UNION (not UNION ALL) the correct choice for this specific requirement?**
 
@@ -115,12 +131,9 @@ SELECT DISTINCT city, country FROM (
 ```
 Both deduplicate the combined city-country pairs. The UNION approach is more concise and is the idiomatic SQL choice. The DISTINCT-on-subquery approach makes the deduplication explicit as a separate step, which can be clearer for readers unfamiliar with UNION's implicit deduplication.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that UNION's deduplication applies to the **complete row** — all selected columns must match for a row to be treated as a duplicate.
-- Know when NOT to add a type column — adding `Entity_Type` to a "unique locations" query would break the deduplication by creating intentionally different rows.
-- Confirm that `UNION` (deduplicate) vs `UNION ALL` (keep all rows) is a business requirement decision, not a stylistic one — the wrong choice produces factually incorrect results.
+UNION deduplicates on the complete row, so `UNION` vs `UNION ALL` is a correctness decision driven by the requirement — and adding extra columns (like a type label) to a "unique locations" query breaks that deduplication.
 
 ---
-
 📄 **SQL File:** [`Q85_Master_Location_Directory.sql`](./Q85_Master_Location_Directory.sql)

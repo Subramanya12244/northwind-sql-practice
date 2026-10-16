@@ -1,29 +1,20 @@
-# Q93. Countries with Balanced Business Entities
+# Q93 · Countries with Balanced Business Entities
 
-**Category:** SELECT
-**Difficulty:** Advanced
+> **Revision Card**
+> **Category:** Set Operators (UNION ALL + Conditional Aggregation) | **Difficulty:** Advanced
+> **Concepts:** UNION ALL · CTE · Conditional Aggregation (SUM + CASE) · GROUP BY · HAVING
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** filter with `HAVING` on each entity's aggregate count (`!= 0`), not on individual rows — a country qualifies only when all three counts are non-zero.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The company wants to identify countries that have representation across all three entity types: employees, suppliers, and customers. A country should be considered balanced only when it has at least one employee, at least one supplier, and at least one customer.
 
-## Objective
+**Objective:** Return countries that contain at least one employee, one supplier, and one customer. Display the number of each entity type for every qualifying country.
 
-Return countries that contain at least one employee, one supplier, and one customer. Display the number of each entity type for every qualifying country.
+**Tables:** `employees`, `suppliers`, `customers`
 
----
-
-## Tables Used
-
-- `employees`
-- `suppliers`
-- `customers`
-
-## Expected Output
-
-The query should return the following columns:
+**Expected output:**
 
 | Column Name | Description |
 |---|---|
@@ -32,7 +23,7 @@ The query should return the following columns:
 | `total_suppliers` | Number of suppliers in the country |
 | `total_customers` | Number of customers in the country |
 
-### Output Format
+**Output format:**
 
 | country | total_employees | total_suppliers | total_customers |
 |---|---:|---:|---:|
@@ -41,24 +32,14 @@ The query should return the following columns:
 
 *Sample values are illustrative. Actual values should be obtained from the Northwind database.*
 
----
+## 2. My Approach
 
-## Concepts Used
+1. **Data combination** — combine employees, suppliers, and customers into a common dataset containing `country` and an entity-type identifier, using `UNION ALL` inside a CTE.
+2. **Conditional aggregation** — count each entity type independently for every country with `SUM(CASE WHEN entity = ... THEN 1 ELSE 0 END)`.
+3. **Grouping** — group the combined data by country so that each country produces one result row.
+4. **Filtering** — keep only countries where all three per-entity counts are non-zero, using `HAVING` on each `SUM(CASE ...)` expression.
 
-- UNION
-- ALL
-- CTE
-- Conditional
-- Aggregation
-- CASE
-- SUM
-- GROUP
-- BY
-- HAVING
-
-## Approaches
-
-### ✅ Correct Approach
+## 3. My Solution (as submitted)
 
 ```sql
 WITH cte AS (
@@ -112,42 +93,36 @@ AND sum(
        WHEN entity = 'customers' THEN 1
        ELSE 0
        END
-       )!=0
+       ) != 0;
 ```
 
-## Why This Approach
+## 4. Mistakes I Made
 
-### Data Combination
+- None — solved correctly on first attempt.
 
-Combine employees, suppliers, and customers into a common dataset containing `country` and an entity-type identifier.
+## 5. Correct / Optimal Solution
 
-### Conditional Aggregation
+Same as §3.
 
-Count each entity type independently for every country.
+## 6. Why This Works
 
-### Grouping
+**Data combination:** Combine employees, suppliers, and customers into a common dataset containing `country` and an entity-type identifier. `UNION ALL` preserves every row — essential because the counts depend on every individual record being present.
 
-Group the combined data by country so that each country produces one result row.
+**Conditional aggregation:** Count each entity type independently for every country. `SUM(CASE WHEN entity = 'employees' THEN 1 ELSE 0 END)` tallies only the employee rows per country, and the parallel expressions do the same for suppliers and customers — all in a single pass over the grouped data.
 
-### Filtering
+**Grouping:** Group the combined data by country so that each country produces exactly one result row carrying all three counts.
 
-Only retain countries that have a non-zero count for all three entity types.
+**Filtering:** Only retain countries that have a non-zero count for all three entity types. Because the condition is on aggregate results, it must live in `HAVING` (post-aggregation), not `WHERE` (pre-aggregation). Requiring all three `SUM(CASE ...) != 0` guarantees the country has at least one of each entity — the definition of "balanced."
 
----
-
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Returning countries that have only one or two of the required entity types.
-- Using `UNION` instead of `UNION ALL`, which can remove duplicate rows before aggregation.
+- Using `UNION` instead of `UNION ALL`, which can remove duplicate rows before aggregation and corrupt the counts.
 - Filtering individual rows instead of filtering the aggregated country-level results.
 - Forgetting to group by `country`.
 - Using `COUNT(*)` for each entity type without distinguishing the entity type.
 
-## Difficulty
-
-**Advanced**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is `UNION ALL` preferable to `UNION` for this type of aggregation?**
 
@@ -169,14 +144,9 @@ Only retain countries that have a non-zero count for all three entity types.
 
 [Answer will be added after solving.]
 
+## 9. Key Takeaway
+
+Combine independent sources with `UNION ALL`, count each type with conditional aggregation, then use `HAVING` to require every per-entity count be non-zero — the standard pattern for "groups that satisfy multiple presence conditions."
+
 ---
-
-
-## Learning Outcomes
-
-- Combine multiple entity sources using `UNION ALL`.
-- Perform conditional aggregation.
-- Identify groups satisfying multiple conditions.
-- Use `HAVING` for post-aggregation filtering.
-- Build multi-source analytical queries.
-- 📄 SQL File: [`Q91_Countries_With_Balanced_Business_Entities.sql`](./Q91_Countries_With_Balanced_Business_Entities.sql)
+📄 **SQL File:** [`Q93_Countries_with_Balanced_Business_Entities.sql`](./Q93_Countries_with_Balanced_Business_Entities.sql)

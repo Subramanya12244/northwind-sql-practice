@@ -1,32 +1,27 @@
-# Q96. Countries with the Highest Customer Count Above the Overall Average
+# Q96 · Countries with the Highest Customer Count Above the Overall Average
 
-**Category:** SELECT
-**Difficulty:** Expert
+> **Revision Card**
+> **Category:** Set Operators / Multi-stage Aggregation | **Difficulty:** Expert
+> **Concepts:** CTE · COUNT · AVG · MAX · Subquery · CROSS JOIN · Multi-level aggregation · WHERE
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** don't use `LIMIT 1` — compare against `MAX` so tied top countries are all returned, and compute the average/max at country-count level, not row level.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The business wants to identify the country or countries with the highest number of customers among all countries that have a customer count above the overall average.
 
 First determine the number of customers in each country, calculate the average customer count across all countries, and then identify the country or countries that have the highest customer count while also being above the overall average.
 
-## Objective
-
-Return the country or countries that satisfy both conditions:
+**Objective:** Return the country or countries that satisfy both conditions:
 
 1. Their customer count is greater than the average customer count across all countries.
 2. Their customer count is the maximum customer count among the qualifying countries.
 
 The query must handle ties correctly. If multiple countries have the same highest qualifying customer count, return all of them.
 
----
+**Tables:** `customers`
 
-## Tables Used
-
-- `customers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |---|---|
@@ -34,7 +29,7 @@ The query must handle ties correctly. If multiple countries have the same highes
 | `total_customers` | Number of customers in the country |
 | `average_customers` | Average customer count across all countries |
 
-### Output Format
+**Output format:**
 
 | country | total_customers | average_customers |
 |---|---:|---:|
@@ -42,31 +37,14 @@ The query must handle ties correctly. If multiple countries have the same highes
 
 *Sample values are illustrative. Actual values must be obtained from the Northwind database.*
 
----
+## 2. My Approach
 
-## Concepts Used
+1. CTE `total_count` — count customers per country (`GROUP BY country`).
+2. CTE `avg_count` — average of the per-country counts (`AVG(total_cust)` over `total_count`).
+3. CTE `max_count` — maximum of the per-country counts (`MAX(total_cust)` over `total_count`).
+4. `CROSS JOIN` the three CTEs so each country row sees both scalars, then filter `total_cust > avg_count AND total_cust = max_count` — tie-safe because it compares to the max rather than taking `LIMIT 1`.
 
-- CTE
-- COUNT
-- AVG
-- MAX
-- Subquery
-- CROSS
-- JOIN
-- Aggregate
-- of
-- an
-- Aggregate
-- Multiple
-- aggregation
-- levels
-- filtering
-- WHERE
-- HAVING
-
-## Approaches
-
-### ✅ Correct Approach
+## 3. My Solution (as submitted)
 
 ```sql
 with total_count as (
@@ -94,7 +72,23 @@ where t.total_cust>a.avg_count
 and t.total_cust=m.max_count;
 ```
 
-## Common Mistakes
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
+
+**Multi-stage aggregation:** The problem requires an aggregate of an aggregate. `total_count` first reduces raw customer rows to one count per country. `avg_count` and `max_count` then operate on *those per-country counts*, not the original rows — which is the whole point: the "average" and "maximum" are over countries, not over customers.
+
+**Why `CROSS JOIN`:** `avg_count` and `max_count` each produce a single scalar row. Cross-joining them onto every row of `total_count` attaches both scalars to each country without any join key, so the `WHERE` clause can compare each country's count against both the average and the maximum in one pass.
+
+**Why it is tie-safe:** instead of sorting and taking `LIMIT 1` (which arbitrarily drops ties), the filter `t.total_cust = m.max_count` returns every country whose count equals the maximum — so all tied leaders appear. The additional `t.total_cust > a.avg_count` enforces the "above overall average" condition (and, since the max among above-average countries equals the global max whenever the max itself is above average, the two conditions combine correctly).
+
+## 7. Common Pitfalls (generic)
 
 - Using `LIMIT 1` and accidentally excluding tied countries.
 - Finding the maximum customer count before applying the above-average condition.
@@ -104,11 +98,7 @@ and t.total_cust=m.max_count;
 - Filtering the maximum before identifying countries above the average.
 - Forgetting to return the average customer count.
 
-## Difficulty
-
-**Expert**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is `LIMIT 1` not tie-safe for this problem?**
 
@@ -130,19 +120,9 @@ and t.total_cust=m.max_count;
 
 [Answer will be added after solving.]
 
+## 9. Key Takeaway
+
+Aggregate-of-an-aggregate problems need staged CTEs (count per group, then AVG/MAX over those counts), and comparing to `MAX` instead of using `LIMIT 1` keeps the result tie-safe.
+
 ---
-
-
-## Learning Outcomes
-
-- Solve multi-stage aggregation problems.
-- Work with aggregate results from previous aggregation levels.
-- Apply multiple filtering conditions in the correct order.
-- Handle ties correctly.
-- Understand why naive `LIMIT 1` solutions can be incorrect.
-- Build robust analytical SQL queries using CTEs and subqueries.
-- 📄 SQL File: [`Q96_Countries_With_Highest_Customer_Count_Above_Average.sql`](./Q96_Countries_With_Highest_Customer_Count_Above_Average.sql)
-
-## Related Questions
-
-- Q95
+📄 **SQL File:** [`Q96_Countries_with_the_Highest_Customer_Count_Above_the_Overall_Average.sql`](./Q96_Countries_with_the_Highest_Customer_Count_Above_the_Overall_Average.sql)

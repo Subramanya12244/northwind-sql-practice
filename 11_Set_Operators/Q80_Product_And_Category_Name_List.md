@@ -1,24 +1,20 @@
-# Q80. Product and Category Name List
+# Q80 · Product and Category Name List
 
-**Category:** Set Operators (UNION)
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Set Operators (UNION) | **Difficulty:** Easy
+> **Concepts:** UNION · Set Operators
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** the output column is labelled by the **first** SELECT's name (`product_name`) — the second SELECT's alias is ignored.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Create a single list combining all product names and all category names into one unified column.
 
-## Objective
+**Objective:** Return a single column containing every product name and every category name, with duplicates removed.
 
-Return a single column containing every product name and every category name, with duplicates removed.
+**Tables:** `products`, `categories`
 
-## Tables Used
-
-- `products`
-- `categories`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,12 +32,30 @@ Return a single column containing every product name and every category name, wi
 
 *(Output column is labelled `product_name` because that is the alias from the first SELECT statement — UNION always takes column names from the first query.)*
 
-## Concepts Used
+## 2. My Approach
 
-- UNION
-- Set Operators
+1. `SELECT product_name FROM products` — all 77 product names.
+2. `UNION SELECT category_name FROM categories` — all 8 category names.
+3. `UNION` removes any duplicate values across both sets.
+4. Output column is labelled `product_name` (from the first SELECT). To use a neutral label: `SELECT product_name AS name FROM products ...`
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select p.product_name from products p
+union
+select c.category_name from categories c;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why UNION works here despite mixing products and categories:** UNION doesn't care whether the rows are conceptually similar — it only requires the same number of columns with compatible types. Both `product_name` (varchar) and `category_name` (varchar) satisfy this requirement. The combined output is a single-column list of text values.
 
@@ -56,17 +70,13 @@ SELECT category_name FROM categories;
 
 **Why UNION deduplicates:** if any product happened to have the same name as a category (e.g. a product named "Beverages"), it would appear only once in the output. `UNION ALL` would show it twice.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Expecting the output column to be labelled `category_name` — UNION always uses the first SELECT's column name.
 - Selecting additional columns from one query but not the other — e.g. `SELECT product_name, unit_price FROM products UNION SELECT category_name FROM categories` causes a column count mismatch error.
 - Using `JOIN` — `products` and `categories` do have a `category_id` foreign key relationship, but a JOIN here would produce one row per product with its category name alongside it (wider rows). UNION produces one row per name from either table (taller list). These answer completely different questions.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. UNION takes column names from the first SELECT. How would you give the combined column a neutral, meaningful label?**
 
@@ -94,12 +104,9 @@ This makes the combined list actionable — a reader can see which column each n
 
 Yes — you can chain as many SELECT statements as needed: `SELECT ... UNION SELECT ... UNION SELECT ...`. Each additional SELECT adds another result set to the combined output. Q81 demonstrates this with three tables. UNION removes duplicates across the entire combined result, not just between adjacent pairs.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that UNION column labels come from the first SELECT statement — a frequently tested detail.
-- Reinforce that UNION requires structural compatibility (same column count, compatible types) but does not require semantic similarity between the combined rows.
-- Know the row count formula: UNION produces ≤ (rows_A + rows_B) rows; UNION ALL produces exactly (rows_A + rows_B) rows.
+UNION is purely structural — it needs matching column count and compatible types, not semantic similarity — and the output column labels always come from the first SELECT. Row count is ≤ (rows_A + rows_B) for UNION, exactly (rows_A + rows_B) for UNION ALL.
 
 ---
-
 📄 **SQL File:** [`Q80_Product_And_Category_Name_List.sql`](./Q80_Product_And_Category_Name_List.sql)
