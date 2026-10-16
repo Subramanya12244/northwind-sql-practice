@@ -204,15 +204,80 @@ revenue = unit_price * quantity * (1 - discount)
 | Q39 | Categories and Total Revenue | Medium | [📄](06_Left_Join/Q39_Categories_And_Total_Revenue.md) | [🔢](06_Left_Join/Q39_Categories_And_Total_Revenue.sql) |
 | Q40 | Customers and Average Order Value | Hard | [📄](06_Left_Join/Q40_Customers_And_Average_Order_Value.md) | [🔢](06_Left_Join/Q40_Customers_And_Average_Order_Value.sql) |
 
-### 07–11 — RIGHT / FULL OUTER / SELF / CROSS JOIN & Set Operators
+### 07 — RIGHT JOIN
 
-These sections (Q41 onward, 48 further problems) follow the same `.md` + `.sql` format.
-Browse them directly in their folders:
-[`07_Right_Join/`](07_Right_Join/) ·
-[`08_Full_Outer_Join/`](08_Full_Outer_Join/) ·
-[`09_Self_Join/`](09_Self_Join/) ·
-[`10_Cross_Join/`](10_Cross_Join/) ·
-[`11_Set_Operators/`](11_Set_Operators/)
+| # | Question | Difficulty | MD | SQL |
+|---|---|---|---|---|
+| Q41 | Customers and Orders | Easy | [📄](07_Right_Join/Q41_Customers_And_Orders.md) | [🔢](07_Right_Join/Q41_Customers_And_Orders.sql) |
+| Q42 | Products and Suppliers | Easy | [📄](07_Right_Join/Q42_Products_And_Suppliers.md) | [🔢](07_Right_Join/Q42_Products_And_Suppliers.sql) |
+| Q43 | Employees and Orders | Easy | [📄](07_Right_Join/Q43_Employees_And_Orders.md) | [🔢](07_Right_Join/Q43_Employees_And_Orders.sql) |
+| Q44 | Products and Total Quantity Sold | Medium | [📄](07_Right_Join/Q44_Products_And_Total_Quantity_Sold.md) | [🔢](07_Right_Join/Q44_Products_And_Total_Quantity_Sold.sql) |
+| Q45 | Customers and Total Revenue | Medium | [📄](07_Right_Join/Q45_Customers_And_Total_Revenue.md) | [🔢](07_Right_Join/Q45_Customers_And_Total_Revenue.sql) |
+| Q46 | Employees and Total Orders | Medium | [📄](07_Right_Join/Q46_Employees_And_Total_Orders.md) | [🔢](07_Right_Join/Q46_Employees_And_Total_Orders.sql) |
+| Q47 | Categories and Products | Easy | [📄](07_Right_Join/Q47_Categories_And_Products.md) | [🔢](07_Right_Join/Q47_Categories_And_Products.sql) |
+| Q48 | Suppliers and Total Revenue | Medium | [📄](07_Right_Join/Q48_Suppliers_And_Total_Revenue.md) | [🔢](07_Right_Join/Q48_Suppliers_And_Total_Revenue.sql) |
+| Q49 | Customers and Average Order Value (RIGHT JOIN) | Hard | [📄](07_Right_Join/Q49_Customers_And_Average_Order_Value_RIGHT_JOIN.md) | [🔢](07_Right_Join/Q49_Customers_And_Average_Order_Value_RIGHT_JOIN.sql) |
+| Q50 | Top Customer(s) by Revenue — Tie-Safe | Hard | [📄](07_Right_Join/Q50_Top_Customer_By_Revenue_Tie_Safe.md) | [🔢](07_Right_Join/Q50_Top_Customer_By_Revenue_Tie_Safe.sql) |
+
+### 08 — FULL OUTER JOIN
+
+| # | Question | Difficulty | MD | SQL |
+|---|---|---|---|---|
+| Q51 | Customers and Orders | Medium | [📄](08_Full_Outer_Join/Q51_Customers_And_Orders_FULL_OUTER_JOIN.md) | [🔢](08_Full_Outer_Join/Q51_Customers_And_Orders_FULL_OUTER_JOIN.sql) |
+| Q52 | Products and Categories | Medium | [📄](08_Full_Outer_Join/Q52_Products_And_Categories_FULL_OUTER_JOIN.md) | [🔢](08_Full_Outer_Join/Q52_Products_And_Categories_FULL_OUTER_JOIN.sql) |
+| Q53 | Employees and Orders | Medium | [📄](08_Full_Outer_Join/Q53_Employees_And_Orders_FULL_OUTER_JOIN.md) | [🔢](08_Full_Outer_Join/Q53_Employees_And_Orders_FULL_OUTER_JOIN.sql) |
+| Q54 | Suppliers and Products | Medium | [📄](08_Full_Outer_Join/Q54_Suppliers_And_Products_FULL_OUTER_JOIN.md) | [🔢](08_Full_Outer_Join/Q54_Suppliers_And_Products_FULL_OUTER_JOIN.sql) |
+| Q55 | Customers and Total Orders | Hard | [📄](08_Full_Outer_Join/Q55_Customers_And_Total_Orders_FULL_OUTER_JOIN.md) | [🔢](08_Full_Outer_Join/Q55_Customers_And_Total_Orders_FULL_OUTER_JOIN.sql) |
+| Q56 | Products and Total Revenue | Hard | [📄](08_Full_Outer_Join/Q56_Products_And_Total_Revenue_FULL_OUTER_JOIN.md) | [🔢](08_Full_Outer_Join/Q56_Products_And_Total_Revenue_FULL_OUTER_JOIN.sql) |
+| Q57 | Employees and Total Revenue | Medium | [📄](08_Full_Outer_Join/Q57_Employees_And_Total_Revenue.md) | [🔢](08_Full_Outer_Join/Q57_Employees_And_Total_Revenue.sql) |
+| Q58 | Customer Revenue Comparison (Advanced) | Hard | [📄](08_Full_Outer_Join/Q58_Customer_Revenue_Comparison_Advanced.md) | [🔢](08_Full_Outer_Join/Q58_Customer_Revenue_Comparison_Advanced.sql) |
+
+### 09 — SELF JOIN
+
+| # | Question | Difficulty | MD | SQL |
+|---|---|---|---|---|
+| Q61 | Employees Without a Manager | Easy | [📄](09_Self_Join/Q61_Employees_Without_a_Manager.md) | [🔢](09_Self_Join/Q61_Employees_Without_a_Manager.sql) |
+| Q62 | Employees Who Are Managers | Medium | [📄](09_Self_Join/Q62_Employees_Who_Are_Managers.md) | [🔢](09_Self_Join/Q62_Employees_Who_Are_Managers.sql) |
+| Q63 | Employees Reporting to the Same Manager | Medium | [📄](09_Self_Join/Q63_Employees_Reporting_to_the_Same_Manager.md) | [🔢](09_Self_Join/Q63_Employees_Reporting_to_the_Same_Manager.sql) |
+| Q64 | Employees Having the Same Job Title | Easy | [📄](09_Self_Join/Q64_Employees_Having_the_Same_Job_Title.md) | [🔢](09_Self_Join/Q64_Employees_Having_the_Same_Job_Title.sql) |
+| Q65 | Employees Hired in the Same Year | Easy | [📄](09_Self_Join/Q65_Employees_Hired_in_the_Same_Year.md) | [🔢](09_Self_Join/Q65_Employees_Hired_in_the_Same_Year.sql) |
+| Q66 | Customers from the Same Country | Easy | [📄](09_Self_Join/Q66_Customers_from_the_Same_Country.md) | [🔢](09_Self_Join/Q66_Customers_from_the_Same_Country.sql) |
+| Q67 | Customers from the Same City | Easy | [📄](09_Self_Join/Q67_Customers_from_the_Same_City.md) | [🔢](09_Self_Join/Q67_Customers_from_the_Same_City.sql) |
+| Q68 | Products with the Same Supplier | Easy | [📄](09_Self_Join/Q68_Products_with_the_Same_Supplier.md) | [🔢](09_Self_Join/Q68_Products_with_the_Same_Supplier.sql) |
+| Q69 | Products in the Same Category | Easy | [📄](09_Self_Join/Q69_Products_in_the_Same_Category.md) | [🔢](09_Self_Join/Q69_Products_in_the_Same_Category.sql) |
+| Q70 | Customers Sharing the Same Postal Code | Easy | [📄](09_Self_Join/Q70_Customers_Sharing_the_Same_Postal_Code.md) | [🔢](09_Self_Join/Q70_Customers_Sharing_the_Same_Postal_Code.sql) |
+
+### 10 — CROSS JOIN
+
+| # | Question | Difficulty | MD | SQL |
+|---|---|---|---|---|
+| Q71 | Employee–Category Combinations | Easy | [📄](10_Cross_Join/Q71_Employee-Category_Combinations.md) | [🔢](10_Cross_Join/Q71_Employee-Category_Combinations.sql) |
+| Q72 | Product–Shipper Combinations | Easy | [📄](10_Cross_Join/Q72_Product-Shipper_Combinations.md) | [🔢](10_Cross_Join/Q72_Product-Shipper_Combinations.sql) |
+| Q73 | Supplier–Category Combinations | Easy | [📄](10_Cross_Join/Q73_Supplier-Category_Combinations.md) | [🔢](10_Cross_Join/Q73_Supplier-Category_Combinations.sql) |
+| Q74 | Customer–Supplier Combinations | Easy | [📄](10_Cross_Join/Q74_Customer-Supplier_Combinations.md) | [🔢](10_Cross_Join/Q74_Customer-Supplier_Combinations.sql) |
+| Q75 | Employee–Shipper Combinations | Easy | [📄](10_Cross_Join/Q75_Employee-Shipper_Combinations.md) | [🔢](10_Cross_Join/Q75_Employee-Shipper_Combinations.sql) |
+| Q76 | Customer–Category Combinations | Easy | [📄](10_Cross_Join/Q76_Customer-Category_Combinations.md) | [🔢](10_Cross_Join/Q76_Customer-Category_Combinations.sql) |
+| Q77 | Product–Employee Combinations | Easy | [📄](10_Cross_Join/Q77_Product-Employee_Combinations.md) | [🔢](10_Cross_Join/Q77_Product-Employee_Combinations.sql) |
+| Q78 | Supplier–Shipper Combinations | Easy | [📄](10_Cross_Join/Q78_Supplier-Shipper_Combinations.md) | [🔢](10_Cross_Join/Q78_Supplier-Shipper_Combinations.sql) |
+
+### 11 — Set Operators (UNION / INTERSECT / EXCEPT)
+
+| # | Question | Difficulty | MD | SQL |
+|---|---|---|---|---|
+| Q79 | Customer and Supplier Contact Directory | Easy | [📄](11_Set_Operators/Q79_Customer_And_Supplier_Contact_Directory.md) | [🔢](11_Set_Operators/Q79_Customer_And_Supplier_Contact_Directory.sql) |
+| Q80 | Product and Category Name List | Easy | [📄](11_Set_Operators/Q80_Product_And_Category_Name_List.md) | [🔢](11_Set_Operators/Q80_Product_And_Category_Name_List.sql) |
+| Q81 | Company Name Directory | Easy | [📄](11_Set_Operators/Q81_Company_Name_Directory.md) | [🔢](11_Set_Operators/Q81_Company_Name_Directory.sql) |
+| Q82 | Contact Directory with Type Label | Medium | [📄](11_Set_Operators/Q82_Contact_Directory_With_Type_Label.md) | [🔢](11_Set_Operators/Q82_Contact_Directory_With_Type_Label.sql) |
+| Q83 | Master Contact Directory | Medium | [📄](11_Set_Operators/Q83_Master_Contact_Directory.md) | [🔢](11_Set_Operators/Q83_Master_Contact_Directory.sql) |
+| Q84 | Master Company Directory | Medium | [📄](11_Set_Operators/Q84_Master_Company_Directory.md) | [🔢](11_Set_Operators/Q84_Master_Company_Directory.sql) |
+| Q85 | Master Location Directory | Medium | [📄](11_Set_Operators/Q85_Master_Location_Directory.md) | [🔢](11_Set_Operators/Q85_Master_Location_Directory.sql) |
+| Q86 | Entity Record Count Summary | Hard | [📄](11_Set_Operators/Q86_Entity_Record_Count_Summary.md) | [🔢](11_Set_Operators/Q86_Entity_Record_Count_Summary.sql) |
+| Q92 | Countries with More Customers Than Employees and Suppliers | Hard | [📄](11_Set_Operators/Q92_Countries_with_More_Customers_Than_Employees_and_Suppliers.md) | [🔢](11_Set_Operators/Q92_Countries_with_More_Customers_Than_Employees_and_Suppliers.sql) |
+| Q93 | Countries with Balanced Business Entities | Advanced | [📄](11_Set_Operators/Q93_Countries_with_Balanced_Business_Entities.md) | [🔢](11_Set_Operators/Q93_Countries_with_Balanced_Business_Entities.sql) |
+| Q96 | Countries with the Highest Customer Count Above the Overall Average | Expert | [📄](11_Set_Operators/Q96_Countries_with_the_Highest_Customer_Count_Above_the_Overall_Average.md) | [🔢](11_Set_Operators/Q96_Countries_with_the_Highest_Customer_Count_Above_the_Overall_Average.sql) |
+| Q97 | Countries with More Customers Than Their Entity Average | Expert | [📄](11_Set_Operators/Q97_Countries_with_More_Customers_Than_Their_Entity_Average.md) | [🔢](11_Set_Operators/Q97_Countries_with_More_Customers_Than_Their_Entity_Average.sql) |
+
+> **Numbering note:** questions are numbered in solving order, so a few numbers (Q59–Q60, Q87–Q91, Q94–Q95) are skipped where exploratory problems were later merged or removed. Every file present is a complete, documented solution.
 
 ---
 
@@ -232,6 +297,16 @@ Browse them directly in their folders:
 | `CONCAT()` vs `\|\|` for NULL-safe name concatenation | Q34, Q37 |
 | `JOIN ... ON` with inequality conditions | Q21 |
 | `NULLS LAST` in `ORDER BY` for correct NULL sort position | Q26 |
+| `RIGHT JOIN` to preserve the right-hand table (direction vs table order) | Q41–Q50 |
+| `FULL OUTER JOIN` to keep unmatched rows from both sides | Q51–Q58 |
+| Self-join pair pattern `t1.id < t2.id AND t1.key = t2.key` (dedup pairs) | Q63, Q66–Q70 |
+| Self-join on hierarchy (`employee.reports_to = manager.employee_id`) | Q61–Q63 |
+| `CROSS JOIN` for exhaustive combinations (Cartesian product) | Q71–Q78 |
+| `UNION` vs `UNION ALL` (dedup vs keep-all; column count/type/order rules) | Q79–Q85 |
+| Literal type-label columns in a UNION directory (`'Customer'`, …) | Q82–Q85 |
+| `UNION ALL` + `GROUP BY` in a CTE for multi-entity counts | Q86 |
+| `INTERSECT` / `EXCEPT` and set-based "above average" comparisons | Q92, Q93, Q96, Q97 |
+| `|| ` vs `CONCAT()` NULL propagation in outer joins | Q57 |
 
 ---
 
