@@ -76,10 +76,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why include `employee_id` in `GROUP BY` even if names seem unique?
-2. How would you show revenue by employee *and* by year?
-3. Would a zero-order employee appear? How to include all employees?
-4. How does this differ structurally from Q03 (Top 10 Customers)?
+**1. Why include `employee_id` in `GROUP BY` even if names seem unique?**
+
+`employee_id` is the stable primary key; `first_name`/`last_name` are display attributes that are not guaranteed unique — two employees could share the same name and would then be merged into one row, summing their revenue together. Grouping by `employee_id` keeps each person distinct, and the name columns are added to `GROUP BY` only because PostgreSQL requires every selected non-aggregated column to appear there.
+
+**2. How would you show revenue by employee *and* by year?**
+
+Add the order year as a grouping key: `EXTRACT(YEAR FROM o.order_date) AS order_year` in the SELECT and in `GROUP BY e.employee_id, e.first_name, e.last_name, order_year`. This produces one row per employee per year, letting you track each employee's revenue trend over time rather than a single lifetime total.
+
+**3. Would a zero-order employee appear? How to include all employees?**
+
+No — the `INNER JOIN` from `employees` to `orders` drops any employee who never processed an order. To include them with 0 revenue, use `LEFT JOIN employees → orders → order_details` and wrap the sum in `COALESCE(SUM(...), 0)` so the zero-activity employees surface with a 0 rather than being filtered out.
+
+**4. How does this differ structurally from Q03 (Top 10 Customers)?**
+
+Structurally it is the same pattern — a three-table chain (`employees → orders → order_details`) aggregated with `SUM`, ordered descending, and sliced with `LIMIT`. The only differences are the starting dimension (`employees` instead of `customers`), the join key on `orders` (`employee_id` vs `customer_id`), and `LIMIT 5` instead of `LIMIT 10`. The revenue formula and aggregation logic are identical.
 
 ## 9. Key Takeaway
 

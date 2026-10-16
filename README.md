@@ -19,6 +19,10 @@ deeper teaching notes — so a quick scan shows what the problem tested and wher
 The paired `.sql` keeps exactly one runnable query (any buggy first attempt is retained but
 commented out).
 
+For fast revision, [`FLASHCARDS.md`](FLASHCARDS.md) collects all 88 questions as collapsible
+flashcards (question → answer → mistake → learning), grouped by concept. Every question's
+**Interview Follow-ups** section also now ships with full written answers.
+
 ---
 
 ## 📈 Learning Progress

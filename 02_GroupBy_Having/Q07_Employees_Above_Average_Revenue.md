@@ -78,9 +78,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. How is this query structurally identical to Q6, just applied to a different entity?
-2. How would you generalize this into a reusable view or function if this 'above average revenue' check needed to be run for customers, employees, AND shippers?
-3. What would change if 'average' should mean median instead of mean?
+**1. How is this query structurally identical to Q6, just applied to a different entity?**
+
+Both use the identical "CTE of per-entity totals, then filter against a scalar subquery averaging that CTE" pattern. The only differences are the base table and join key: Q6 groups `customers` by `customer_id` joining `orders.customer_id`, while Q7 groups `employees` by `employee_id` joining `orders.employee_id`. The revenue expression `SUM(od.unit_price * od.quantity * (1 - od.discount))`, the `WHERE total_revenue > (SELECT AVG(total_revenue) ...)` comparison, and the `ORDER BY ... DESC` are unchanged.
+
+**2. How would you generalize this into a reusable view or function if this 'above average revenue' check needed to be run for customers, employees, AND shippers?**
+
+Create one view per entity (e.g. `employee_revenue`, `customer_revenue`) exposing a uniform `(entity_id, name, total_revenue)` shape, then write a single generic query or a parameterized SQL/PLpgSQL function that takes the view/table name and applies the same `total_revenue > (SELECT AVG(total_revenue) ...)` filter — using dynamic SQL (`EXECUTE format(...)`) when the source must be a parameter. Alternatively, a set-returning function `above_average(revenue_set)` could accept the pre-aggregated set so the averaging logic lives in exactly one place.
+
+**3. What would change if 'average' should mean median instead of mean?**
+
+Replace the `AVG(total_revenue)` scalar subquery with PostgreSQL's ordered-set aggregate `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY total_revenue)` over the same CTE. The median is robust to outliers (a few very high performers won't pull the threshold up the way `AVG` does), so more employees may qualify as "above the typical performer." The surrounding CTE-then-compare structure stays the same.
 
 ## 9. Key Takeaway
 

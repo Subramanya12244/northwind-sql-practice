@@ -75,9 +75,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Would the computed average change if customers with zero orders were included via a LEFT JOIN? Why?
-2. How does this differ conceptually from Q5 (Top 5 Customers by Order Count)?
-3. How would you find customers whose order count is *below* average instead?
+**1. Would the computed average change if customers with zero orders were included via a LEFT JOIN? Why?**
+
+Yes — the average would drop. The current `INNER JOIN` excludes customers with no orders, so every row in the CTE has `order_count >= 1`. Switching to `LEFT JOIN` keeps zero-order customers (with `COUNT(o.order_id) = 0`, since `COUNT` ignores the NULLs produced by the unmatched join), adding more rows with low counts to the denominator and pulling `AVG(order_count)` down. That lower threshold would let more customers qualify as "above average."
+
+**2. How does this differ conceptually from Q5 (Top 5 Customers by Order Count)?**
+
+Q5 returns a fixed-size ranking — the 5 highest customers regardless of how the rest are distributed, implemented with `ORDER BY order_count DESC LIMIT 5`. Q08 returns a variable-size set defined by a statistical threshold (everyone strictly above the mean), so the row count depends entirely on the data distribution. "Top N" answers "who are the leaders," while "above average" answers "who beats the typical customer."
+
+**3. How would you find customers whose order count is *below* average instead?**
+
+Flip the comparison operator in the outer filter to `<`: `WHERE order_count < (SELECT AVG(order_count) FROM customer_orders)`, and typically sort `ORDER BY order_count ASC`. Note this still only covers customers with at least one order because of the `INNER JOIN`; to include truly inactive (zero-order) customers below average, switch the CTE join to a `LEFT JOIN` so they are counted as 0.
 
 ## 9. Key Takeaway
 

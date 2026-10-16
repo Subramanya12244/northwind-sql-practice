@@ -80,10 +80,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why can't you just write `HAVING SUM(revenue) > AVG(revenue)` to solve this in one pass?
-2. What's the difference between this CTE-based approach and a correlated subquery approach (see Q16) for the same problem?
-3. How would the result change if you used `AVG(revenue)` computed from `order_details` directly, rather than from per-customer aggregated totals?
-4. How would you find customers within, say, 10% of the average rather than strictly above it?
+**1. Why can't you just write `HAVING SUM(revenue) > AVG(revenue)` to solve this in one pass?**
+
+`HAVING` filters each group after aggregation, so within a single customer's group the only value available to `AVG()` is that one customer's own `SUM(revenue)` — averaging one value just returns it, making the comparison `x > x` (always false). The global average must be computed across *all* per-customer totals, which don't exist until every group has been aggregated. That requires materializing the per-customer totals first (the `customer_revenue` CTE) and then averaging over that full set in a separate scalar subquery.
+
+**2. What's the difference between this CTE-based approach and a correlated subquery approach (see Q16) for the same problem?**
+
+The CTE here computes every customer's total once and the scalar subquery averages that materialized set a single time — the average is evaluated once for the whole query. A correlated subquery instead re-executes the inner aggregation for each outer row, which is both harder to read and typically slower because the per-customer revenue work can be repeated. For an "above the global average" check the CTE pattern is cleaner; correlated subqueries fit better when the comparison depends on the current row (e.g. "above the average for *this customer's* country").
+
+**3. How would the result change if you used `AVG(revenue)` computed from `order_details` directly, rather than from per-customer aggregated totals?**
+
+`AVG(unit_price * quantity * (1 - discount))` over raw `order_details` rows produces the average revenue *per line item*, a much smaller number than the average *per customer* (each customer has many lines). Comparing per-customer totals against a per-line-item average would mark almost every customer as "above average," answering a completely different question. The denominator must be the number of customers, not the number of order-detail rows.
+
+**4. How would you find customers within, say, 10% of the average rather than strictly above it?**
+
+Replace the strict `>` with a `BETWEEN` band around the average computed from the same CTE: `WHERE total_revenue BETWEEN 0.9 * (SELECT AVG(total_revenue) FROM customer_revenue) AND 1.1 * (SELECT AVG(total_revenue) FROM customer_revenue)`. To avoid repeating the scalar subquery, you can compute the average once in a second CTE (or `CROSS JOIN` it) and reference the lower and upper bounds from there.
 
 ## 9. Key Takeaway
 

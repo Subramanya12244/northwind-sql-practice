@@ -98,10 +98,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why is `PARTITION BY employee_id` essential here, and what would happen if it were omitted?
-2. How would the result change if `ROW_NUMBER()` were used instead of `RANK()`, in a scenario where two customers are tied for an employee's top spot?
-3. Why are the `employees` and `customers` joins placed after the ranking CTE rather than before?
-4. How would you extend this to return each employee's top 3 customers instead of just their top 1?
+**1. Why is `PARTITION BY employee_id` essential here, and what would happen if it were omitted?**
+
+`PARTITION BY employee_id` restarts the ranking independently for each employee, so `rnk = 1` means "this employee's own highest-revenue customer." Without it, `RANK() OVER (ORDER BY total_revenue DESC)` ranks all employee-customer pairs globally, and filtering `rnk = 1` would return just the single highest pair company-wide (plus global ties) — answering "who is the best account overall," a completely different question, and leaving most employees unrepresented.
+
+**2. How would the result change if `ROW_NUMBER()` were used instead of `RANK()`, in a scenario where two customers are tied for an employee's top spot?**
+
+`RANK()` assigns both tied customers `rnk = 1`, so filtering `rnk = 1` returns both. `ROW_NUMBER()` assigns distinct sequential numbers (1 and 2) even when the revenue is identical, breaking the tie arbitrarily, so the filter keeps only one and silently drops the equally-deserving customer — violating the "handle ties correctly" requirement.
+
+**3. Why are the `employees` and `customers` joins placed after the ranking CTE rather than before?**
+
+The ranking only needs `employee_id`, `customer_id`, and the aggregated revenue, so bringing in descriptive columns (`first_name`, `company_name`) before ranking just carries extra columns through the aggregation and window step for no benefit. Joining the dimension tables in the final SELECT keeps the CTEs lean and limits the name lookups to the handful of surviving `rnk = 1` rows rather than every employee-customer pair.
+
+**4. How would you extend this to return each employee's top 3 customers instead of just their top 1?**
+
+Change the final filter from `WHERE r.rnk = 1` to `WHERE r.rnk <= 3`. With `RANK()`, ties at the boundary can yield more than three rows for an employee (e.g., two customers tied at rank 3); if a strict cap of three is required regardless of ties, use `ROW_NUMBER()` instead and filter `<= 3`, or `DENSE_RANK()` if you want the top three distinct revenue levels.
 
 ## 9. Key Takeaway
 

@@ -71,10 +71,25 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why does `SUM()` return `NULL` instead of `0` for a group with no rows, and why does that matter for this report?
-2. Contrast this query's need for `COALESCE` with Q26's `MAX(order_date)`, which didn't need it. What's the underlying principle?
-3. Where else, besides `COALESCE`, could you handle this NULL-to-zero conversion (e.g. in the application layer, in a view)? What are the trade-offs?
-4. How would you find products that sold below a certain threshold quantity, including those that sold zero?
+**1. Why does `SUM()` return `NULL` instead of `0` for a group with no rows, and why does that matter for this report?**
+
+SQL aggregates ignore `NULL` inputs, and when a group contains no non-NULL values at all (as happens for a never-ordered product after the `LEFT JOIN`), `SUM()` has nothing to add and returns `NULL` rather than `0`. That matters because the business explicitly asked to "display 0" for slow-moving products; leaving `NULL` would show a blank cell, visually hiding exactly the dead inventory the report is meant to highlight. `COALESCE(SUM(...), 0)` supplies the required zero.
+
+**2. Contrast this query's need for `COALESCE` with Q26's `MAX(order_date)`, which didn't need it. What's the underlying principle?**
+
+The principle is whether `NULL` is the correct business answer or a value that must be converted. In Q26, a never-ordered customer genuinely has no "latest order date", so `NULL` is correct and `COALESCE` would be wrong. Here, a never-ordered product has sold zero units — a real quantity of `0`, not an unknown — so the `NULL` the aggregate produces must be converted with `COALESCE`. Same `LEFT JOIN`/all-NULL-group mechanics, opposite correct output.
+
+**3. Where else, besides `COALESCE`, could you handle this NULL-to-zero conversion (e.g. in the application layer, in a view)? What are the trade-offs?**
+
+You could convert in the application/BI layer (e.g. null-coalescing in the reporting tool), or bake it into a view so every consumer sees `0` consistently. Handling it in SQL/`COALESCE` keeps the logic close to the data and guarantees correctness regardless of which client reads it, at the cost of the query being slightly more verbose. Pushing it to the app layer risks each client reimplementing (and some forgetting) the conversion, while a view centralises it but adds a maintained object. `COALESCE` in the query is usually the safest default.
+
+**4. How would you find products that sold below a certain threshold quantity, including those that sold zero?**
+
+Keep the `LEFT JOIN` + `COALESCE(SUM(...), 0)` and filter the aggregate with `HAVING`:
+```sql
+HAVING COALESCE(SUM(od.quantity), 0) < 100
+```
+`HAVING` (not `WHERE`) is required because the filter targets an aggregated value computed after `GROUP BY`. Because `COALESCE` turns never-ordered products into `0`, they fall below any positive threshold and are correctly included in the low-sellers list.
 
 ## 9. Key Takeaway
 

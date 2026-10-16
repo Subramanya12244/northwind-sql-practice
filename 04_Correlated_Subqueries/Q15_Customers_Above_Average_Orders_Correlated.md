@@ -83,10 +83,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Is the subquery in this query correlated or non-correlated? How can you tell?
-2. Why can't you write `HAVING COUNT(order_id) > AVG(COUNT(order_id))` directly?
-3. How does this approach compare in readability and performance to the CTE-based version in Q8?
-4. If this subquery were evaluated once or many times during query execution, which would it be, and why does that matter for performance?
+**1. Is the subquery in this query correlated or non-correlated? How can you tell?**
+
+It is non-correlated. The test is whether the inner query references any column from the outer query's current row — here the subquery `SELECT AVG(order_count) FROM (SELECT COUNT(order_id) ... GROUP BY customer_id) sub` has no reference to `cu` or any outer column. It computes a single global average order count that is identical no matter which customer the outer `HAVING` is currently evaluating. Because of this, PostgreSQL can evaluate it once and reuse the scalar for every group.
+
+**2. Why can't you write `HAVING COUNT(order_id) > AVG(COUNT(order_id))` directly?**
+
+SQL does not allow aggregate functions to be nested directly — `AVG(COUNT(order_id))` is a syntax error because `COUNT` is already an aggregate and you cannot wrap one aggregate inside another in the same query level. To average per-customer counts you must first materialize those counts in a derived table (`SELECT COUNT(order_id) ... GROUP BY customer_id`), then apply `AVG()` to that result set in an outer layer. The two aggregations happen at different grouping grains, which is exactly why they need separate query levels.
+
+**3. How does this approach compare in readability and performance to the CTE-based version in Q8?**
+
+Functionally they are equivalent and typically produce near-identical execution plans, since PostgreSQL inlines simple CTEs and the per-customer counts get computed either way. The CTE version in Q8 is generally more readable because the per-customer count is named once and referenced, rather than buried in a nested derived table inside `HAVING`. Performance differences are usually negligible for a dataset this size; the choice is primarily about clarity and maintainability.
+
+**4. If this subquery were evaluated once or many times during query execution, which would it be, and why does that matter for performance?**
+
+Because it is non-correlated, it is evaluated once — PostgreSQL computes the single global average as an initplan and caches the scalar, reusing it for every group tested in `HAVING`. This matters because a genuinely correlated subquery (like Q18) must re-execute for each outer row, which can be dramatically more expensive on large tables. Recognizing that this one is a constant lets you reason confidently that it adds only a one-time cost.
 
 ## 9. Key Takeaway
 

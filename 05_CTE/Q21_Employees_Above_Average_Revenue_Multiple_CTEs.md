@@ -83,9 +83,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Is `JOIN ... ON >` valid SQL? What would happen if the right-hand CTE returned more than one row?
-2. How is this functionally different from filtering with `WHERE` after a `JOIN ... ON true` or cross join?
-3. Would you recommend this pattern in production code, or is `WHERE` clearer? Justify your answer.
+**1. Is `JOIN ... ON >` valid SQL? What would happen if the right-hand CTE returned more than one row?**
+
+Yes — a `JOIN ... ON` condition accepts any boolean expression, not just equality, so `ON er.total_revenue > ar.avg_rev` is valid. It works cleanly here only because `avg_revenue` is a single-row scalar: each employee is compared once against the one benchmark and kept if above it. If the right side returned multiple rows, the inequality would behave like a non-equi join, matching each employee against every average row that satisfies the comparison and multiplying the result set — an employee above two of three averages would appear twice.
+
+**2. How is this functionally different from filtering with `WHERE` after a `JOIN ... ON true` or cross join?**
+
+Functionally it is identical. Putting the predicate in the `ON` clause of an inner join versus cross-joining and putting the same predicate in `WHERE` produces the same rows, because for an INNER join the planner applies `ON` and `WHERE` conditions equivalently. The difference is only expressive: the `ON >` version encodes the filter as part of the join step, while the cross-join-plus-`WHERE` version separates combining from filtering. (The equivalence breaks only for OUTER joins, where `ON` and `WHERE` behave differently.)
+
+**3. Would you recommend this pattern in production code, or is `WHERE` clearer? Justify your answer.**
+
+For production I would prefer the `WHERE` form (as in Q19). An inequality in a join `ON` clause reads as a join relationship, which misleads a reader into thinking there is a real key linking the tables, when the intent is actually "filter against a benchmark." The `WHERE` version states that intent plainly and is less likely to be copied into a multi-row context where it would silently explode rows. The `ON >` pattern is a useful teaching device but a readability trap in shared code.
 
 ## 9. Key Takeaway
 

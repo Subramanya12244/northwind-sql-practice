@@ -82,8 +82,13 @@ The inner subquery is non-correlated: it recomputes per-employee revenue over *a
 
 ## 8. Interview Follow-ups
 
-1. How would you refactor this and Q16 to avoid duplicating the revenue formula, while still avoiding a full CTE?
-2. What does this query's execution plan likely look like compared to the CTE-based Q7?
+**1. How would you refactor this and Q16 to avoid duplicating the revenue formula, while still avoiding a full CTE?**
+
+You can push the revenue aggregation into a single derived table (an inline subquery in the `FROM` clause) that computes `SUM(unit_price * quantity * (1 - discount))` per employee once, then both filter and compare against its average by joining or by a window function. For example, select from `(SELECT employee_id, SUM(...) AS rev FROM orders JOIN order_details GROUP BY employee_id) t` and apply `AVG(rev) OVER ()` in an outer layer — the formula then appears exactly once. This keeps the logic DRY without introducing a named `WITH` clause, though in practice a CTE achieves the same clarity more readably.
+
+**2. What does this query's execution plan likely look like compared to the CTE-based Q7?**
+
+Both plans will scan `orders` and `order_details`, hash-join them, and aggregate revenue grouped by `employee_id`; this version additionally runs the inner derived table as a one-time initplan to produce the scalar average (it is non-correlated). The CTE-based Q7 computes the per-employee revenue once and references it, so PostgreSQL may compute the aggregation a single time rather than effectively twice. For Northwind's small employee count the cost difference is trivial, but on large data the shared-aggregation plan of the CTE version would be favored.
 
 ## 9. Key Takeaway
 

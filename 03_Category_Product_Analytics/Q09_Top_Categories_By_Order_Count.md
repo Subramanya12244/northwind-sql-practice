@@ -79,10 +79,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why is `DISTINCT` critical in this query but only a defensive habit in Q5?
-2. Is the join to `orders` strictly necessary here? When would it become necessary?
-3. How would you modify this to count orders per category *per year*?
-4. What would happen to this result if a category had products, but none of those products were ever ordered?
+**1. Why is `DISTINCT` critical in this query but only a defensive habit in Q5?**
+
+Here the join chain passes through `order_details`, which holds one row per product line within an order. A single order containing two or more products from the same category produces multiple rows for that order, so `COUNT(o.order_id)` would count that order several times — inflating the category's order reach. `COUNT(DISTINCT o.order_id)` collapses those duplicate rows back to one order. In Q5 the grain does not fan out through a line-item table, so `DISTINCT` there only guards against hypothetical duplication rather than correcting real multiplication.
+
+**2. Is the join to `orders` strictly necessary here? When would it become necessary?**
+
+No. `order_details` already carries `order_id`, so `COUNT(DISTINCT od.order_id)` gives the same result without joining `orders`. The join is kept only for clarity and extensibility. It becomes necessary the moment you need a column that lives only on `orders` — for example filtering by `order_date`, grouping by `ship_country`, or counting orders per year.
+
+**3. How would you modify this to count orders per category *per year*?**
+
+Join `orders` (now required) and add the year to both the SELECT and GROUP BY using `EXTRACT(YEAR FROM o.order_date)` or `DATE_PART('year', o.order_date)`. For example: `GROUP BY c.category_id, c.category_name, EXTRACT(YEAR FROM o.order_date)`, keeping `COUNT(DISTINCT o.order_id)`. Each row then represents one category in one year, and you would typically order by year then order_count.
+
+**4. What would happen to this result if a category had products, but none of those products were ever ordered?**
+
+That category would disappear from the result entirely. The `INNER JOIN` to `order_details` eliminates any product with no matching order lines, so a category with zero ordered products contributes no rows and never reaches the aggregation. To include such categories with an `order_count` of 0, you would switch to `LEFT JOIN` from `categories`/`products` outward and rely on `COUNT(DISTINCT o.order_id)` returning 0 for the unmatched rows.
 
 ## 9. Key Takeaway
 

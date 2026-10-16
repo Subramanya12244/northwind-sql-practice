@@ -75,10 +75,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. What's the risk of `LIMIT` without a preceding `ORDER BY`?
-2. If two customers tie for 10th, would this show both, one, or neither? How to fix?
-3. How would you show top 10 customers per country instead of overall?
-4. What indexes would help this query on a large orders table?
+**1. What's the risk of `LIMIT` without a preceding `ORDER BY`?**
+
+Without `ORDER BY`, `LIMIT 10` returns an arbitrary 10 rows — whatever order the executor happens to emit, which depends on storage, indexes, and plan. You would get *some* 10 customers, not the *top* 10 by revenue. `ORDER BY total_revenue DESC` must sort the full aggregated result first, and only then does `LIMIT` slice off the genuine highest 10.
+
+**2. If two customers tie for 10th, would this show both, one, or neither? How to fix?**
+
+`LIMIT 10` returns exactly 10 rows, so a tie at the 10th spot is broken arbitrarily — one of the tied customers is included and the rest are silently cut. To keep all ties, rank with a window function and filter: `RANK() OVER (ORDER BY total_revenue DESC) AS rnk` in a subquery, then `WHERE rnk <= 10`. `RANK` gives tied rows the same rank so every customer at the cutoff is retained.
+
+**3. How would you show top 10 customers per country instead of overall?**
+
+Use `ROW_NUMBER()` partitioned by country: `ROW_NUMBER() OVER (PARTITION BY cu.country ORDER BY total_revenue DESC) AS rn` over the aggregated per-customer revenue, then filter `WHERE rn <= 10` in an outer query. The partition restarts the ranking within each country, giving a top-10 list per country rather than a single global list that `ORDER BY ... LIMIT 10` produces.
+
+**4. What indexes would help this query on a large orders table?**
+
+An index on `orders.customer_id` speeds the `customers → orders` join, and an index on `order_details.order_id` speeds the `orders → order_details` join (both are the FK columns driving the joins). A covering index on `order_details(order_id, unit_price, quantity, discount)` could let the aggregation read everything from the index. The final `ORDER BY total_revenue` is on a computed aggregate, so no index helps that step — it is sorted in memory after grouping.
 
 ## 9. Key Takeaway
 

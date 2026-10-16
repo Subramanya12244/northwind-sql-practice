@@ -80,10 +80,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. What's the main maintenance risk of this subquery approach compared to the CTE version in Q6?
-2. Why must the revenue calculation be duplicated here, rather than referencing the outer query's computed total directly?
-3. Which version would you choose in a production codebase, and why?
-4. How would query performance compare between this version and the CTE version, in principle?
+**1. What's the main maintenance risk of this subquery approach compared to the CTE version in Q6?**
+
+The revenue formula `SUM(od.unit_price * od.quantity * (1 - od.discount))` appears twice — once in the outer `HAVING` and again inside the nested derived table. If the formula ever changes (for example to add freight or fix the discount handling), you must update both copies identically; updating one and forgetting the other produces a silent logic bug where the per-customer total and the average are computed on different bases. The CTE version in Q6 defines the revenue once and references it, eliminating that drift risk.
+
+**2. Why must the revenue calculation be duplicated here, rather than referencing the outer query's computed total directly?**
+
+The outer query's `total_revenue` alias is a per-customer aggregate for the single group currently being evaluated, whereas the subquery needs the average across *all* customers — a different grouping scope. You cannot reference the outer aggregate alias inside `HAVING`'s comparison value in this structure, and even if you could, it would be the wrong grain. The inner subquery therefore has to independently re-join `orders` and `order_details` and recompute every customer's revenue from scratch to derive the company-wide average.
+
+**3. Which version would you choose in a production codebase, and why?**
+
+The CTE version (Q6), almost always. It computes the revenue expression in one named place, so the logic cannot drift between copies, and it reads top-to-bottom as a clear pipeline. Production code is read and modified far more often than it is written, so the maintainability advantage outweighs the stylistic familiarity of a nested `HAVING` subquery.
+
+**4. How would query performance compare between this version and the CTE version, in principle?**
+
+In principle they are very close: both must scan `orders` and `order_details`, aggregate revenue per customer, and compute the average. PostgreSQL does not cache the CTE result between the two uses unless materialized, and this subquery version likewise computes the average once as an initplan since it is non-correlated. Any real difference comes down to the planner's chosen join order and whether the aggregation is shared, not to the CTE-vs-subquery syntax itself.
 
 ## 9. Key Takeaway
 

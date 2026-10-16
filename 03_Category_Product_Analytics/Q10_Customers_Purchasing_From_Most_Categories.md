@@ -78,9 +78,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. What's the business difference between 'category breadth' (this query) and 'category revenue concentration'?
-2. How would you find customers who buy from *only one* category (the opposite extreme)?
-3. How would you adapt this to also show which specific categories each top customer buys from?
+**1. What's the business difference between 'category breadth' (this query) and 'category revenue concentration'?**
+
+Category breadth — `COUNT(DISTINCT p.category_id)` — measures how many different categories a customer buys across, a diversity/cross-sell signal. Category revenue concentration measures how a customer's spend is distributed across those categories, e.g. whether 90% of revenue comes from one category. A customer can score high on breadth (buys a little from all 8 categories) yet be highly concentrated in revenue, or buy from few categories but spread spend evenly. Breadth answers "how wide", concentration answers "how balanced".
+
+**2. How would you find customers who buy from *only one* category (the opposite extreme)?**
+
+Keep the same join and grouping but filter the aggregate with `HAVING COUNT(DISTINCT p.category_id) = 1`. For example: `... GROUP BY cu.customer_id, cu.company_name HAVING COUNT(DISTINCT p.category_id) = 1`. `HAVING` is required because the condition tests a group-level aggregate, which `WHERE` cannot reference.
+
+**3. How would you adapt this to also show which specific categories each top customer buys from?**
+
+Use `STRING_AGG(DISTINCT c.category_name, ', ' ORDER BY c.category_name)` (joining in `categories`) alongside the count to list category names per customer in one row. Alternatively, return one row per customer-category pair by grouping on both customer and category, or use `ARRAY_AGG(DISTINCT c.category_name)` to get them as an array. To restrict to the top customers first, wrap the top-10 result in a CTE and join back to the detail.
 
 ## 9. Key Takeaway
 

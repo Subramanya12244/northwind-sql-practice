@@ -108,23 +108,23 @@ Same as §3.
 
 **1. Why must the entity counts be calculated before calculating the entity average?**
 
-[Answer will be added after solving.]
+The entity average is defined as `(total_employees + total_suppliers + total_customers) / 3`, so those three counts must exist first. The `total_count_as_per_entity` CTE produces the per-country counts, and only then can `average_entity` combine them into the per-country average. Without the counts, there is nothing to average — the average is a derived metric built on top of the aggregation stage.
 
 **2. How is this different from calculating the average customer count across countries?**
 
-[Answer will be added after solving.]
+Here the average is computed *within each country*, across that country's three entity types (employees, suppliers, customers), giving a per-country benchmark. The "average customer count across countries" (as in Q96) is computed *across countries*, averaging each country's customer count into one global scalar. This question compares a country's customers to its own entity mix; Q96 compares each country's customers to the overall average across all countries.
 
 **3. Could this be solved without a second CTE?**
 
-[Answer will be added after solving.]
+Yes — the per-country average is just an arithmetic expression on the three counts, so it can be computed inline rather than in a separate `average_entity` CTE. You can filter directly in the outer query, e.g. `WHERE total_customers > (total_employee + total_customers + total_suppliers) / 3.0`, or repeat that expression in the `SELECT` to display it. The second CTE mainly improves readability and avoids writing the formula twice.
 
 **4. Why is `UNION ALL` important when calculating entity counts?**
 
-[Answer will be added after solving.]
+`UNION ALL` preserves every source row, which is what the counts depend on. The branches emit only `(country, entity)` pairs, so many rows are identical — every German customer produces the same `('Germany', 'customers')` row. `UNION` would deduplicate these, collapsing all German customers into one row and making the conditional `SUM(CASE ...)` under-count. `UNION ALL` keeps one row per record so each count reflects the true number of entities.
 
 **5. What would happen if one of the entity types did not exist in a country?**
 
-[Answer will be added after solving.]
+Because the counts come from `SUM(CASE WHEN entity = ... THEN 1 ELSE 0 END)`, a missing entity type simply yields 0 for that column — not NULL and not a missing row — as long as the country appears in at least one branch. The average still divides by 3, so a country with zero employees and zero suppliers but many customers gets a low entity_average, making it very likely to pass `total_customers > entity_average`. A country that appears in no branch at all would not show up in the result.
 
 ## 9. Key Takeaway
 

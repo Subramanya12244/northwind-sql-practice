@@ -81,9 +81,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why does pairing `customer_revenue` and `overall_avg` with a comma not produce duplicate rows here?
-2. What would happen if `overall_avg`'s CTE definition accidentally included a `GROUP BY` clause?
-3. How does this two-CTE structure compare in clarity to Q6's single-CTE-plus-subquery version? Which would you choose for a teammate to maintain?
+**1. Why does pairing `customer_revenue` and `overall_avg` with a comma not produce duplicate rows here?**
+
+A comma-join (implicit cross join) multiplies the row counts of the two sides together. Because `overall_avg` uses `AVG(total_revenue)` with no `GROUP BY`, it is an aggregate over the whole CTE and returns exactly one row. One row times N customer rows equals N rows — the single scalar average is simply broadcast onto every customer row, so there is no duplication. If `overall_avg` returned k rows, the result would balloon to N × k rows.
+
+**2. What would happen if `overall_avg`'s CTE definition accidentally included a `GROUP BY` clause?**
+
+A `GROUP BY` would turn the single company-wide average into multiple averages — one per group. The `overall_avg` CTE would then return more than one row, and the comma cross join would match each customer against every average row, multiplying the result set and producing spurious duplicate (and incorrectly-filtered) customers. This is exactly why the §7 pitfall warns to confirm `overall_avg`'s `SELECT` has no `GROUP BY`; it must stay a single scalar for the broadcast to be safe.
+
+**3. How does this two-CTE structure compare in clarity to Q6's single-CTE-plus-subquery version? Which would you choose for a teammate to maintain?**
+
+Both are functionally equivalent and the planner treats them similarly, so the choice is about readability. The two-CTE version names the benchmark (`overall_avg`) as a distinct, self-documenting step, which makes the query read top-to-bottom as "compute per-customer revenue, compute the benchmark, compare." For a teammate maintaining the code, the named-CTE version is usually clearer because each step is isolated and independently inspectable; a scalar subquery buried in the `WHERE` is more compact but hides the benchmark's definition inside the filter.
 
 ## 9. Key Takeaway
 

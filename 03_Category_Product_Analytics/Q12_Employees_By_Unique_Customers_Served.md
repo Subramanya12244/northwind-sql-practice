@@ -74,9 +74,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why does this metric (unique customers served) tell a different story than Q4 (total revenue)? Can you think of an employee profile that would rank high on one but low on the other?
-2. How would you find which customers are served by *more than one* employee?
-3. How would you add a tie-breaker if two employees served the exact same number of unique customers?
+**1. Why does this metric (unique customers served) tell a different story than Q4 (total revenue)? Can you think of an employee profile that would rank high on one but low on the other?**
+
+Unique customers served measures relationship breadth — `COUNT(DISTINCT o.customer_id)` — while revenue measures value generated. An employee who handles many small accounts (lots of distinct customers, each spending little) ranks high here but low on revenue. Conversely, an account manager with a handful of large enterprise customers places few distinct relationships but drives huge revenue, ranking low here and high in Q4. The two signals should be read together, not substituted for each other.
+
+**2. How would you find which customers are served by *more than one* employee?**
+
+Group `orders` by `customer_id` and count distinct employees, then filter with `HAVING`: `SELECT customer_id, COUNT(DISTINCT employee_id) AS emp_count FROM orders GROUP BY customer_id HAVING COUNT(DISTINCT employee_id) > 1`. This flips the aggregation direction — counting distinct employees per customer instead of distinct customers per employee.
+
+**3. How would you add a tie-breaker if two employees served the exact same number of unique customers?**
+
+Add a secondary sort key after the primary ordering, for example `ORDER BY unique_customers DESC, e.last_name ASC` to break ties alphabetically, or order by a meaningful second metric such as `COUNT(o.order_id) DESC` (total orders) or total revenue. Without an explicit tie-breaker, the order of equal-count rows is not deterministic in PostgreSQL.
 
 ## 9. Key Takeaway
 

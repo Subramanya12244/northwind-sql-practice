@@ -119,10 +119,21 @@ ORDER BY category_id, total_qty DESC;
 
 ## 8. Interview Follow-ups
 
-1. Why can't this be solved with a single `GROUP BY category_id` pass?
-2. Walk through the difference between the two-CTE approach and the window function approach. Which would you prefer in production, and why?
-3. What does `PARTITION BY` do differently from `GROUP BY` in the window function version?
-4. How would you adapt this to compare products against the median quantity in their category instead of the mean?
+**1. Why can't this be solved with a single `GROUP BY category_id` pass?**
+
+The comparison requires two different grains at once: each product's own total quantity, and the average of those per-product totals within its category. A single `GROUP BY category_id` collapses all products in a category into one row, destroying the per-product detail needed on the left side of the comparison. You must first aggregate to the product grain, then re-aggregate to the category grain — an aggregate over an aggregate — which a single grouping level cannot express.
+
+**2. Walk through the difference between the two-CTE approach and the window function approach. Which would you prefer in production, and why?**
+
+The two-CTE approach computes per-product totals in `product_qty`, re-aggregates them to a per-category average in `category_avg`, then joins the two back on `category_id` to compare. The window version computes the per-product total once and layers `AVG(SUM(...)) OVER (PARTITION BY category_id)` on top, so the category average rides alongside each product row with no second scan or join. In production I prefer the window function: it reads the aggregated data once, avoids the extra join, and is more idiomatic PostgreSQL — generally cheaper and clearer.
+
+**3. What does `PARTITION BY` do differently from `GROUP BY` in the window function version?**
+
+`GROUP BY` reduces many rows to one row per group, collapsing detail. `PARTITION BY` divides rows into groups for the window calculation but preserves every input row, attaching the per-partition aggregate to each one. That is exactly why the window version works in a single pass: each product row keeps its own `total_qty` while also seeing its category's average in the same row — something `GROUP BY` alone cannot do.
+
+**4. How would you adapt this to compare products against the median quantity in their category instead of the mean?**
+
+Replace the mean with an ordered-set aggregate. In the two-CTE form, compute the category median with `PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY total_qty)` grouped by `category_id`, then join and filter `total_qty > median`. There is no window form of `PERCENTILE_CONT` as a plain `OVER()` aggregate in standard PostgreSQL, so the CTE-plus-join structure (or a correlated subquery) is the natural way to carry the per-category median back for comparison.
 
 ## 9. Key Takeaway
 

@@ -126,23 +126,23 @@ Same as §3.
 
 **1. Why is `UNION ALL` preferable to `UNION` for this type of aggregation?**
 
-[Answer will be added after solving.]
+`UNION ALL` keeps every row, which is exactly what counting requires. Here each branch produces only `(country, entity)` pairs, so many rows are identical — e.g. every USA employee yields the same `('USA', 'employees')` row. `UNION` would deduplicate those identical rows, collapsing all USA employees into a single row and making `SUM(CASE WHEN entity = 'employees' THEN 1 ELSE 0 END)` return 1 instead of 5. `UNION ALL` preserves one row per source record, so the counts are correct.
 
 **2. How can you verify that a country contains all three entity types?**
 
-[Answer will be added after solving.]
+After the `UNION ALL` + `GROUP BY country`, compute a per-entity count with `SUM(CASE WHEN entity = ... THEN 1 ELSE 0 END)` for employees, suppliers, and customers. A country is "balanced" only when all three of those aggregate counts are greater than zero. The `HAVING` clause enforces this by requiring each `SUM(CASE ...) != 0`, so any country missing even one entity type is dropped.
 
 **3. Could this problem be solved using three separate CTEs and joins?**
 
-[Answer will be added after solving.]
+Yes — you could build one CTE per entity (`SELECT country, COUNT(*) FROM employees GROUP BY country`, etc.) and `INNER JOIN` them on `country`. Because an inner join only keeps countries present in all three, the join itself enforces the "all three entity types" rule, removing the need for the `HAVING` check. The `UNION ALL` + conditional aggregation approach is more compact and scans each source once, but the three-CTE join is often more readable and extends naturally if you need entity-specific columns.
 
 **4. Why is conditional aggregation useful for this problem?**
 
-[Answer will be added after solving.]
+Conditional aggregation (`SUM(CASE WHEN entity = ... THEN 1 ELSE 0 END)`) lets you produce three separate counts from a single pass over one combined, grouped dataset. Instead of three queries or three joins, each `CASE` acts as a filter that contributes 1 only for its own entity type, so one `GROUP BY country` yields `total_employees`, `total_suppliers`, and `total_customers` side by side — perfect for both display and the `HAVING` filter.
 
 **5. What is the difference between filtering with `WHERE` and filtering the aggregated result with `HAVING`?**
 
-[Answer will be added after solving.]
+`WHERE` filters individual rows before grouping and aggregation, so it cannot reference `SUM`/`COUNT` results. `HAVING` filters after `GROUP BY`, operating on the aggregate values. The balanced-country condition depends on per-entity counts that only exist after aggregation, so it must live in `HAVING` (`HAVING SUM(CASE ...) != 0`). Trying to express it in `WHERE` would be impossible because the counts do not yet exist at that stage.
 
 ## 9. Key Takeaway
 

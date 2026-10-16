@@ -77,9 +77,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. For this specific query, is there any performance difference between using a CTE and writing the aggregation inline? Why might a CTE still be preferable stylistically?
-2. At what point does a CTE stop being 'just style' and start mattering functionally?
-3. How would you extend this CTE to also calculate each customer's rank, not just filter to the top 5?
+**1. For this specific query, is there any performance difference between using a CTE and writing the aggregation inline? Why might a CTE still be preferable stylistically?**
+
+For a single-use case like this there is effectively no performance difference — since PostgreSQL 12, CTEs are inlined (optimization-fenced only with `MATERIALIZED`), so the planner produces the same plan as the inline aggregation. The CTE is preferable stylistically because it separates the "what the data is" step (`customer_revenue`) from the "what we do with it" step (`ORDER BY ... LIMIT 5`), making the query easier to read, test one layer at a time, and extend later.
+
+**2. At what point does a CTE stop being 'just style' and start mattering functionally?**
+
+A CTE becomes functionally necessary when its result must be referenced more than once — for example comparing per-customer revenue against the average derived from that same set (as in Q19), or chaining aggregate-then-rank-then-filter steps (Q22–Q24). Recursive queries (`WITH RECURSIVE`) are another case where a CTE is the only option. Once you need reuse, recursion, or a `MATERIALIZED` optimization fence, the CTE is doing real work rather than just improving readability.
+
+**3. How would you extend this CTE to also calculate each customer's rank, not just filter to the top 5?**
+
+Add a window function in a wrapping select instead of using `LIMIT`. Keep `customer_revenue` as is, then select `RANK() OVER (ORDER BY total_revenue DESC) AS revenue_rank` alongside the columns, and filter `WHERE revenue_rank <= 5` in an outer query (window functions can't go directly in `WHERE`, so wrap the ranked select in another CTE or subquery). Using `RANK()` also surfaces ties at the boundary, whereas `LIMIT 5` arbitrarily cuts at exactly five rows.
 
 ## 9. Key Takeaway
 

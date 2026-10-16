@@ -76,11 +76,25 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why `order_details.unit_price` instead of `products.unit_price` for revenue?
-2. How would the query change for revenue *before* discounts?
-3. Would a never-ordered product appear in this output? Why/why not?
-4. How would you add quantity sold alongside revenue?
-5. If `discount` could be `NULL`, how would that affect the calc and how do you defend against it?
+**1. Why `order_details.unit_price` instead of `products.unit_price` for revenue?**
+
+`order_details.unit_price` records the price actually charged at the moment of each sale, while `products.unit_price` is the current catalog price that may have changed since. Historical revenue must reflect what the customer actually paid, so the transaction-level price is authoritative. Using `products.unit_price` would silently restate past sales at today's prices whenever a product's price has been updated.
+
+**2. How would the query change for revenue *before* discounts?**
+
+Drop the `(1 - od.discount)` factor and sum `od.unit_price * od.quantity` instead: `ROUND(SUM(od.unit_price * od.quantity)::numeric, 2)`. This gives gross (list) revenue rather than net revenue after line-item discounts. Everything else — the `JOIN`, `GROUP BY p.product_id, p.product_name`, and ordering — stays the same.
+
+**3. Would a never-ordered product appear in this output? Why/why not?**
+
+No. The `INNER JOIN` between `products` and `order_details` only keeps products that have at least one matching line item, so a product that was never ordered is dropped. To include it with a `total_revenue` of 0 (or `NULL`), switch to `LEFT JOIN products → order_details` and wrap the sum in `COALESCE(SUM(...), 0)`.
+
+**4. How would you add quantity sold alongside revenue?**
+
+Add `SUM(od.quantity) AS total_quantity` to the SELECT list; it aggregates at the same product grain as the revenue sum, so no change to `GROUP BY` is needed. This lets you compare units moved against revenue earned — useful for spotting high-volume, low-margin products.
+
+**5. If `discount` could be `NULL`, how would that affect the calc and how do you defend against it?**
+
+`(1 - NULL)` evaluates to `NULL`, so that line's contribution becomes `NULL` and `SUM` would silently skip it, understating the product's revenue. In Northwind `discount` is `NOT NULL` with a default of 0, but to defend against it use `COALESCE(od.discount, 0)` inside the formula so a missing discount is treated as no discount.
 
 ## 9. Key Takeaway
 

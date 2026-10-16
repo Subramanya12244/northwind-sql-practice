@@ -75,9 +75,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. What's the difference between 'revenue handled by a shipper' and 'shipping cost (freight) paid to a shipper'? Which does this query compute?
-2. How would you find the average order value per shipper instead of total revenue?
-3. If some orders have a `NULL` `ship_via`, how would that affect this query's totals, and how would you account for those orders?
+**1. What's the difference between 'revenue handled by a shipper' and 'shipping cost (freight) paid to a shipper'? Which does this query compute?**
+
+Revenue handled is the total order value flowing through that shipper — the sum of line-item revenue `unit_price * quantity * (1 - discount)` from `order_details`. Freight (`orders.freight`) is the shipping charge for carrying the order, a cost rather than merchandise value. This query computes revenue handled, because it sums `order_details` revenue. Summing `orders.freight` would instead answer "how much freight was billed on orders this shipper carried" — a completely different number.
+
+**2. How would you find the average order value per shipper instead of total revenue?**
+
+Order value lives at the line-item grain, so first aggregate revenue to one total per order, then average those totals per shipper. Use a CTE/subquery: `SELECT o.ship_via, o.order_id, SUM(od.unit_price*od.quantity*(1-od.discount)) AS order_value FROM orders o JOIN order_details od ... GROUP BY o.ship_via, o.order_id`, then `SELECT ship_via, AVG(order_value) ... GROUP BY ship_via`. Averaging the raw line items directly would give average line value, not average order value.
+
+**3. If some orders have a `NULL` `ship_via`, how would that affect this query's totals, and how would you account for those orders?**
+
+An `INNER JOIN` on `o.ship_via = s.shipper_id` silently drops every order whose `ship_via` is NULL, since NULL matches no shipper_id. Those orders' revenue simply never appears under any shipper, so the grand total is understated. To account for them, `LEFT JOIN` from `orders` to `shippers` and use `COALESCE(s.company_name, 'Unknown/Unshipped')` so NULL-shipper revenue is grouped into its own bucket rather than vanishing.
 
 ## 9. Key Takeaway
 

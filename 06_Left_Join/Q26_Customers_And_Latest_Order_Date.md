@@ -72,10 +72,29 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why does `MAX()` correctly return `NULL` for a customer with no orders, without any extra `CASE`/`COALESCE` logic?
-2. What's PostgreSQL's default `NULL` sort position with `ASC` vs `DESC`, and why does that matter for this query?
-3. How would you write this for a database where `NULLS LAST` isn't supported (e.g. MySQL or older SQL Server)?
-4. How would you modify this to also flag customers who haven't ordered in over a year (but have ordered at least once)?
+**1. Why does `MAX()` correctly return `NULL` for a customer with no orders, without any extra `CASE`/`COALESCE` logic?**
+
+For a no-order customer, the `LEFT JOIN` produces a group in which every `o.order_date` value is `NULL`. Like all standard aggregates except `COUNT`, `MAX()` ignores `NULL` inputs; when there are no non-NULL values at all, `MAX()` itself returns `NULL`. Since `NULL` is the semantically correct answer here ("this customer has no latest order date"), no `CASE` or `COALESCE` is needed — the default behaviour already matches the requirement.
+
+**2. What's PostgreSQL's default `NULL` sort position with `ASC` vs `DESC`, and why does that matter for this query?**
+
+In PostgreSQL, `NULL` sorts last under `ASC` and first under `DESC` by default. Because this report uses `ORDER BY latest_order_date DESC`, the default would float every never-ordered customer (NULL date) to the top of a "most recent first" list — the opposite of useful. Adding `NULLS LAST` overrides that default so the NULLs sink to the bottom where they belong.
+
+**3. How would you write this for a database where `NULLS LAST` isn't supported (e.g. MySQL or older SQL Server)?**
+
+Emulate it by adding a leading sort key that flags NULLs: `ORDER BY (latest_order_date IS NULL), latest_order_date DESC`. The boolean expression evaluates to `0`/`false` for real dates and `1`/`true` for NULLs, so non-NULL rows sort first, then the dates sort descending within them. In MySQL you can also use `ORDER BY latest_order_date IS NULL, latest_order_date DESC`; some engines use the `ISNULL()`/`CASE WHEN ... IS NULL THEN 1 ELSE 0 END` equivalent.
+
+**4. How would you modify this to also flag customers who haven't ordered in over a year (but have ordered at least once)?**
+
+Add a `CASE` expression comparing `MAX(o.order_date)` against a cutoff, guarding against the no-order NULL case:
+```sql
+CASE
+    WHEN MAX(o.order_date) IS NULL THEN 'Never ordered'
+    WHEN MAX(o.order_date) < CURRENT_DATE - INTERVAL '1 year' THEN 'Lapsed (>1yr)'
+    ELSE 'Active'
+END AS status
+```
+This distinguishes never-ordered customers from lapsed ones, since both are "at risk" but need different outreach. (Note Northwind dates are historical, so the cutoff would be relative to the dataset's own max date in practice.)
 
 ## 9. Key Takeaway
 

@@ -87,11 +87,25 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. What makes this subquery correlated, specifically? Point to the exact clause.
-2. How does the average computed in this query differ conceptually from the average computed in Q6?
-3. Why does pre-aggregating into a CTE before applying the correlated filter help performance, even though the subquery is still technically correlated?
-4. How would you rewrite this using a window function (e.g. `AVG(...) OVER (PARTITION BY employee_id)`) instead of a correlated subquery? What would change?
-5. If an employee has only one customer, would that customer ever appear in this result? Why or why not?
+**1. What makes this subquery correlated, specifically? Point to the exact clause.**
+
+The clause `WHERE ecr2.employee_id = ecr.employee_id` is what makes it correlated — `ecr.employee_id` is a column from the outer query's current row, referenced inside the inner query. Because the inner query depends on that outer value, it cannot be evaluated once and cached; it must be logically re-evaluated for each distinct employee, computing that employee's own customer-revenue average each time. Remove that clause and the subquery becomes non-correlated, collapsing to a single global average.
+
+**2. How does the average computed in this query differ conceptually from the average computed in Q6?**
+
+Q6 compares each customer against the *company-wide* average revenue across all customers — one global benchmark for everyone. This query compares each customer against the average only within a single employee's own portfolio, so the benchmark is different for every employee. The grain of comparison is narrower: a customer could be above average for one employee's book of business but below the company-wide figure, and vice versa.
+
+**3. Why does pre-aggregating into a CTE before applying the correlated filter help performance, even though the subquery is still technically correlated?**
+
+The CTE `employee_customer_revenue` computes the expensive `orders`/`order_details` join and revenue sum once, producing a compact set of employee-customer rows. The correlated subquery then re-scans that small pre-aggregated set per outer row instead of re-running the full join and aggregation each time. So the correlation cost is paid against a tiny intermediate result rather than the raw detail tables, which is far cheaper and much more readable.
+
+**4. How would you rewrite this using a window function (e.g. `AVG(...) OVER (PARTITION BY employee_id)`) instead of a correlated subquery? What would change?**
+
+Add `AVG(revenue) OVER (PARTITION BY employee_id)` as a column computed over the pre-aggregated CTE, then filter in an outer query where `revenue > that windowed average`. For example: `SELECT * FROM (SELECT employee_id, customer_id, revenue, AVG(revenue) OVER (PARTITION BY employee_id) AS emp_avg FROM employee_customer_revenue) t WHERE revenue > emp_avg`. This computes each employee's average in a single pass rather than re-executing a subquery per row, so it is typically faster and arguably clearer; you need the extra outer wrapper because window functions cannot be used directly in `WHERE`.
+
+**5. If an employee has only one customer, would that customer ever appear in this result? Why or why not?**
+
+No. With a single customer, that customer's revenue *is* the employee's average, so the strict comparison `revenue > AVG(revenue)` is never satisfied (a value cannot be greater than itself). The customer would only qualify under a `>=` comparison. This is the general behavior at the boundary: strictly-above-average filters always exclude the sole or tied-maximum member of a group.
 
 ## 9. Key Takeaway
 

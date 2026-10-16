@@ -74,10 +74,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why is `products` necessary — couldn't we join `order_details` to `categories` directly?
-2. How would you show each category's revenue as a percentage of total company revenue?
-3. Aggregating at category level directly vs product-level-then-sum — would results differ?
-4. How would you handle a category that exists but has no products?
+**1. Why is `products` necessary — couldn't we join `order_details` to `categories` directly?**
+
+No. `order_details` has no `category_id`; it only references `product_id`. The link from a sold line item to its category runs through `products`, which carries both `product_id` and `category_id`. `products` is therefore the bridge table — without it there is no shared key to join `order_details` and `categories`.
+
+**2. How would you show each category's revenue as a percentage of total company revenue?**
+
+Compute each category's revenue, then divide by the grand total using a window function: `ROUND(100.0 * category_revenue / SUM(category_revenue) OVER (), 2) AS pct_of_total`. The empty `OVER ()` window spans all category rows, giving the company-wide denominator without a separate subquery or self-join.
+
+**3. Aggregating at category level directly vs product-level-then-sum — would results differ?**
+
+No, the totals are identical. `SUM` is associative, so summing all line items grouped by category gives the same result as first summing per product and then rolling those per-product totals up to the category. The single-pass category grouping shown here is simpler and avoids an unnecessary intermediate aggregation.
+
+**4. How would you handle a category that exists but has no products?**
+
+Under the current `INNER JOIN` chain such a category is dropped, since it has no matching products or line items. To show it with `total_revenue` of 0, use `LEFT JOIN` from `categories` outward (`categories LEFT JOIN products LEFT JOIN order_details`) and wrap the sum in `COALESCE(SUM(...), 0)` so empty categories report 0 rather than `NULL`.
 
 ## 9. Key Takeaway
 

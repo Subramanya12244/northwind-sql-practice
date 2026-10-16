@@ -94,10 +94,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why does `RANK()` handle ties better than `ROW_NUMBER()` in this scenario?
-2. What would `DENSE_RANK()` do differently here, and would it matter for this particular query?
-3. How would you rewrite this without window functions, using only a CTE and a `MAX()`/join pattern?
-4. How would this query change if you wanted the top 3 products per category, not just the top 1 (handling ties at the boundary)?
+**1. Why does `RANK()` handle ties better than `ROW_NUMBER()` in this scenario?**
+
+When two products in a category have identical top revenue, `ROW_NUMBER()` still assigns them distinct sequential numbers (1 and 2), so filtering on `= 1` keeps only one and silently drops the other legitimate winner. `RANK()` gives both tied rows the same rank of 1, so `WHERE rnk = 1` returns every product tied for first. Since the requirement explicitly asks for "product(s)" and must handle ties gracefully, `RANK()` is the correct choice.
+
+**2. What would `DENSE_RANK()` do differently here, and would it matter for this particular query?**
+
+`DENSE_RANK()` differs from `RANK()` only in how it numbers ranks *after* a tie: `RANK()` leaves gaps (1,1,3) while `DENSE_RANK()` does not (1,1,2). Because this query filters on `rnk = 1` and never looks at ranks beyond first place, the gap behavior is irrelevant — both return exactly the same set of top-tied products. The distinction would only matter if you were selecting rank 2, 3, etc.
+
+**3. How would you rewrite this without window functions, using only a CTE and a `MAX()`/join pattern?**
+
+Build the `product_revenue` CTE as before, then add a second CTE computing `MAX(total_revenue) AS max_rev` grouped by `category_id`. Join the product CTE to that max CTE on `category_id` and filter `WHERE pr.total_revenue = m.max_rev`. This naturally keeps all tied products too, but relies on exact equality of floating-point revenue sums, which is fragile — rounding to numeric first, or using the `RANK()` approach, avoids that pitfall.
+
+**4. How would this query change if you wanted the top 3 products per category, not just the top 1 (handling ties at the boundary)?**
+
+Change only the final filter from `WHERE rnk = 1` to `WHERE rnk <= 3`. With `RANK()`, ties at the boundary are included — if several products tie for rank 3 they all appear, possibly yielding more than three rows per category. If you instead wanted exactly three regardless of ties, you would use `ROW_NUMBER()` and `<= 3`; if you wanted three *distinct revenue levels* including all ties within them, `DENSE_RANK() <= 3`.
 
 ## 9. Key Takeaway
 

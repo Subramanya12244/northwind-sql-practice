@@ -66,10 +66,29 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. How is this query structurally identical to Q28? What's the only thing that changes?
-2. What real-world business scenarios could explain a product showing up in this result — and how would you investigate further?
-3. If `products` had millions of rows and `order_details` had hundreds of millions, how would you tune this query for performance?
-4. How would you combine this with Q27 to show both 'never ordered' products and their listing price, to prioritize a discontinuation review?
+**1. How is this query structurally identical to Q28? What's the only thing that changes?**
+
+Both follow the same anti-join skeleton: `LEFT JOIN <parent> to <child>`, then `WHERE <child>.<key> IS NULL` to keep only parents with no matching child. Q28 applies it to `customers`/`orders`; this applies it to `products`/`order_details`. The join type, the `IS NULL` filter, and the overall shape are identical — only the table and column names change. Once the anti-join pattern is internalised, it transfers directly to any "entity with no matching child row" question.
+
+**2. What real-world business scenarios could explain a product showing up in this result — and how would you investigate further?**
+
+A product with zero order lines could be genuinely new (not yet sold — monitor it), discontinued by the supplier but still in the catalog (archive/flag inactive), mispriced or poorly positioned (review pricing before delisting), seasonal and checked off-season (re-check later), or a data issue such as a duplicate `product_id` where real sales were recorded against a different row. The SQL only confirms *that* there are no matching order lines; distinguishing the cause requires checking the product's creation date, supplier status, and price against business context.
+
+**3. If `products` had millions of rows and `order_details` had hundreds of millions, how would you tune this query for performance?**
+
+Ensure `order_details.product_id` is indexed, since it is both the join and filter column. At that scale prefer `NOT EXISTS` over `LEFT JOIN ... IS NULL`, because it lets the planner stop scanning a product's order lines as soon as one match is found rather than materialising join rows for every product first. Select only the needed columns (avoid `SELECT *`), and run `EXPLAIN ANALYZE` to confirm the planner picks an efficient hash anti-join rather than a slow nested loop.
+
+**4. How would you combine this with Q27 to show both 'never ordered' products and their listing price, to prioritize a discontinuation review?**
+
+Since these products have no `order_details` rows, there is no historical revenue to compute — instead surface the current catalog price and sort by it:
+```sql
+SELECT p.product_id, p.product_name, p.unit_price AS list_price
+FROM products p
+LEFT JOIN order_details od ON od.product_id = p.product_id
+WHERE od.order_id IS NULL
+ORDER BY p.unit_price DESC;
+```
+Sorting by `list_price DESC` puts the highest-priced never-sold items first — typically the most urgent discontinuation or repricing candidates, since they tie up the most potential value per unit with zero turnover.
 
 ## 9. Key Takeaway
 

@@ -93,9 +93,17 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. How is this query different from Q14, if at all? What does the extra `categories` join add?
-2. Why does adding `category_name` not change the underlying ranking logic?
-3. If `categories` had duplicate `category_id` values (a data quality problem), how would that affect this query?
+**1. How is this query different from Q14, if at all? What does the extra `categories` join add?**
+
+The analytical logic is identical — aggregate revenue per product, then `RANK() OVER (PARTITION BY category_id ORDER BY total_revenue DESC)` and filter `rnk = 1`. The only difference is the join to `categories` in the final SELECT, which replaces the raw `category_id` foreign key with the human-readable `category_name`. It is a presentation enhancement for report readers, not a change to how the top product per category is determined.
+
+**2. Why does adding `category_name` not change the underlying ranking logic?**
+
+The ranking is computed entirely inside the `ranked` CTE from `category_id` and `total_revenue`, before `categories` is ever touched. Each `category_id` maps to exactly one `category_name`, so the join is a one-to-one lookup that attaches a label without adding, removing, or reordering rows. The partition key and ordering metric are unaffected, so the set of `rnk = 1` products is the same with or without the name.
+
+**3. If `categories` had duplicate `category_id` values (a data quality problem), how would that affect this query?**
+
+The final `JOIN categories c ON c.category_id = r.category_id` would match each ranked product against every duplicate category row, multiplying the output — a single top product in a category with two matching category rows would appear twice. The ranking itself would still be correct (it runs before the join), but the presentation layer would show duplicated rows. A `UNIQUE`/primary-key constraint on `categories.category_id` prevents this; as a defensive measure you could deduplicate or use `DISTINCT ON` in the lookup.
 
 ## 9. Key Takeaway
 

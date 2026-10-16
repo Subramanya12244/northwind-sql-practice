@@ -102,23 +102,23 @@ Same as §3.
 
 **1. Why is `LIMIT 1` not tie-safe for this problem?**
 
-[Answer will be added after solving.]
+`LIMIT 1` returns exactly one row even when several countries share the same highest customer count. If, say, two countries both had 13 customers, `ORDER BY total_cust DESC LIMIT 1` would arbitrarily keep only one and silently drop the other. Comparing `t.total_cust = m.max_count` instead returns every country whose count equals the maximum, so all tied leaders appear — which is exactly what the requirement asks for.
 
 **2. At what stage should the average customer count be calculated?**
 
-[Answer will be added after solving.]
+It must be calculated at the per-country level, after the raw customer rows have been reduced to one count per country. In this solution the `total_count` CTE produces one `total_cust` per country, and `avg_count` runs `AVG(total_cust)` over *those* counts. Computing an average directly from the raw `customers` table would average over customer rows rather than over countries and give a meaningless benchmark.
 
 **3. Why must the maximum be calculated after filtering countries above the average?**
 
-[Answer will be added after solving.]
+Logically the goal is the maximum *among qualifying (above-average) countries*. In this dataset the global maximum is always above the average, so computing `MAX(total_cust)` over all countries and then also requiring `total_cust > avg_count` produces the correct result. But conceptually the max should describe the qualifying set — if you ever changed the qualification rule, taking the max first over all countries could point at a country that does not actually satisfy the condition, so order matters whenever the top value might itself be excluded.
 
 **4. How could a window function simplify this problem?**
 
-[Answer will be added after solving.]
+You could collapse the extra CTEs into one pass: `SELECT country, total_cust, AVG(total_cust) OVER () AS avg_count, MAX(total_cust) OVER () AS max_count FROM total_count`. The `OVER ()` window computes the average and maximum across all per-country rows while keeping every row, so no `CROSS JOIN` is needed. You then wrap it in an outer query (or `QUALIFY` where supported) filtering `total_cust > avg_count AND total_cust = max_count`.
 
 **5. What is the difference between finding the maximum customer count across all countries and finding the maximum customer count among countries above average?**
 
-[Answer will be added after solving.]
+The maximum across all countries considers every country, including those below the average. The maximum among above-average countries first restricts the candidate set to qualifying countries and then finds the top value within that subset. The two coincide only when the overall maximum country is itself above average (as it is in Northwind), but they are conceptually different filters and can diverge if the qualification rule changes.
 
 ## 9. Key Takeaway
 

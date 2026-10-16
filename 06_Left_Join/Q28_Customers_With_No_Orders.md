@@ -69,10 +69,28 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why is `NOT IN` risky here if `orders.customer_id` could contain NULLs? Walk through exactly what happens.
-2. What's the performance difference, conceptually, between `LEFT JOIN ... WHERE IS NULL` and `NOT EXISTS`?
-3. Why specifically filter on `o.order_id IS NULL` rather than any other column from `orders`?
-4. How would you write this same logic using a `RIGHT JOIN` instead, if the table order in `FROM` were reversed?
+**1. Why is `NOT IN` risky here if `orders.customer_id` could contain NULLs? Walk through exactly what happens.**
+
+`NOT IN (SELECT customer_id FROM orders)` is internally a chain of `<>` comparisons joined by `AND`. If the subquery list contains even one `NULL`, then for every candidate customer the comparison `candidate <> NULL` evaluates to `NULL` (unknown), not `TRUE`. Since `NOT IN` requires *all* comparisons to be `TRUE`, the presence of that one `NULL` makes the whole predicate `NULL` for every row, so the query returns an empty result set — not a wrong subset, but zero rows entirely. The anti-join (`LEFT JOIN ... IS NULL`) and `NOT EXISTS` don't have this flaw.
+
+**2. What's the performance difference, conceptually, between `LEFT JOIN ... WHERE IS NULL` and `NOT EXISTS`?**
+
+`LEFT JOIN ... WHERE o.order_id IS NULL` logically builds all matching join rows first, then discards the matched ones, keeping only the NULL-padded leftovers. `NOT EXISTS` is a semi/anti-join that can short-circuit — it stops scanning a customer's orders the moment it finds one match. In practice, modern PostgreSQL often plans both as the same hash/anti-join and performance is comparable, but `NOT EXISTS` expresses intent more directly and can be faster on large `orders` tables with an index on `customer_id`.
+
+**3. Why specifically filter on `o.order_id IS NULL` rather than any other column from `orders`?**
+
+When no match is found, the `LEFT JOIN` NULL-pads *every* `orders` column, so in principle any of them could be tested. `order_id` is chosen because it is the primary key and therefore guaranteed non-NULL in any real matched row — so `o.order_id IS NULL` reliably means "no order matched" and can never give a false positive. A nullable column (e.g. `shipped_date`, which can be NULL even on a real order) would incorrectly flag genuine customers as having no orders.
+
+**4. How would you write this same logic using a `RIGHT JOIN` instead, if the table order in `FROM` were reversed?**
+
+Put `orders` first and `customers` second, then RIGHT JOIN so `customers` is still the preserved side:
+```sql
+SELECT cu.customer_id, cu.company_name
+FROM orders o
+RIGHT JOIN customers cu ON o.customer_id = cu.customer_id
+WHERE o.order_id IS NULL;
+```
+This is logically identical to the `LEFT JOIN` version — the preserved table (`customers`) is just named on the right. `LEFT JOIN` with `customers` first is generally preferred for readability.
 
 ## 9. Key Takeaway
 

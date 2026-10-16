@@ -73,10 +73,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. What's the difference between `COUNT(*)` and `COUNT(column_name)` in the context of a `LEFT JOIN`? Why does it matter here specifically?
-2. What would happen to this result if `INNER JOIN` were used instead of `LEFT JOIN`?
-3. How would you modify this query to show only customers with zero orders (rather than all customers with their counts)?
-4. Would the choice between `LEFT JOIN` and `RIGHT JOIN` matter here if the table order in `FROM`/`JOIN` were swapped? Explain.
+**1. What's the difference between `COUNT(*)` and `COUNT(column_name)` in the context of a `LEFT JOIN`? Why does it matter here specifically?**
+
+`COUNT(*)` counts every row, including the NULL-padded row a `LEFT JOIN` produces for an unmatched customer, while `COUNT(column_name)` counts only rows where that column is non-NULL. For a customer with no orders, the join yields one row with `o.order_id = NULL`; `COUNT(*)` reports `1` (wrong), but `COUNT(o.order_id)` ignores the NULL and reports `0` (correct). This is why counting the joined-table column is essential whenever `LEFT JOIN` can introduce NULL rows.
+
+**2. What would happen to this result if `INNER JOIN` were used instead of `LEFT JOIN`?**
+
+`INNER JOIN` only keeps rows that match on both sides, so every customer with zero matching rows in `orders` would be dropped entirely. The report would show only customers who have placed at least one order, silently omitting exactly the never-ordered accounts the customer success team needs for outreach. This defeats the entire purpose of the query.
+
+**3. How would you modify this query to show only customers with zero orders (rather than all customers with their counts)?**
+
+Switch from aggregation to an anti-join filter: keep the `LEFT JOIN customers → orders` and add `WHERE o.order_id IS NULL`, selecting just `customer_id` and `company_name` (no `GROUP BY`/`COUNT` needed). The `IS NULL` test isolates customers for whom no matching order row was found. This is the pattern covered in Q28.
+
+**4. Would the choice between `LEFT JOIN` and `RIGHT JOIN` matter here if the table order in `FROM`/`JOIN` were swapped? Explain.**
+
+No — `LEFT` and `RIGHT` JOIN are mirror images; what matters is which table must be fully preserved. `customers LEFT JOIN orders` and `orders RIGHT JOIN customers` produce identical results because both keep every customer and NULL-pad the missing orders. The convention is to start from the table you want to preserve and use `LEFT JOIN`, which reads more naturally, but a `RIGHT JOIN` with reversed table order is logically equivalent.
 
 ## 9. Key Takeaway
 

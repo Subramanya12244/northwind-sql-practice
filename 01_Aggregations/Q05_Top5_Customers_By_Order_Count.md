@@ -71,10 +71,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why is `COUNT(DISTINCT order_id)` a safer default than plain `COUNT(order_id)`?
-2. What's the business difference between a customer here vs the Q03 top-revenue list?
-3. How would you extend this to average order count per segment/region?
-4. If you joined `order_details`, what would break and how would you fix it?
+**1. Why is `COUNT(DISTINCT order_id)` a safer default than plain `COUNT(order_id)`?**
+
+With only `customers` joined to `orders`, each order appears once per customer so the two forms are equivalent here. But if the query is later extended to join `order_details` (which has one row per line item), plain `COUNT(order_id)` would count each order once per line item and massively inflate the totals. `COUNT(DISTINCT order_id)` always counts each order exactly once regardless of how the join fans out — a defensive habit that stays correct as the query grows.
+
+**2. What's the business difference between a customer here vs the Q03 top-revenue list?**
+
+This list ranks by *frequency* (how many orders placed), while Q03 ranks by *value* (total discounted revenue). A high-frequency customer may place many small orders (low basket size), whereas a high-revenue customer may place few large orders. The lists can differ sharply — e.g. SAVEA leads on order count here but QUICK leads on revenue in Q03 — and conflating the two metrics leads to the wrong retention or upsell strategy.
+
+**3. How would you extend this to average order count per segment/region?**
+
+First aggregate order count per customer (as here), then average those counts grouped by the segment attribute — e.g. wrap this query as a CTE and run `SELECT country, AVG(order_count) FROM per_customer GROUP BY country`, joining back to `customers.country` or `customers.region`. The two-step aggregation (count per customer, then average per segment) avoids mixing grains in a single pass.
+
+**4. If you joined `order_details`, what would break and how would you fix it?**
+
+`order_details` has one row per line item per order, so joining it multiplies each order's row by its number of line items. A plain `COUNT(o.order_id)` would then count every line item, wildly overstating the order count. The fix is `COUNT(DISTINCT o.order_id)`, which collapses the fanned-out rows back to one per order — exactly why `DISTINCT` is used defensively even when no fan-out exists yet.
 
 ## 9. Key Takeaway
 

@@ -88,10 +88,21 @@ Same as §3.
 
 ## 8. Interview Follow-ups
 
-1. Why is `LIMIT 1` the wrong tool here, given the tie-handling requirement?
-2. Walk through what each of the three CTEs is responsible for, and why splitting them this way aids readability.
-3. How would you adapt this to find the top employee per *region* rather than company-wide?
-4. Could this be solved with `RANK()` instead of comparing to `MAX()`? What would change?
+**1. Why is `LIMIT 1` the wrong tool here, given the tie-handling requirement?**
+
+`ORDER BY total_revenue DESC LIMIT 1` returns exactly one row regardless of ties, so if two employees had identical top revenue it would arbitrarily keep one and silently drop the other — violating the explicit requirement that both tied employees be returned. Comparing against `MAX(total_revenue)` with equality instead returns every employee whose revenue equals the maximum, so all tied top performers surface automatically.
+
+**2. Walk through what each of the three CTEs is responsible for, and why splitting them this way aids readability.**
+
+`employee_revenue` aggregates discounted revenue per employee (the detail layer). `max_revenue` reduces that detail to a single scalar — the company-wide highest revenue. `ranked_employees` joins the detail back to that scalar on equality (`total_revenue = max_rev`), keeping only the employee(s) at the maximum. Each CTE has one responsibility — aggregate, reduce, filter — so the query reads top-to-bottom as a pipeline and any layer can be inspected in isolation when debugging.
+
+**3. How would you adapt this to find the top employee per *region* rather than company-wide?**
+
+Switch from the scalar-MAX approach to a partitioned window function, since the "maximum" is now per group. Carry `region` through `employee_revenue`, then apply `RANK() OVER (PARTITION BY region ORDER BY total_revenue DESC)` and filter `rnk = 1`. That returns each region's top employee(s), ties included — the same partitioned-ranking pattern used in Q23 and Q24.
+
+**4. Could this be solved with `RANK()` instead of comparing to `MAX()`? What would change?**
+
+Yes — `RANK() OVER (ORDER BY total_revenue DESC)` with a filter of `rnk = 1` is equivalent and also preserves ties (all tied top employees get rank 1). What changes is the mechanism: `RANK()` computes the ordering in a single windowed pass rather than requiring a separate MAX scalar and an equality join. `RANK()` scales more naturally if the requirement later grows to "top N," whereas the `MAX()` equality is arguably simpler when you only ever need the single top group.
 
 ## 9. Key Takeaway
 
