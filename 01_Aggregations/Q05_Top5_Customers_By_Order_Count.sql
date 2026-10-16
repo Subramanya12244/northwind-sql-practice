@@ -9,7 +9,7 @@
      2. COUNT(DISTINCT order_id) grouped by customer.
      3. ORDER BY order_count DESC, then LIMIT 5.
    MISTAKES I MADE:
-     • none recorded
+     • none — clean on first attempt
    ===================================================================== */
 
 -- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────

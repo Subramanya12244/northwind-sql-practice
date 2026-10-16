@@ -3,7 +3,7 @@
 > **Revision Card**
 > **Category:** Aggregations & Revenue Analysis | **Difficulty:** Easy
 > **Concepts:** INNER JOIN (multi-table) · GROUP BY · SUM
-> **Outcome:** ❓ not recorded
+> **Outcome:** ✅ correct first attempt
 > **Watch out for:** `products` is the bridge — you can't join `order_details` to `categories` directly (no shared key).
 
 ## 1. Problem
@@ -54,7 +54,7 @@ ORDER BY total_revenue DESC;
 
 ## 4. Mistakes I Made
 
-- _Not recorded — add from memory, or change Outcome to ✅ "clean on first attempt"._
+- None — solved correctly on first attempt.
 
 ## 5. Correct / Optimal Solution
 

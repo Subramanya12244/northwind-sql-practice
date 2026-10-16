@@ -3,7 +3,7 @@
 > **Revision Card**
 > **Category:** Aggregations & Revenue Analysis | **Difficulty:** Easy
 > **Concepts:** INNER JOIN (multi-table) · GROUP BY · SUM · ORDER BY · LIMIT
-> **Outcome:** ❓ not recorded
+> **Outcome:** ✅ correct first attempt
 > **Watch out for:** group by `employee_id` (the key), not just name — two employees could share a name and merge silently.
 
 ## 1. Problem
@@ -57,7 +57,7 @@ LIMIT 5;
 
 ## 4. Mistakes I Made
 
-- _Not recorded — add from memory, or change Outcome to ✅ "clean on first attempt"._
+- None — solved correctly on first attempt.
 
 ## 5. Correct / Optimal Solution
 

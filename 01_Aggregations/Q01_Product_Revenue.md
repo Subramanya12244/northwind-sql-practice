@@ -3,7 +3,7 @@
 > **Revision Card**
 > **Category:** Aggregations & Revenue Analysis | **Difficulty:** Easy
 > **Concepts:** INNER JOIN · GROUP BY · SUM · ROUND/CAST
-> **Outcome:** ❓ not recorded
+> **Outcome:** ✅ correct first attempt
 > **Watch out for:** use `order_details.unit_price` (price at sale), not `products.unit_price` (current catalog price).
 
 ## 1. Problem
@@ -53,7 +53,7 @@ ORDER BY total_revenue DESC;
 
 ## 4. Mistakes I Made
 
-- _Not recorded — add from memory, or change Outcome to ✅ "clean on first attempt"._
+- None — solved correctly on first attempt.
 
 ## 5. Correct / Optimal Solution
 

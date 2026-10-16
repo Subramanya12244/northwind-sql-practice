@@ -9,7 +9,7 @@
      2. SUM revenue grouped by customer.
      3. ORDER BY revenue DESC, then LIMIT 10.
    MISTAKES I MADE:
-     • none recorded
+     • none — clean on first attempt
    ===================================================================== */
 
 -- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────

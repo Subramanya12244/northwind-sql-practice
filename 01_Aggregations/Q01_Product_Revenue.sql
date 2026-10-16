@@ -10,7 +10,7 @@
      2. Compute per-line revenue, SUM() grouped by product.
      3. ROUND to 2 dp; ORDER BY revenue DESC.
    MISTAKES I MADE:
-     • none recorded
+     • none — clean on first attempt
    ===================================================================== */
 
 -- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────

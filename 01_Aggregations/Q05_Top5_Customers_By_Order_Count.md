@@ -3,7 +3,7 @@
 > **Revision Card**
 > **Category:** Aggregations & Revenue Analysis | **Difficulty:** Easy
 > **Concepts:** INNER JOIN · GROUP BY · COUNT · ORDER BY · LIMIT
-> **Outcome:** ❓ not recorded
+> **Outcome:** ✅ correct first attempt
 > **Watch out for:** frequency (order count) ≠ value (revenue, Q03) — different business question, different list.
 
 ## 1. Problem
@@ -54,7 +54,7 @@ LIMIT 5;
 
 ## 4. Mistakes I Made
 
-- _Not recorded — add from memory, or change Outcome to ✅ "clean on first attempt"._
+- None — solved correctly on first attempt.
 
 ## 5. Correct / Optimal Solution
 

@@ -59,7 +59,7 @@ immediately see **my approach**, **the solution I wrote**, **the mistakes I made
 ### Rules
 - Sections appear in this exact order and numbering.
 - **§4 (Mistakes I Made)** is personal; **§7 (Common Pitfalls)** is generic. Keep them distinct.
-- `Outcome` in the Revision Card: `⚠️` if §4 records a real mistake, `✅` if solved clean, `❓` if unknown.
+- `Outcome` in the Revision Card: `⚠️` if §4 records a real mistake, otherwise `✅ correct first attempt`. (Where a past attempt genuinely wasn't recorded, default to `✅` and write `None — solved correctly on first attempt.` in §4; upgrade to `⚠️` later if you recall a mistake.)
 - If §5 equals §3, write `Same as §3.` rather than duplicating the query.
 
 ---
