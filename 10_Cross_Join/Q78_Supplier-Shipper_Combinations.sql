@@ -1,42 +1,23 @@
-/*
-Question:
-Return the supplier name and shipper name for every possible supplier–shipper pairing.
+/* =====================================================================
+   Q78 · Supplier–Shipper Combinations
+   Category : CROSS JOIN          Difficulty : Easy
+   Concepts : CROSS JOIN · Cartesian product · No ON clause · company_name vs contact_name
+   ---------------------------------------------------------------------
+   PROBLEM : Every supplier paired with every shipper
+             (every supplier × every shipper).
+   APPROACH:
+     1. Recognise "every X with every Y" -> CROSS JOIN.
+     2. Use only suppliers and shippers.
+     3. CROSS JOIN with no ON clause -> N × M = 29 × 3 = 87 rows.
+     4. "Supplier Name" = company_name (not contact_name).
+   MISTAKES I MADE:
+     • Submitted s.contact_name instead of s.company_name -> use s.company_name.
+   ===================================================================== */
 
-Business Requirement:
-Generate every possible combination of suppliers and shippers.
-
-CROSS JOIN Rules:
-- No ON clause — ever.
-- Produces N × M rows: 29 suppliers × 3 shippers = **87 rows**
-- Table order does not affect the result.
-- Trigger phrases: "every X with every Y", "all possible combinations"
-
-
--- Minor — submitted `s.contact_name` instead of `s.company_name`:
--- Note: CROSS JOIN logic is correct. `contact_name` is the supplier's contact person; `company_name` is the supplier entity itself. 'Supplier Name' refers to the company. Use `s.company_name AS supplier_name` for clarity.
---
+-- ── MY SUBMITTED ATTEMPT (wrong column — contact_name) ──────────────
 -- select s.contact_name, sh.company_name from shippers sh cross join suppliers s
 
-Expected Output (first 5 rows):
-| supplier_name | shipper_name |
-|---------------|--------------|
-| Exotic Liquids | Speedy Express |
-| Exotic Liquids | United Package |
-| Exotic Liquids | Federal Shipping |
-| New Orleans Cajun Delights | Speedy Express |
-| New Orleans Cajun Delights | United Package |
-
-Concepts Used:
-- CROSS JOIN
-- No ON clause
-
-Score: 10/10
-Takeaway: 'Supplier Name' = company_name. 'Supplier Contact' = contact_name. Always confirm which attribute the question requires.
-
-Complexity:
-Easy
-*/
-
+-- ── FINAL CORRECT SOLUTION ──────────────────────────────────────────
 SELECT
     s.company_name AS supplier_name,
     sh.company_name AS shipper_name

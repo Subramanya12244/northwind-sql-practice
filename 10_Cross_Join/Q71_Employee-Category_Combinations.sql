@@ -1,20 +1,21 @@
-/*
-Question:
-Return the employee name and category name for every possible employee–category pairing.
+/* =====================================================================
+   Q71 · Employee–Category Combinations
+   Category : CROSS JOIN          Difficulty : Easy
+   Concepts : CROSS JOIN · Cartesian product · No ON clause · CONCAT
+   ---------------------------------------------------------------------
+   PROBLEM : Every employee paired with every product category
+             (every employee × every category).
+   APPROACH:
+     1. Recognise "every X with every Y" -> CROSS JOIN.
+     2. Use only employees and categories; no relationship joins.
+     3. CROSS JOIN with no ON clause -> N × M = 9 × 8 = 72 rows.
+     4. Build employee_name with CONCAT(first_name,' ',last_name).
+   MISTAKES I MADE:
+     • Added ON clause to CROSS JOIN -> remove it (ON makes it an INNER JOIN).
+     • Joined 5 tables (products/order_details/orders) -> only 2 tables needed.
+   ===================================================================== */
 
-Business Requirement:
-Generate every possible combination of employees and product categories.
-
-CROSS JOIN Rules:
-- No ON clause — ever.
-- Produces N × M rows: 9 employees × 8 categories = **72 rows**
-- Table order does not affect the result.
-- Trigger phrases: "every X with every Y", "all possible combinations"
-
-
--- Attempt 1 — Used CROSS JOIN with ON clause (invalid syntax + wrong logic):
--- Note: Two mistakes in one:
---
+-- ── MY SUBMITTED ATTEMPT (wrong — ON clause + unnecessary joins) ─────
 -- select concat(e.first_name,' ',e.last_name) as employee_name,
 -- c.category_name
 -- from categories c
@@ -23,26 +24,7 @@ CROSS JOIN Rules:
 -- cross join orders o on o.order_id = od.order_id
 -- cross join employees e on e.employee_id = o.employee_id
 
-Expected Output (first 5 rows):
-| employee_name | category_name |
-|---------------|---------------|
-| Nancy Davolio | Beverages |
-| Nancy Davolio | Condiments |
-| Nancy Davolio | Confections |
-| Janet Leverling | Beverages |
-| Janet Leverling | Condiments |
-
-Concepts Used:
-- CROSS JOIN
-- No ON clause
-
-Score: 5/10
-Takeaway: CROSS JOIN never has an ON clause. If you write ON, you're thinking in INNER JOIN terms. For 'every X with every Y', only those two tables are needed — no joins through related tables.
-
-Complexity:
-Easy
-*/
-
+-- ── FINAL CORRECT SOLUTION ──────────────────────────────────────────
 SELECT
     CONCAT(e.first_name,' ',e.last_name) AS employee_name,
     c.category_name

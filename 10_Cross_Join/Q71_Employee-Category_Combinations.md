@@ -1,24 +1,20 @@
-# Q71. Employee–Category Combinations
+# Q71 · Employee–Category Combinations
 
-**Category:** CROSS JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** CROSS JOIN | **Difficulty:** Easy
+> **Concepts:** CROSS JOIN · Cartesian product · No ON clause · CONCAT
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** `CROSS JOIN` never has an `ON` clause — writing one turns it into an `INNER JOIN`, and "every X with every Y" needs only the two tables, not joins through related tables.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate every possible combination of employees and product categories.
 
-## Objective
+**Objective:** Return the employee name and category name for every possible employee–category pairing.
 
-Return the employee name and category name for every possible employee–category pairing.
+**Tables:** `employees`, `categories`
 
-## Tables Used
-
-- `employees`
-- `categories`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,18 +31,45 @@ Return the employee name and category name for every possible employee–categor
 | Janet Leverling | Beverages |
 | Janet Leverling | Condiments |
 
-*(Sample values are illustrative, based on the standard Northwind dataset. Showing first 5 of 9 employees × 8 categories = **72 rows**)*
+*(Sample values are illustrative, based on the standard Northwind dataset. Showing first 5 of 9 employees × 8 categories = **72 rows**.)*
 
-## Result Size
+**Result size:** 9 employees × 8 categories = **72 rows**
 
-9 employees × 8 categories = **72 rows**
+## 2. My Approach
 
-## Concepts Used
+1. Recognise "every employee × every category" as a combinatorial request → `CROSS JOIN`.
+2. Use only the two tables named — `employees` and `categories` — no relationship joins.
+3. `CROSS JOIN` with no `ON` clause to produce the Cartesian product.
+4. Build `employee_name` with `CONCAT(first_name, ' ', last_name)` and select `category_name`.
 
-- CROSS JOIN
-- No ON clause
+## 3. My Solution (as submitted)
 
-## Why This Approach
+```sql
+select concat(e.first_name,' ',e.last_name) as employee_name,
+c.category_name
+from categories c
+cross join products p on p.category_id = c.category_id
+cross join order_details od on od.product_id = p.product_id
+cross join orders o on o.order_id = od.order_id
+cross join employees e on e.employee_id = o.employee_id
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ **Added an `ON` clause to `CROSS JOIN`** → `CROSS JOIN` takes no `ON` clause; adding one turns it into an `INNER JOIN` by another name → remove the `ON` clauses entirely.
+- ⚠️ **Joined five tables unnecessarily** (`products`, `order_details`, `orders`) → this becomes an `INNER JOIN` chain returning only employees who actually sold products in those categories, not every employee with every category → the question asks for "every employee × every category", so relationships are irrelevant and only `employees` and `categories` are needed.
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT
+    CONCAT(e.first_name,' ',e.last_name) AS employee_name,
+    c.category_name
+FROM employees e
+CROSS JOIN categories c;
+```
+
+## 6. Why This Works
 
 **What CROSS JOIN does:** produces every possible combination of every row from both tables — N × M rows total, with no join condition. There is no `ON` clause. CROSS JOIN intentionally ignores relationships between tables; it is used specifically when every combination is desired.
 
@@ -61,36 +84,13 @@ Return the employee name and category name for every possible employee–categor
 
 **Why only two tables are needed:** the question asks for every employee paired with every category — nothing more. There is no need to join through `orders`, `order_details`, or `products` to find which employees actually sold which categories. That would be an analytical question answered with `INNER JOIN`. This is a combinatorial question answered with `CROSS JOIN`.
 
-### ❌ Attempt 1 — Used CROSS JOIN with ON clause (invalid syntax + wrong logic):
-
-```sql
-select concat(e.first_name,' ',e.last_name) as employee_name,
-c.category_name
-from categories c
-cross join products p on p.category_id = c.category_id
-cross join order_details od on od.product_id = p.product_id
-cross join orders o on o.order_id = od.order_id
-cross join employees e on e.employee_id = o.employee_id
-```
-
-**Why it fails / note:** Two mistakes in one:
-1. CROSS JOIN does not use ON — adding ON converts it to an INNER JOIN.
-2. Five tables joined unnecessarily — this effectively becomes an INNER JOIN chain that only returns employees who actually sold products in those categories, not every employee with every category.
-The question says 'every employee × every category'. That means relationships are irrelevant — only two tables are needed.
-
-
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - **Adding an `ON` clause to CROSS JOIN** — `CROSS JOIN` never takes an `ON` clause. Adding one converts it to an `INNER JOIN` by another name, which filters rows based on a condition — the opposite of generating all combinations.
 - **Joining through related tables unnecessarily** — Q71 demonstrates this perfectly. "Every employee × every category" requires only `employees` and `categories`. Joining through `orders`, `order_details`, and `products` turns it into "employees who sold products in that category" — a completely different query.
 - **Assuming table order matters** — unlike `LEFT JOIN`/`RIGHT JOIN`, `CROSS JOIN` is symmetric. `FROM A CROSS JOIN B` and `FROM B CROSS JOIN A` produce the same result set.
 
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What does CROSS JOIN do, and when would you use it in a real business scenario?**
 
@@ -126,18 +126,9 @@ The CROSS JOIN guarantees every cell exists; the LEFT JOINs fill in the revenue 
 
 Result size = rows in table A × rows in table B. This matters because CROSS JOIN can silently produce enormous result sets: 1,000 rows × 1,000 rows = 1,000,000 rows. Always calculate the expected result size before running a CROSS JOIN on large tables. The small lookup tables in Northwind (categories=8, shippers=3, employees=9) make CROSS JOINs safe here, but in production systems with millions of rows, an accidental CROSS JOIN can bring a database to its knees.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Know the single defining rule of `CROSS JOIN`: no `ON` clause, produces N × M rows.
-- Recognise the trigger phrases: "every X with every Y", "all possible combinations", "generate a combination matrix."
-- Understand that `CROSS JOIN` is symmetric — table order does not matter.
-- Know the primary real-world use case: generating a complete combination grid as the base for a report, then LEFT JOINing actual data to fill in values.
-- Always calculate result size (N × M) before running a CROSS JOIN in production.
+CROSS JOIN never has an `ON` clause — if you write `ON`, you are thinking in `INNER JOIN` terms. For "every X with every Y", only the two named tables are needed; do not join through related tables.
 
 ---
-
-**Score from review session: 5/10**
-
-**Interview Takeaway:** CROSS JOIN never has an ON clause. If you write ON, you're thinking in INNER JOIN terms. For 'every X with every Y', only those two tables are needed — no joins through related tables.
-
 📄 **SQL File:** [`Q71_Employee-Category_Combinations.sql`](./Q71_Employee-Category_Combinations.sql)

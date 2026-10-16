@@ -1,24 +1,20 @@
-# Q72. Product–Shipper Combinations
+# Q72 · Product–Shipper Combinations
 
-**Category:** CROSS JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** CROSS JOIN | **Difficulty:** Easy
+> **Concepts:** CROSS JOIN · Cartesian product · No ON clause
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** products and shippers have no direct relationship in Northwind — do not try to join them; `CROSS JOIN` is the correct tool for every pairing.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate every possible combination of products and shippers.
 
-## Objective
+**Objective:** Return the product name and shipper name for every possible product–shipper pairing.
 
-Return the product name and shipper name for every possible product–shipper pairing.
+**Tables:** `products`, `shippers`
 
-## Tables Used
-
-- `products`
-- `shippers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,18 +31,36 @@ Return the product name and shipper name for every possible product–shipper pa
 | Chang | Speedy Express |
 | Chang | United Package |
 
-*(Sample values are illustrative, based on the standard Northwind dataset. Showing first 5 of 77 products × 3 shippers = **231 rows**)*
+*(Sample values are illustrative, based on the standard Northwind dataset. Showing first 5 of 77 products × 3 shippers = **231 rows**.)*
 
-## Result Size
+**Result size:** 77 products × 3 shippers = **231 rows**
 
-77 products × 3 shippers = **231 rows**
+## 2. My Approach
 
-## Concepts Used
+1. Recognise "every product × every shipper" as a combinatorial request → `CROSS JOIN`.
+2. Use only the two tables named — `products` and `shippers`.
+3. `CROSS JOIN` with no `ON` clause to produce the Cartesian product.
+4. Select `product_name` and the shipper's `company_name`.
 
-- CROSS JOIN
-- No ON clause
+## 3. My Solution (as submitted)
 
-## Why This Approach
+```sql
+SELECT
+    p.product_name,
+    sh.company_name
+FROM products p
+CROSS JOIN shippers sh;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **What CROSS JOIN does:** produces every possible combination of every row from both tables — N × M rows total, with no join condition. There is no `ON` clause. CROSS JOIN intentionally ignores relationships between tables; it is used specifically when every combination is desired.
 
@@ -61,18 +75,13 @@ Return the product name and shipper name for every possible product–shipper pa
 
 **Why no relationship between products and shippers is needed:** in Northwind, shippers are linked to orders (via `ship_via`), not to products directly. The question doesn't ask which shipper handled which product — it asks for every possible product–shipper combination. CROSS JOIN is the only correct tool here.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - **Adding an `ON` clause to CROSS JOIN** — `CROSS JOIN` never takes an `ON` clause. Adding one converts it to an `INNER JOIN` by another name, which filters rows based on a condition — the opposite of generating all combinations.
 - **Joining through related tables unnecessarily** — Q71 demonstrates this perfectly. "Every employee × every category" requires only `employees` and `categories`. Joining through `orders`, `order_details`, and `products` turns it into "employees who sold products in that category" — a completely different query.
 - **Assuming table order matters** — unlike `LEFT JOIN`/`RIGHT JOIN`, `CROSS JOIN` is symmetric. `FROM A CROSS JOIN B` and `FROM B CROSS JOIN A` produce the same result set.
 
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What does CROSS JOIN do, and when would you use it in a real business scenario?**
 
@@ -108,18 +117,9 @@ The CROSS JOIN guarantees every cell exists; the LEFT JOINs fill in the revenue 
 
 Result size = rows in table A × rows in table B. This matters because CROSS JOIN can silently produce enormous result sets: 1,000 rows × 1,000 rows = 1,000,000 rows. Always calculate the expected result size before running a CROSS JOIN on large tables. The small lookup tables in Northwind (categories=8, shippers=3, employees=9) make CROSS JOINs safe here, but in production systems with millions of rows, an accidental CROSS JOIN can bring a database to its knees.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Know the single defining rule of `CROSS JOIN`: no `ON` clause, produces N × M rows.
-- Recognise the trigger phrases: "every X with every Y", "all possible combinations", "generate a combination matrix."
-- Understand that `CROSS JOIN` is symmetric — table order does not matter.
-- Know the primary real-world use case: generating a complete combination grid as the base for a report, then LEFT JOINing actual data to fill in values.
-- Always calculate result size (N × M) before running a CROSS JOIN in production.
+For "every X with every Y", use `CROSS JOIN` on exactly the two required tables, no `ON` clause — and table order never changes the result set.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** CROSS JOIN: no ON clause, only the two required tables. Table order does not affect the result.
-
 📄 **SQL File:** [`Q72_Product-Shipper_Combinations.sql`](./Q72_Product-Shipper_Combinations.sql)

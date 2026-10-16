@@ -1,24 +1,20 @@
-# Q75. Employee–Shipper Combinations
+# Q75 · Employee–Shipper Combinations
 
-**Category:** CROSS JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** CROSS JOIN | **Difficulty:** Easy
+> **Concepts:** CROSS JOIN · Cartesian product · No ON clause · CONCAT
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `CROSS JOIN` is symmetric — `FROM employees CROSS JOIN shippers` equals `FROM shippers CROSS JOIN employees`.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate every possible combination of employees and shippers.
 
-## Objective
+**Objective:** Return the employee name and shipper name for every possible employee–shipper pairing.
 
-Return the employee name and shipper name for every possible employee–shipper pairing.
+**Tables:** `employees`, `shippers`
 
-## Tables Used
-
-- `employees`
-- `shippers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,18 +31,35 @@ Return the employee name and shipper name for every possible employee–shipper 
 | Andrew Fuller | Speedy Express |
 | Andrew Fuller | United Package |
 
-*(Sample values are illustrative, based on the standard Northwind dataset. Showing first 5 of 9 employees × 3 shippers = **27 rows**)*
+*(Sample values are illustrative, based on the standard Northwind dataset. Showing first 5 of 9 employees × 3 shippers = **27 rows**.)*
 
-## Result Size
+**Result size:** 9 employees × 3 shippers = **27 rows**
 
-9 employees × 3 shippers = **27 rows**
+## 2. My Approach
 
-## Concepts Used
+1. Recognise "every employee × every shipper" as a combinatorial request → `CROSS JOIN`.
+2. Use only the two tables named — `employees` and `shippers`.
+3. `CROSS JOIN` with no `ON` clause to produce the Cartesian product.
+4. Build `employee_name` with `CONCAT(first_name, ' ', last_name)` and select the shipper's `company_name`.
 
-- CROSS JOIN
-- No ON clause
+## 3. My Solution (as submitted)
 
-## Why This Approach
+```sql
+select concat(e.first_name,' ',e.last_name) as employee_name,
+s.company_name
+from employees e
+cross join shippers s;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **What CROSS JOIN does:** produces every possible combination of every row from both tables — N × M rows total, with no join condition. There is no `ON` clause. CROSS JOIN intentionally ignores relationships between tables; it is used specifically when every combination is desired.
 
@@ -61,18 +74,13 @@ Return the employee name and shipper name for every possible employee–shipper 
 
 **Practical use case for this combination:** an employee–shipper matrix like this is commonly used as the base for a reporting template — e.g. pre-generating every row of a "sales rep performance by shipper" pivot table, so that cells with zero activity appear as 0 rather than being absent. This is one of CROSS JOIN's primary real-world uses: generating a complete combination grid that is then LEFT JOINed to actual data.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - **Adding an `ON` clause to CROSS JOIN** — `CROSS JOIN` never takes an `ON` clause. Adding one converts it to an `INNER JOIN` by another name, which filters rows based on a condition — the opposite of generating all combinations.
 - **Joining through related tables unnecessarily** — Q71 demonstrates this perfectly. "Every employee × every category" requires only `employees` and `categories`. Joining through `orders`, `order_details`, and `products` turns it into "employees who sold products in that category" — a completely different query.
 - **Assuming table order matters** — unlike `LEFT JOIN`/`RIGHT JOIN`, `CROSS JOIN` is symmetric. `FROM A CROSS JOIN B` and `FROM B CROSS JOIN A` produce the same result set.
 
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What does CROSS JOIN do, and when would you use it in a real business scenario?**
 
@@ -108,18 +116,9 @@ The CROSS JOIN guarantees every cell exists; the LEFT JOINs fill in the revenue 
 
 Result size = rows in table A × rows in table B. This matters because CROSS JOIN can silently produce enormous result sets: 1,000 rows × 1,000 rows = 1,000,000 rows. Always calculate the expected result size before running a CROSS JOIN on large tables. The small lookup tables in Northwind (categories=8, shippers=3, employees=9) make CROSS JOINs safe here, but in production systems with millions of rows, an accidental CROSS JOIN can bring a database to its knees.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Know the single defining rule of `CROSS JOIN`: no `ON` clause, produces N × M rows.
-- Recognise the trigger phrases: "every X with every Y", "all possible combinations", "generate a combination matrix."
-- Understand that `CROSS JOIN` is symmetric — table order does not matter.
-- Know the primary real-world use case: generating a complete combination grid as the base for a report, then LEFT JOINing actual data to fill in values.
-- Always calculate result size (N × M) before running a CROSS JOIN in production.
+Table order in `CROSS JOIN` does not matter — `FROM employees CROSS JOIN shippers` equals `FROM shippers CROSS JOIN employees`; only the display order can differ.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** Table order in CROSS JOIN does not matter. `FROM employees CROSS JOIN shippers` = `FROM shippers CROSS JOIN employees`.
-
 📄 **SQL File:** [`Q75_Employee-Shipper_Combinations.sql`](./Q75_Employee-Shipper_Combinations.sql)
