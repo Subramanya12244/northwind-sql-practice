@@ -1,32 +1,25 @@
-# Q40. Customers and Average Order Value
+# Q40 · Customers and Average Order Value
 
-**Category:** LEFT JOIN + CTE
-**Difficulty:** Hard
+> **Revision Card**
+> **Category:** LEFT JOIN + CTE | **Difficulty:** Hard
+> **Concepts:** CTE · LEFT JOIN (chained, two levels) · GROUP BY (two levels) · SUM · AVG · COALESCE · ROUND/CAST
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** `AVG(line_item_revenue)` averages line items, not orders — you must pre-aggregate line items to order totals first, then average those.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The finance team wants a report showing every customer and their average order value. Customers who have never placed an order should also appear with an average order value of 0.
 
-## Objective
+**Objective:** Return all customers along with their average order value, ensuring customers with no orders appear with a value of 0.00.
 
-Return all customers along with their average order value, ensuring customers with no orders appear with a value of 0.00.
+**Tables:** `customers`, `orders`, `order_details`
 
-## Tables Used
-
-- `customers`
-- `orders`
-- `order_details`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
 | contact_name | Name of the customer contact |
 | average_order_value | Average revenue per order for this customer (0.00 if no orders placed) |
-
-**Sample output:**
 
 | contact_name | average_order_value |
 |--------------|---------------------|
@@ -36,20 +29,18 @@ Return all customers along with their average order value, ensuring customers wi
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- CTE (Common Table Expression)
-- LEFT JOIN (chained, two levels)
-- GROUP BY (two levels)
-- Aggregate Functions (SUM, AVG)
-- NULL Handling (COALESCE)
-- ROUND / CAST
+"Average order value" requires **two levels of aggregation**, which only became clear after two failed attempts:
 
-## The Problem With Naive Approaches
+1. First, compute the **total revenue per order** (summing all line items within each order) in a CTE grouped by `order_id`.
+2. Then, in the outer query, LEFT JOIN `customers → orders → CTE` (all LEFT to preserve no-order customers) and compute the **average of those per-order totals** per customer with `AVG()`.
+3. Wrap in `COALESCE(..., 0)` so no-order customers (where `AVG()` returns NULL) show 0.00.
+4. GROUP BY customer.
 
-This question has an intentional trap. "Average order value per customer" is not as straightforward as it looks, and there are two common wrong approaches before arriving at the correct solution.
+## 3. My Solution (as submitted)
 
-### ❌ First Attempt — Wrong: Averaging Line Items, Not Orders
+My first submission averaged the line items directly, which is the wrong grain:
 
 ```sql
 SELECT c.contact_name,
@@ -60,35 +51,36 @@ LEFT JOIN order_details od ON od.order_id = o.order_id
 GROUP BY c.contact_name, c.customer_id;
 ```
 
-**Why this is wrong:** `AVG()` here averages *individual order line items* (one row per product per order), not the total value of each order. A customer with one order containing 5 line items of £200 each gets an "average" of £200 — but their average *order* value is £1000. This computes "average line item value", which is a completely different metric from "average order value".
+## 4. Mistakes I Made
 
-### ❌ Second Attempt — Wrong: Broken CTE Join
+- ⚠️ **First attempt — averaged line items, not orders.** `AVG(od.unit_price * od.quantity * (1 - od.discount))` operates on *individual order line items* (one row per product per order), not on total order values. An order with 5 line items of £200 each gets an "average" of £200, but its true order value is £1000 — the metric computed is "average line item value", a completely different thing. **Fix:** sum line items to order-level totals *first* (in a CTE grouped by `order_id`), then average those per-order totals per customer.
+- ⚠️ **Second attempt — broken CTE join.** I tried a CTE that computed a single global `SUM()` with no `GROUP BY`, so it had no `order_id` to join back on, and the join `LEFT JOIN sum_value ON o` was not even a valid join condition. **Fix:** the CTE must `GROUP BY order_id` so it produces one total per order and exposes `order_id` as the key to join back to `orders`.
+
+## 5. Correct / Optimal Solution
 
 ```sql
 WITH sum_value AS (
-    SELECT COALESCE(ROUND(SUM(od.unit_price * od.quantity * (1 - od.discount))::numeric, 2), 0) AS total_revenue
+    SELECT
+        order_id,
+        COALESCE(
+            ROUND(
+                SUM(od.unit_price * od.quantity * (1 - od.discount))::numeric
+            , 2), 0) AS total_revenue
     FROM order_details od
+    GROUP BY order_id
 )
 SELECT c.contact_name,
-    COALESCE(ROUND(AVG(sum_value)::numeric, 2), 0) AS average_order_value
+    COALESCE(
+        ROUND(
+            AVG(s.total_revenue)::numeric
+        , 2), 0) AS average_order_value
 FROM customers c
 LEFT JOIN orders o ON o.customer_id = c.customer_id
-LEFT JOIN order_details od ON od.order_id = o.order_id
-LEFT JOIN sum_value ON o    -- broken: no valid join condition
-GROUP BY c.contact_name, c.customer_id, sum_value.total_revenue;
+LEFT JOIN sum_value s ON s.order_id = o.order_id
+GROUP BY c.contact_name, c.customer_id;
 ```
 
-**Why this is wrong:** the CTE computes a single global revenue total with no `GROUP BY`, so there is no `order_id` to join back on. The `LEFT JOIN sum_value ON o` is syntactically broken — `ON o` is not a valid join condition. Even if fixed, a single-row CTE cross-joined to the main query would produce meaningless results.
-
-### ✅ Correct Approach — Two-Level Aggregation via CTE
-
-The key insight is that "average order value" requires **two levels of aggregation**:
-1. First, compute the **total revenue per order** (summing all line items within each order)
-2. Then, compute the **average of those per-order totals** per customer
-
-A single `AVG()` pass cannot do both simultaneously — the per-order totals must be materialised first before they can be averaged.
-
-## Why This Approach (Final Solution)
+## 6. Why This Works
 
 **Why the CTE (`sum_value`) groups by `order_id`:** each order can have multiple line items in `order_details`. The CTE collapses all line items for a given order into a single total revenue figure — one row per `order_id`. This is the correct grain for computing "order value" before averaging across orders per customer.
 
@@ -98,18 +90,14 @@ A single `AVG()` pass cannot do both simultaneously — the per-order totals mus
 
 **Why `COALESCE(..., 0)` is still needed:** for customers with no orders, `AVG()` receives no non-NULL values to average and returns `NULL`. `COALESCE` converts that to the required `0.00`.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `AVG(od.unit_price * od.quantity * (1 - od.discount))` directly — this averages line items, not orders; the most common mistake on this question.
 - Not pre-aggregating to order level in a CTE first — without materialising per-order totals, there is no correct way to average them per customer in a single pass.
 - Breaking the CTE join by not including `order_id` as a key column in the CTE — the CTE must `GROUP BY order_id` so it can be joined back to `orders` on that key.
 - Making the `orders → sum_value` join `INNER JOIN`, which drops the NULL-padded no-order customer rows produced by the first `LEFT JOIN`.
 
-## Difficulty
-
-**Hard**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why does `AVG(od.unit_price * od.quantity * (1 - od.discount))` give the wrong answer?**
 
@@ -158,13 +146,9 @@ WHERE ca.average_order_value > oa.avg_val
 ORDER BY ca.average_order_value DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that "average order value" is a two-level aggregation problem — line items must be summed to order level before order values can be averaged per customer.
-- Practise the discipline of asking "what is the correct grain for my aggregation?" before writing any `AVG()`, `SUM()`, or `COUNT()` — a fundamental analytical SQL skill.
-- Recognise the general two-level aggregation via CTE pattern and understand when it applies (anytime you need to aggregate an already-aggregated intermediate result).
-- Learn from the documented wrong approaches — seeing *why* naive solutions fail is often more instructive than just seeing the correct one.
+"Average order value" is a two-level aggregation: sum line items to order totals first, then average those per customer — always ask "what is the correct grain?" before writing any `AVG()`.
 
 ---
-
 📄 **SQL File:** [`Q40_Customers_And_Average_Order_Value.sql`](./Q40_Customers_And_Average_Order_Value.sql)

@@ -1,31 +1,19 @@
-/*
-Question:
-Return only the customers who have zero orders on record — no aggregation or counts needed, just the filtered list itself.
+/* =====================================================================
+   Q28 · Customers with No Orders
+   Category : LEFT JOIN          Difficulty : Easy
+   Concepts : LEFT JOIN · NULL Handling · WHERE · NOT EXISTS (alternative)
+   ---------------------------------------------------------------------
+   PROBLEM : List only customers who have never placed an order.
+   APPROACH:
+     1. LEFT JOIN customers -> orders on customer_id (keep every customer).
+     2. Keep rows where o.order_id IS NULL (no matching order at all).
+     3. Alternative shown below: NOT EXISTS (often faster, NULL-safe).
+        Avoid NOT IN — a single NULL in the subquery empties the result.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants a list of customers who have never placed an order, to target with a re-engagement or first-order incentive campaign.
-
-Approach:
-1. LEFT JOIN customers to orders on customer_id, preserving every customer regardless of order history.
-2. Filter to rows where o.order_id IS NULL, which identifies customers with no matching order at all.
-3. (Alternative shown: NOT EXISTS, often more efficient and equally NULL-safe.)
-
-Expected Output:
-| customer_id | company_name |
-|-------------|--------------|
-| FISSA | FISSA Fabrica Inter. Salchichas S.A. |
-| PARIS | Paris spécialités |
-
-Concepts Used:
-- LEFT JOIN
-- NULL Handling
-- WHERE
-- NOT EXISTS (alternative)
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     cu.customer_id,
     cu.company_name

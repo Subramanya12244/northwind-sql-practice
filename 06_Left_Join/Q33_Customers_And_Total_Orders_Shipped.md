@@ -1,32 +1,25 @@
-# Q33. Customers and Total Orders Shipped
+# Q33 · Customers and Total Orders Shipped
 
-**Category:** LEFT JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** LEFT JOIN | **Difficulty:** Medium
+> **Concepts:** LEFT JOIN (chained, two levels) · GROUP BY · COUNT · COALESCE
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** joining to `shippers` attaches data, it does not filter for "shipped" orders — "has a shipper" ≠ "has been dispatched" (`shipped_date IS NOT NULL`).
 
----
-
-## Problem Statement
+## 1. Problem
 
 The logistics team wants a report showing every customer and the total number of orders that have been shipped to them. Customers who have never placed an order should also appear with a shipped order count of 0.
 
-## Objective
+**Objective:** Return all customers along with the number of shipped orders, ensuring customers with no orders appear with a count of 0 rather than being excluded.
 
-Return all customers along with the number of shipped orders, ensuring customers with no orders appear with a count of 0 rather than being excluded.
+**Tables:** `customers`, `orders`, `shippers`
 
-## Tables Used
-
-- `customers`
-- `orders`
-- `shippers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
 | contact_name | Name of the customer contact |
 | shipped_orders | Total number of orders shipped to this customer (0 if no orders placed) |
-
-**Sample output:**
 
 | contact_name | shipped_orders |
 |--------------|----------------|
@@ -37,14 +30,34 @@ Return all customers along with the number of shipped orders, ensuring customers
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- LEFT JOIN (chained, two levels)
-- GROUP BY
-- Aggregate Functions (COUNT)
-- NULL Handling (COALESCE)
+1. Start from `customers` and LEFT JOIN to `orders` on `customer_id`, preserving every customer regardless of order history.
+2. LEFT JOIN to `shippers` on `ship_via = shipper_id` to bring in shipper context alongside each order row.
+3. Count orders per customer using `COUNT(o.order_id)`, which correctly returns 0 for customers with no matching orders (NULL `order_id` rows produced by the LEFT JOIN are not counted).
+4. Wrap in `COALESCE(..., 0)` as a defensive default — COUNT already returns 0 for empty groups, but COALESCE makes the intent explicit.
+5. GROUP BY both `contact_name` and `customer_id`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select c.contact_name,
+coalesce(count(o.order_id),0)
+from customers c left join
+orders o on o.customer_id = c.customer_id
+left join shippers sh on shipper_id = ship_via
+group by c.contact_name,c.customer_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `LEFT JOIN customers → orders`:** preserves every customer row regardless of whether they have matching orders. An `INNER JOIN` would silently drop customers with no order history — directly violating the requirement to show them with a count of 0.
 
@@ -56,18 +69,14 @@ Return all customers along with the number of shipped orders, ensuring customers
 
 **A note on the `shippers` join:** in this query, no column from `shippers` is referenced in the `SELECT` or filtered in a `WHERE` clause — the join to `shippers` is technically redundant for counting orders. If the intent is specifically to count only orders that were **actually dispatched** (i.e. have a confirmed ship date), a more precise approach would be to filter on `o.shipped_date IS NOT NULL` rather than relying on the presence of a shipper. In the standard Northwind dataset, `ship_via` is populated on virtually every order, so both approaches yield similar results — but the distinction matters in a production system where orders may be created before being assigned to a shipper.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `INNER JOIN` for either join, which drops no-order customers from the result.
 - Using `COUNT(*)` instead of `COUNT(o.order_id)` — for a customer with no orders, the `LEFT JOIN` still produces one NULL-padded row, and `COUNT(*)` would count that row as `1` instead of `0`, incorrectly suggesting one order exists.
 - Grouping by `contact_name` alone, which risks silently merging customers with identical contact names.
 - Assuming the join to `shippers` filters to "shipped orders only" — it does not. A join to `shippers` simply attaches shipper information to each order; it does not filter for orders that have been dispatched. To filter for dispatched orders, `WHERE o.shipped_date IS NOT NULL` is the correct condition.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is `COUNT(o.order_id)` used instead of `COUNT(*)`?**
 
@@ -113,13 +122,9 @@ GROUP BY c.contact_name, c.customer_id
 ORDER BY latest_ship_date DESC NULLS LAST;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand the critical difference between `COUNT(column)` and `COUNT(*)` in the context of `LEFT JOIN` — the single most tested aggregation nuance in SQL interviews involving outer joins.
-- Recognise that joining to a lookup table (like `shippers`) does not implicitly filter rows — joins attach data, filters restrict rows.
-- Know the difference between "has a shipper assigned" (`ship_via IS NOT NULL`) and "has been dispatched" (`shipped_date IS NOT NULL`), which are logically distinct in order management systems.
-- Practice placing filter conditions inside `ON` rather than `WHERE` when the intent is to filter join matches while still preserving outer (non-matching) rows.
+Joins attach data; they do not filter rows — to restrict to dispatched orders put `shipped_date IS NOT NULL` in the `ON` clause (not `WHERE`) so no-order customers still appear with a count of 0.
 
 ---
-
 📄 **SQL File:** [`Q33_Customers_And_Total_Orders_Shipped.sql`](./Q33_Customers_And_Total_Orders_Shipped.sql)

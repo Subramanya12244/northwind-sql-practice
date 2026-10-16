@@ -1,43 +1,21 @@
-/*
-Question:
-Return all categories along with the number of products in each category,
-including categories with no products displayed as 0.
+/* =====================================================================
+   Q35 · Categories and Number of Products
+   Category : LEFT JOIN          Difficulty : Easy
+   Concepts : LEFT JOIN · GROUP BY · COUNT · NULL Handling
+   ---------------------------------------------------------------------
+   PROBLEM : Number of products per category, with empty categories
+             shown as 0.
+   APPROACH:
+     1. LEFT JOIN categories -> products on category_id (keep every category).
+     2. COUNT(p.product_id) — not COUNT(*) — so empty categories return 0
+        rather than 1 (the NULL-padded row would be counted by COUNT(*)).
+     3. COUNT returns 0 for empty groups, so no COALESCE needed.
+     4. GROUP BY category_name, category_id.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The inventory team wants a complete category-product count report —
-every category must appear, and those with no products should show a
-count of 0 rather than being excluded from the report.
-
-Approach:
-1. Start from categories and LEFT JOIN to products on category_id,
-   preserving every category regardless of whether products are assigned.
-2. Use COUNT(p.product_id) — not COUNT(*) — to count products per
-   category. For a category with no products, the LEFT JOIN produces
-   one NULL-padded row; COUNT(p.product_id) sees NULL and returns 0,
-   while COUNT(*) would incorrectly return 1.
-3. COUNT returns 0 (not NULL) for empty groups, so COALESCE is not
-   required — unlike SUM(), which returns NULL for empty groups.
-4. GROUP BY both category_name and category_id — category_id is the
-   unique key ensuring one row per category; category_name is included
-   because it is a non-aggregated selected column.
-
-Expected Output:
-| category_name | total_products |
-|---------------|----------------|
-| Beverages     | 12             |
-| Confections   | 13             |
-| Seafood       | 0              |
-
-Concepts Used:
-- LEFT JOIN
-- GROUP BY
-- Aggregate Functions (COUNT)
-- NULL Handling
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 select c.category_name,
 count(p.product_id) as total_products
 from categories c

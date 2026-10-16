@@ -1,41 +1,21 @@
-/*
-Question:
-Return all suppliers along with the number of products they supply,
-including suppliers with no products displayed as 0.
+/* =====================================================================
+   Q36 · Suppliers and Number of Products
+   Category : LEFT JOIN          Difficulty : Easy
+   Concepts : LEFT JOIN · GROUP BY · COUNT · NULL Handling
+   ---------------------------------------------------------------------
+   PROBLEM : Number of products per supplier, with suppliers who supply
+             nothing shown as 0.
+   APPROACH:
+     1. LEFT JOIN suppliers -> products on supplier_id (keep every supplier).
+     2. COUNT(p.product_id) — not COUNT(*) — so no-product suppliers
+        return 0 rather than 1.
+     3. COUNT returns 0 for empty groups, so no COALESCE needed.
+     4. GROUP BY company_name, supplier_id.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The procurement team wants a complete supplier-product count report —
-every supplier must appear, and those with no products should show a
-count of 0 rather than being excluded.
-
-Approach:
-1. Start from suppliers and LEFT JOIN to products on supplier_id,
-   preserving every supplier regardless of whether products are assigned.
-2. Use COUNT(p.product_id) — not COUNT(*) — to count products per
-   supplier. For a supplier with no products, the LEFT JOIN produces
-   one NULL-padded row; COUNT(p.product_id) sees NULL and returns 0,
-   while COUNT(*) would incorrectly return 1.
-3. COUNT returns 0 (not NULL) for empty groups, so COALESCE is not
-   required — unlike SUM(), which returns NULL for empty groups.
-4. GROUP BY both company_name and supplier_id — supplier_id is the
-   unique key; company_name is included as a non-aggregated selected column.
-
-Expected Output:
-| supplier_name                     | total_products |
-|-----------------------------------|----------------|
-| Exotic Liquids                    | 8              |
-| New Orleans Cajun Delights        | 0              |
-
-Concepts Used:
-- LEFT JOIN
-- GROUP BY
-- Aggregate Functions (COUNT)
-- NULL Handling
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 select s.company_name,
 count(p.product_id) as total_products
 from suppliers s

@@ -1,33 +1,20 @@
-/*
-Question:
-Return every customer and their total order count, ensuring customers with zero orders still appear in the result with a count of 0, rather than being excluded.
+/* =====================================================================
+   Q25 · Customers and Order Count
+   Category : LEFT JOIN          Difficulty : Medium
+   Concepts : LEFT JOIN · GROUP BY · COUNT · NULL Handling
+   ---------------------------------------------------------------------
+   PROBLEM : Every customer and their order count, with zero-order
+             customers shown as 0 rather than excluded.
+   APPROACH:
+     1. LEFT JOIN customers -> orders on customer_id (keep every customer).
+     2. COUNT(o.order_id) — counts the joined column, so no-order
+        customers correctly show 0 (not COUNT(*), which would show 1).
+     3. GROUP BY customer; ORDER BY order_count DESC.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants a full list of all customers and their order counts, explicitly including customers who have never placed an order, displayed as 0.
-
-Approach:
-1. Start from customers and LEFT JOIN to orders on customer_id, preserving every customer regardless of order history.
-2. Aggregate using COUNT(o.order_id) — counting the joined column, not COUNT(*), so unmatched customers correctly show 0.
-3. Group by customer.
-4. Sort by order count descending.
-
-Expected Output:
-| customer_id | company_name | order_count |
-|-------------|--------------|-------------|
-| SAVEA | Save-a-lot Markets | 31 |
-| ERNSH | Ernst Handel | 30 |
-| FISSA | FISSA Fabrica Inter. Salchichas S.A. | 0 |
-
-Concepts Used:
-- LEFT JOIN
-- GROUP BY
-- Aggregate Functions (COUNT)
-- NULL Handling
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     cu.customer_id,
     cu.company_name,

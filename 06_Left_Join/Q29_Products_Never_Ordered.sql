@@ -1,31 +1,18 @@
-/*
-Question:
-Return only the products that have never appeared in any order, with no aggregation needed — just the filtered list of products themselves.
+/* =====================================================================
+   Q29 · Products Never Ordered
+   Category : LEFT JOIN          Difficulty : Easy
+   Concepts : LEFT JOIN · NULL Handling · WHERE · NOT EXISTS (alternative)
+   ---------------------------------------------------------------------
+   PROBLEM : List only products that have never appeared in any order.
+   APPROACH:
+     1. LEFT JOIN products -> order_details on product_id (keep every product).
+     2. Keep rows where od.order_id IS NULL (no matching line item at all).
+     3. Alternative shown below: NOT EXISTS (equally valid, often faster).
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to identify products that have never appeared in order_details, to support discontinuation, repricing, or catalog cleanup decisions.
-
-Approach:
-1. LEFT JOIN products to order_details on product_id, preserving every product regardless of sales history.
-2. Filter to rows where od.order_id IS NULL, which identifies products with no matching order line item at all.
-3. (Alternative shown: NOT EXISTS, an equally valid and often more efficient approach.)
-
-Expected Output:
-| product_id | product_name |
-|------------|--------------|
-| 9 | Mishi Kobe Niku |
-| 17 | Alice Mutton |
-
-Concepts Used:
-- LEFT JOIN
-- NULL Handling
-- WHERE
-- NOT EXISTS (alternative)
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     p.product_id,
     p.product_name

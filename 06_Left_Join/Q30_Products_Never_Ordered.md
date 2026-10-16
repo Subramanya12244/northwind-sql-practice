@@ -1,31 +1,25 @@
-# Q30. Products Never Ordered
+# Q30 · Products Never Ordered
 
-**Category:** LEFT JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** LEFT JOIN | **Difficulty:** Easy
+> **Concepts:** LEFT JOIN · NULL Handling · WHERE · NOT EXISTS (alternative)
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** filter on a *right-hand* table column (`od.product_id IS NULL`) — `p.product_id IS NULL` can never be true for an existing product row.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Inventory and purchasing teams want to identify products that have never sold a single unit, to evaluate discontinuation, repricing, or removing them from active catalog promotion entirely.
 
-## Objective
+**Objective:** Return only the products that have never appeared in any order, with no aggregation needed — just the filtered list of products themselves.
 
-Return only the products that have never appeared in any order, with no aggregation needed — just the filtered list of products themselves.
+**Tables:** `products`, `order_details`
 
-## Tables Used
-
-- `products`
-- `order_details`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
 | product_id | Unique identifier of the product |
 | product_name | Name of the product that has never been ordered |
-
-**Sample output:**
 
 | product_id | product_name |
 |------------|--------------|
@@ -34,14 +28,29 @@ Return only the products that have never appeared in any order, with no aggregat
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- LEFT JOIN
-- NULL Handling
-- WHERE
-- NOT EXISTS (alternative)
+1. LEFT JOIN `products` to `order_details` on `product_id`, preserving every product regardless of whether it has been ordered.
+2. Filter to rows where `od.product_id IS NULL`, which identifies products with no matching row in `order_details` at all — using the join key itself, which mirrors the `ON` condition directly above.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select p.product_id, p.product_name
+from products p
+left join order_details od on p.product_id = od.product_id
+where od.product_id is NULL;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Structurally identical to Q28's anti-join pattern, applied to products instead of customers:** `LEFT JOIN` preserves every product even if it has no matching `order_details` rows, and filtering on `od.product_id IS NULL` (any column from the right-hand table that is guaranteed non-null *in a real match* works equally well — `product_id` is a natural, obvious choice here since it's the exact join key) isolates exactly the products with zero matches.
 
@@ -49,17 +58,13 @@ Return only the products that have never appeared in any order, with no aggregat
 
 **Why this matters operationally beyond the SQL mechanics:** a product appearing in this list might be brand new (never yet sold), discontinued by the supplier but not yet removed from the catalog, or mispriced/unappealing — the query surfaces the *symptom*, and distinguishing between these causes is a judgment call for the business, not something the SQL itself can determine.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `NOT IN (SELECT product_id FROM order_details)` without verifying `order_details.product_id` can never be `NULL` — same risk as Q28's `NOT IN` trap.
 - Confusing 'never ordered' with 'currently out of stock' — these are different concepts; this query only reflects historical order activity, not current inventory levels (which would live in a separate stock/inventory table if Northwind had one).
 - Filtering on `p.product_id IS NULL` instead of `od.product_id IS NULL` — this would never be true, since every row from `products` exists by definition and can never be `NULL`.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. How is this query structurally identical to Q28? What's the only thing that changes?**
 
@@ -94,12 +99,9 @@ ORDER BY p.unit_price DESC;
 
 Sorting by `list_price DESC` surfaces the highest-priced never-sold products first — typically the most urgent discontinuation or repricing candidates, since they tie up the most potential revenue per unit with zero turnover.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Reinforce the anti-join pattern from Q28 by applying it to a second, structurally identical business question — solidifying that the *pattern* (not the specific tables) is the transferable skill.
-- Understand that any column from the right-hand (joined) table works equally well in the `IS NULL` filter, since an unmatched row has every one of its columns set to `NULL` — not just the one named in the join condition.
-- Practice distinguishing what SQL can directly answer (historical order activity) from what requires further business context (why a product never sold) — an important practical-judgment skill beyond pure query-writing.
+Any column from the right-hand table works in the `IS NULL` filter because an unmatched `LEFT JOIN` row has *every* right-side column set to `NULL` — just never filter on a left-side column, which can never be `NULL` for a real row.
 
 ---
-
 📄 **SQL File:** [`Q30_Products_Never_Ordered.sql`](./Q30_Products_Never_Ordered.sql)

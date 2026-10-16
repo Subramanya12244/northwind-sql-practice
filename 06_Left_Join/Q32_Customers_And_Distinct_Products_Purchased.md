@@ -1,33 +1,25 @@
-# Q32. Customers and Distinct Products Purchased
+# Q32 · Customers and Distinct Products Purchased
 
-**Category:** LEFT JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** LEFT JOIN | **Difficulty:** Medium
+> **Concepts:** LEFT JOIN (chained, four levels) · GROUP BY · COUNT DISTINCT · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** without `DISTINCT`, repeat purchases of the same product inflate the count — `COUNT(DISTINCT p.product_id)` is essential.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The product analytics team wants a report showing every customer and the total number of distinct products they have purchased. Customers who have never placed an order should also appear in the report with a product count of 0.
 
-## Objective
+**Objective:** Return all customers along with the count of distinct products they have purchased, ensuring customers with no orders still appear with a count of 0.
 
-Return all customers along with the count of distinct products they have purchased, ensuring customers with no orders still appear with a count of 0.
+**Tables:** `customers`, `orders`, `order_details`, `products`
 
-## Tables Used
-
-- `customers`
-- `orders`
-- `order_details`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
 | contact_name | Name of the customer contact |
 | distinct_products | Number of distinct products purchased by this customer (0 if no orders placed) |
-
-**Sample output:**
 
 | contact_name | distinct_products |
 |--------------|-------------------|
@@ -38,14 +30,37 @@ Return all customers along with the count of distinct products they have purchas
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- LEFT JOIN (chained, four levels)
-- GROUP BY
-- Aggregate Functions (COUNT DISTINCT)
-- NULL Handling
+1. Start from `customers` and LEFT JOIN to `orders` on `customer_id`.
+2. LEFT JOIN to `order_details` on `order_id` to reach line-item level.
+3. LEFT JOIN to `products` on `product_id` to bring in product context.
+4. All joins must remain LEFT JOIN — converting any to INNER JOIN would drop no-order customers from the result at that step.
+5. Use `COUNT(DISTINCT p.product_id)` to count unique products per customer. DISTINCT is essential — without it, repeat purchases of the same product across multiple orders inflate the count incorrectly.
+6. COUNT returns 0 (not NULL) for empty groups, so COALESCE is not required — unlike `SUM()`.
+7. GROUP BY both `contact_name` and `customer_id`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select c.contact_name,
+count(distinct p.product_id)
+from customers c
+left join orders o on o.customer_id = c.customer_id
+left join order_details od on o.order_id = od.order_id
+left join products p on p.product_id = od.product_id
+group by c.contact_name, c.customer_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why four tables are joined:** the chain `customers → orders → order_details → products` is the only path from customer identity to individual product purchases. There is no shortcut — each table provides a necessary link:
 - `orders` connects `customers` to their transactions via `customer_id`
@@ -60,18 +75,14 @@ Return all customers along with the count of distinct products they have purchas
 
 **Why `GROUP BY c.contact_name, c.customer_id`:** `customer_id` is the unique key that guarantees one row per customer; `contact_name` must also appear because it is a non-aggregated selected column. Grouping by `contact_name` alone risks merging two customers with identical names.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Converting any intermediate join to `INNER JOIN`, which silently drops no-order customers from the result.
 - Using `COUNT(p.product_id)` without `DISTINCT`, which counts repeat purchases of the same product as separate items — inflating the "distinct products" figure.
 - Assuming `products` is unnecessary because `order_details` already has `product_id` — technically true for just counting, but joining `products` is a good habit that makes the query more readable and extensible.
 - Grouping by `contact_name` alone, which risks silently merging customers who share the same contact name.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why must `DISTINCT` be used inside `COUNT()` here?**
 
@@ -106,12 +117,9 @@ GROUP BY c.contact_name, c.customer_id
 ORDER BY distinct_products DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand why a full four-table `LEFT JOIN` chain is required and why every link must remain a `LEFT JOIN` to preserve no-match rows end to end.
-- Recognise the difference between `COUNT(column)` and `COUNT(DISTINCT column)` — the first counts occurrences, the second counts unique values, and confusing them produces silently wrong results for repeat-purchase scenarios.
-- Know which aggregate functions (`SUM`, `AVG`, `MIN`, `MAX`) return `NULL` for empty groups versus which (`COUNT`) return `0` — a frequently tested SQL semantics point.
+Every link in a multi-table chain must stay `LEFT JOIN` to preserve no-match rows end to end, and `COUNT(column)` vs `COUNT(DISTINCT column)` is the difference between counting occurrences and counting unique values.
 
 ---
-
 📄 **SQL File:** [`Q32_Customers_And_Distinct_Products_Purchased.sql`](./Q32_Customers_And_Distinct_Products_Purchased.sql)

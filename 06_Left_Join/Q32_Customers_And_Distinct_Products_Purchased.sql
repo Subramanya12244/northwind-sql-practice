@@ -1,45 +1,23 @@
-/*
-Question:
-Return all customers along with the count of distinct products they have
-purchased, including customers with no orders displayed as 0.
+/* =====================================================================
+   Q32 · Customers and Distinct Products Purchased
+   Category : LEFT JOIN          Difficulty : Medium
+   Concepts : LEFT JOIN (chained, four levels) · GROUP BY
+              · COUNT DISTINCT · NULL Handling
+   ---------------------------------------------------------------------
+   PROBLEM : Count of distinct products purchased per customer, with
+             no-order customers shown as 0.
+   APPROACH:
+     1. LEFT JOIN customers -> orders -> order_details -> products.
+     2. All joins stay LEFT so no-order customers survive the chain.
+     3. COUNT(DISTINCT p.product_id) — DISTINCT avoids counting repeat
+        purchases of the same product multiple times.
+     4. COUNT returns 0 for empty groups, so no COALESCE needed.
+     5. GROUP BY contact_name, customer_id.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The product analytics team wants a complete customer-product breadth
-report — every customer must appear, and those with no orders should
-show a distinct product count of 0 rather than being excluded.
-
-Approach:
-1. Start from customers and LEFT JOIN to orders on customer_id.
-2. LEFT JOIN to order_details on order_id to reach line-item level.
-3. LEFT JOIN to products on product_id to bring in product context.
-4. All joins must remain LEFT JOIN — converting any to INNER JOIN would
-   drop no-order customers from the result at that step.
-5. Use COUNT(DISTINCT p.product_id) to count unique products per customer.
-   DISTINCT is essential — without it, repeat purchases of the same
-   product across multiple orders inflate the count incorrectly.
-6. COUNT returns 0 (not NULL) for empty groups, so COALESCE is not
-   required here — unlike SUM(), which returns NULL for empty groups.
-7. GROUP BY both contact_name and customer_id — customer_id ensures
-   correct one-row-per-customer grouping; contact_name is included
-   because it is a non-aggregated selected column.
-
-Expected Output:
-| contact_name | distinct_products |
-|--------------|-------------------|
-| Maria Anders | 24 |
-| Thomas Hardy | 31 |
-| Ana Trujillo | 0 |
-
-Concepts Used:
-- LEFT JOIN (chained, four levels)
-- GROUP BY
-- Aggregate Functions (COUNT DISTINCT)
-- NULL Handling
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 select c.contact_name,
 count(distinct p.product_id)
 from customers c

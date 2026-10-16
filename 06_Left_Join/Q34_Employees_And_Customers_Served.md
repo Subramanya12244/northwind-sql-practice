@@ -1,31 +1,25 @@
-# Q34. Employees and Customers Served
+# Q34 · Employees and Customers Served
 
-**Category:** LEFT JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** LEFT JOIN | **Difficulty:** Medium
+> **Concepts:** LEFT JOIN · GROUP BY · COUNT DISTINCT · String Concatenation · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `COUNT(DISTINCT o.customer_id)` measures customer *breadth* — `COUNT(o.order_id)` would count order *volume*, a different metric entirely.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The management team wants a report showing every employee and the total number of distinct customers they have served. Employees who have not served any customers should also appear with a count of 0.
 
-## Objective
+**Objective:** Return all employees along with the number of distinct customers they have served, ensuring employees with no orders appear with a count of 0.
 
-Return all employees along with the number of distinct customers they have served, ensuring employees with no orders appear with a count of 0.
+**Tables:** `employees`, `orders`
 
-## Tables Used
-
-- `employees`
-- `orders`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
 | employee_name | Full name of the employee (first + last) |
 | customers_served | Number of distinct customers served by this employee (0 if no orders handled) |
-
-**Sample output:**
 
 | employee_name | customers_served |
 |---------------|------------------|
@@ -36,15 +30,35 @@ Return all employees along with the number of distinct customers they have serve
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- LEFT JOIN
-- GROUP BY
-- Aggregate Functions (COUNT DISTINCT)
-- String Concatenation
-- NULL Handling
+1. Start from `employees` and LEFT JOIN to `orders` on `employee_id`, preserving every employee regardless of order history.
+2. Use `COUNT(DISTINCT o.customer_id)` to count unique customers per employee. DISTINCT is essential — without it, an employee handling multiple orders for the same customer would count that customer multiple times.
+3. COUNT returns 0 (not NULL) for empty groups, so COALESCE is not required.
+4. Concatenate `first_name` and `last_name` for a single display name column.
+5. GROUP BY `employee_id` (the unique key) along with `first_name` and `last_name`, since they are non-aggregated selected columns.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    e.first_name || ' ' || e.last_name AS employee_name,
+    COUNT(DISTINCT o.customer_id) AS customers_served
+FROM employees e
+LEFT JOIN orders o ON o.employee_id = e.employee_id
+GROUP BY e.employee_id, e.first_name, e.last_name
+ORDER BY customers_served DESC;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `LEFT JOIN employees → orders`:** preserves every employee row regardless of whether they have handled any orders. An `INNER JOIN` would silently drop employees with no order history — directly violating the requirement to show them with a count of 0.
 
@@ -56,18 +70,14 @@ Return all employees along with the number of distinct customers they have serve
 
 **Why `GROUP BY` includes `employee_id`:** it is the true unique key. Grouping on the concatenated name alone risks merging two employees who happen to share both first and last names.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `INNER JOIN`, which silently drops employees with no order history from the result.
 - Using `COUNT(o.order_id)` instead of `COUNT(DISTINCT o.customer_id)` — that counts orders handled, not unique customers served; a very different metric.
 - Using plain `COUNT(o.customer_id)` without `DISTINCT` — counts one row per order, not one row per unique customer, inflating the figure whenever an employee handles multiple orders for the same customer.
 - Grouping by the concatenated name alone instead of including `employee_id`, risking silent row merges for employees who share a name.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is `COUNT(DISTINCT o.customer_id)` used instead of `COUNT(o.order_id)` or `COUNT(o.customer_id)`?**
 
@@ -121,12 +131,9 @@ ORDER BY customers_served DESC;
 
 `HAVING` is required here (not `WHERE`) because the filter target is an aggregate value that doesn't exist until after `GROUP BY` has been applied.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand the critical difference between `COUNT(order_id)` (order volume), `COUNT(customer_id)` (raw order rows with customer context), and `COUNT(DISTINCT customer_id)` (unique customer relationships) — three queries that look similar but answer fundamentally different business questions.
-- Reinforce that `COUNT()` returns `0` for empty groups while `SUM()` returns `NULL` — knowing which aggregates behave which way eliminates an entire category of `COALESCE` errors.
-- Practice building a display name from two source columns using concatenation, and understand why the underlying key (`employee_id`) must still drive the grouping even when only the concatenated name is displayed.
+`COUNT(order_id)`, `COUNT(customer_id)`, and `COUNT(DISTINCT customer_id)` look similar but answer different business questions — pick the one that matches the grain (unique relationships here), and group on the primary key even when only a derived display name is shown.
 
 ---
-
 📄 **SQL File:** [`Q34_Employees_And_Customers_Served.sql`](./Q34_Employees_And_Customers_Served.sql)

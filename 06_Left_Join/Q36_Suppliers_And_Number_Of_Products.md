@@ -1,31 +1,25 @@
-# Q36. Suppliers and Number of Products
+# Q36 · Suppliers and Number of Products
 
-**Category:** LEFT JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** LEFT JOIN | **Difficulty:** Easy
+> **Concepts:** LEFT JOIN · GROUP BY · COUNT · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** same rule as Q35 — `COUNT(p.product_id)` not `COUNT(*)`; `COUNT` needs no `COALESCE` because it returns 0 for empty groups.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The procurement team wants a report showing every supplier and the total number of products they supply. Suppliers who do not supply any products should also appear with a product count of 0.
 
-## Objective
+**Objective:** Return all suppliers along with the number of products they supply, ensuring suppliers with no products appear with a count of 0.
 
-Return all suppliers along with the number of products they supply, ensuring suppliers with no products appear with a count of 0.
+**Tables:** `suppliers`, `products`
 
-## Tables Used
-
-- `suppliers`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
 | supplier_name | Name of the supplier company |
 | total_products | Total number of products supplied (0 if none) |
-
-**Sample output:**
 
 | supplier_name | total_products |
 |---------------|----------------|
@@ -35,14 +29,32 @@ Return all suppliers along with the number of products they supply, ensuring sup
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- LEFT JOIN
-- GROUP BY
-- Aggregate Functions (COUNT)
-- NULL Handling
+1. Start from `suppliers` and LEFT JOIN to `products` on `supplier_id`, preserving every supplier regardless of whether products are assigned.
+2. Use `COUNT(p.product_id)` — not `COUNT(*)` — to count products per supplier. For a supplier with no products, the LEFT JOIN produces one NULL-padded row; `COUNT(p.product_id)` returns 0, while `COUNT(*)` would incorrectly return 1.
+3. COUNT returns 0 (not NULL) for empty groups, so COALESCE is not required.
+4. GROUP BY both `company_name` and `supplier_id`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select s.company_name,
+count(p.product_id) as total_products
+from suppliers s
+left join products p on p.supplier_id = s.supplier_id
+group by s.company_name, s.supplier_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `LEFT JOIN suppliers → products`:** preserves every supplier row regardless of whether any products are linked to them. An `INNER JOIN` would silently drop suppliers with no products — directly violating the stated requirement. `LEFT JOIN` keeps every row from `suppliers` and fills `NULL` for all `products` columns where no match exists.
 
@@ -52,18 +64,14 @@ Return all suppliers along with the number of products they supply, ensuring sup
 
 **Why `GROUP BY s.company_name, s.supplier_id`:** `supplier_id` is the unique key ensuring one row per supplier; `company_name` must also appear in `GROUP BY` because it is a non-aggregated selected column. Grouping by `company_name` alone risks silently merging two suppliers with identical names.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `INNER JOIN`, which drops suppliers with no products from the result entirely.
 - Using `COUNT(*)` instead of `COUNT(p.product_id)`, returning `1` instead of `0` for empty suppliers.
 - Grouping on `company_name` alone rather than including the unique key `supplier_id`.
 - Adding `COALESCE` unnecessarily — while harmless, it signals a misunderstanding of which aggregates need it.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. This query is structurally identical to Q35 (Categories and Number of Products). What is the only thing that changes?**
 
@@ -127,12 +135,9 @@ FROM supplier_counts;
 
 `RANK()` correctly handles ties by assigning the same rank to suppliers with identical product counts.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Reinforce the `LEFT JOIN` + `COUNT(joined_column)` pattern as a transferable template applicable to any "show all entities with their associated count" report.
-- Confirm that `COUNT` returns `0` for empty groups without needing `COALESCE`, in contrast to all other standard aggregate functions.
-- Practice recognising structurally identical queries across different table pairs — a key skill for writing SQL efficiently without re-deriving logic from scratch each time.
+The `LEFT JOIN` + `COUNT(joined_column)` template transfers unchanged across any "all entities with their count" report — recognising structurally identical queries saves re-deriving the logic each time.
 
 ---
-
 📄 **SQL File:** [`Q36_Suppliers_And_Number_Of_Products.sql`](./Q36_Suppliers_And_Number_Of_Products.sql)
