@@ -1,24 +1,20 @@
-# Q56. Products and Total Revenue (FULL OUTER JOIN)
+# Q56 · Products and Total Revenue (FULL OUTER JOIN)
 
-**Category:** FULL OUTER JOIN
-**Difficulty:** Hard
+> **Revision Card**
+> **Category:** FULL OUTER JOIN | **Difficulty:** Hard
+> **Concepts:** FULL OUTER JOIN · GROUP BY · SUM · COALESCE · ROUND/CAST · NULL grouping behaviour
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `SUM()` over an all-NULL group returns NULL, not 0 — wrap it in `COALESCE(..., 0)` or never-sold products show NULL instead of 0.00.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate a report showing all products and the total revenue generated from each product. The report should include products that have been sold, products that have never been sold, and order detail records that reference a product that does not exist in the products table.
 
-## Objective
+**Objective:** Return the product name and total revenue for every product and every order detail record — no product and no order detail line should be excluded from the report.
 
-Return the product name and total revenue for every product and every order detail record — no product and no order detail line should be excluded from the report.
+**Tables:** `products`, `order_details`
 
-## Tables Used
-
-- `products`
-- `order_details`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -39,16 +35,33 @@ Return the product name and total revenue for every product and every order deta
 
 *(Sample values are illustrative. In standard Northwind, all order details reference valid products and all products exist — the NULL row demonstrates FULL OUTER JOIN behaviour for data integrity scenarios.)*
 
-## Concepts Used
+## 2. My Approach
 
-- FULL OUTER JOIN
-- GROUP BY
-- Aggregate Functions (SUM)
-- NULL Handling (COALESCE)
-- ROUND / CAST
-- NULL grouping behaviour in GROUP BY
+1. `FULL OUTER JOIN` `products` to `order_details` on `product_id`.
+2. Compute per-line revenue `unit_price * quantity * (1 - discount)`, cast `::numeric`, and `SUM()` per product.
+3. Wrap the `SUM()` in `COALESCE(..., 0)` so never-sold products show `0.00` instead of NULL.
+4. `ROUND` to 2 decimals.
+5. `GROUP BY p.product_name, p.product_id` — all NULL `product_id` orphaned lines collapse to one NULL group.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select p.product_name,
+coalesce(round(sum((od.unit_price * od.quantity * (1-od.discount))::numeric), 2), 0) as total_revenue
+from products p
+full outer join order_details od on od.product_id = p.product_id
+group by p.product_name, p.product_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why FULL OUTER JOIN and not LEFT or RIGHT JOIN:**
 
@@ -73,7 +86,7 @@ Only `FULL OUTER JOIN` surfaces all three simultaneously.
 
 **How the NULL row's revenue is computed:** orphaned order lines have NULL `p.product_id` but non-NULL values for `od.unit_price`, `od.quantity`, and `od.discount` — the revenue data comes from `order_details`, which is fully populated for those rows. `SUM()` correctly accumulates those line-item revenues even though `product_name` is NULL.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `LEFT JOIN products → order_details` — preserves all products but silently drops orphaned order lines (type 3 rows never appear). The `NULL | 420.00` row would be invisible.
 - Using `RIGHT JOIN products → order_details` — preserves all order lines but drops never-sold products (type 2 rows never appear). The `Product X | 0.00` row would be invisible.
@@ -82,11 +95,7 @@ Only `FULL OUTER JOIN` surfaces all three simultaneously.
 - Casting `::numeric` outside `ROUND()` instead of inside — `ROUND(SUM(...)::numeric, 2)` is the standard pattern; placing it elsewhere (e.g. `ROUND(SUM(...)::numeric, 2)::numeric` — redundant, but harmless) is worth understanding.
 - Expecting multiple NULL rows — `GROUP BY p.product_id` groups all NULL product IDs together, so there is always exactly one NULL row regardless of how many orphaned order lines exist.
 
-## Difficulty
-
-**Hard**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What do the three different row types in the output represent in real-world terms, and what business action does each suggest?**
 
@@ -131,13 +140,9 @@ ORDER BY total_revenue DESC NULLS LAST;
 
 Q27 used `LEFT JOIN products → order_details`, preserving all products but silently dropping any order lines whose `product_id` doesn't exist in `products`. Q44 used `RIGHT JOIN order_details → products`, preserving all order lines but dropping never-sold products. Both were acceptable for their stated requirements. This query uses `FULL OUTER JOIN`, adding the critical third row type — orphaned order lines — that neither Q27 nor Q44 could surface. The FULL OUTER JOIN version is the complete data quality version: it answers not just "which products sold" and "which products never sold" but also "are there revenue records attached to products that no longer exist in our system?" — a question that matters enormously for financial reconciliation.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand the three FULL OUTER JOIN row types in a product-revenue context and know the real-world business implication of each — particularly the orphaned order line row, which represents a data integrity risk for financial reporting.
-- Confirm that `GROUP BY` groups all NULL values together — producing exactly one NULL row regardless of how many orphaned records exist — and understand why this is the correct behaviour for aggregation.
-- Know the difference between casting `::numeric` per row inside `SUM()` versus casting the `SUM()` result — both correct, but the latter is slightly more efficient.
-- Recognise this as the most complete version of the product revenue report — superseding both Q27 (LEFT JOIN) and Q44 (RIGHT JOIN) by capturing all three row types in a single query.
+The complete product-revenue reconciliation needs `FULL OUTER JOIN` (all three row types), `COALESCE` to turn `SUM()`'s NULL into 0.00 for never-sold products, and a `::numeric` cast for `ROUND()` — with all orphaned lines collapsing into a single NULL group.
 
 ---
-
 📄 **SQL File:** [`Q56_Products_And_Total_Revenue_FULL_OUTER_JOIN.sql`](./Q56_Products_And_Total_Revenue_FULL_OUTER_JOIN.sql)

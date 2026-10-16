@@ -1,24 +1,20 @@
-# Q52. Products and Categories (FULL OUTER JOIN)
+# Q52 · Products and Categories (FULL OUTER JOIN)
 
-**Category:** FULL OUTER JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** FULL OUTER JOIN | **Difficulty:** Medium
+> **Concepts:** FULL OUTER JOIN · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `LEFT JOIN` drops empty categories and `RIGHT JOIN` drops uncategorised products — only `FULL OUTER JOIN` shows both.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate a report showing all products and all categories. The report should include products that belong to a category, products without a category, and categories that currently have no products.
 
-## Objective
+**Objective:** Return the product name and category name — no product and no category should be excluded from the result.
 
-Return the product name and category name — no product and no category should be excluded from the result.
+**Tables:** `products`, `categories`
 
-## Tables Used
-
-- `products`
-- `categories`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,12 +32,30 @@ Return the product name and category name — no product and no category should 
 
 *(In standard Northwind, all products belong to a category and all categories have products — the NULL rows demonstrate FULL OUTER JOIN behaviour for data quality scenarios.)*
 
-## Concepts Used
+## 2. My Approach
 
-- FULL OUTER JOIN
-- NULL Handling
+1. `FULL OUTER JOIN` `products` to `categories` on `category_id`.
+2. Matched rows: product belongs to a category — both sides populated.
+3. Left-only rows: product with no matching category — `category_name` is NULL.
+4. Right-only rows: category with no products — `product_name` is NULL.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select p.product_name, c.category_name
+from products p
+full outer join categories c on c.category_id = p.category_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why FULL OUTER JOIN:** the requirement has three row types:
 1. A product that belongs to a category — both sides populated
@@ -54,18 +68,14 @@ Return the product name and category name — no product and no category should 
 
 **Why the join condition links `category_id`:** `products.category_id` is the foreign key referencing `categories.category_id`. When a product's `category_id` matches a category's `category_id`, both sides are populated. When no match exists on either side, the corresponding columns are NULL.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `LEFT JOIN products → categories` — this shows all products with their categories (NULLs for uncategorised products) but completely drops categories that have no products. Type 3 rows disappear.
 - Using `RIGHT JOIN products → categories` — this shows all categories with their products but drops uncategorised products. Type 2 rows disappear.
 - Expecting `FULL OUTER JOIN` to aggregate or deduplicate — it doesn't. A category with 12 products still produces 12 separate rows in the result, one per product.
 - Confusing "no products in a category" with "category doesn't exist" — a `NULL` `product_name` row from `FULL OUTER JOIN` means the category exists in `categories` but has no matching row in `products` via the join key.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. How would you use this result to find both uncategorised products AND empty categories at once?**
 
@@ -113,12 +123,9 @@ GROUP BY c.category_id, c.category_name
 ORDER BY product_count DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand the three row types produced by `FULL OUTER JOIN` — matched, left-only, and right-only — and know which real-world scenarios generate each type.
-- Recognise `FULL OUTER JOIN` as the standard tool for catalog reconciliation, data quality auditing, and any "show everything from both sides" reporting requirement.
-- Know the `LEFT JOIN UNION RIGHT JOIN` workaround for databases without native `FULL OUTER JOIN` support.
+`FULL OUTER JOIN` is the standard tool for catalog reconciliation — it surfaces matched, left-only (uncategorised products), and right-only (empty categories) rows in one pass. Where native support is missing, `LEFT JOIN UNION RIGHT JOIN` reproduces it.
 
 ---
-
 📄 **SQL File:** [`Q52_Products_And_Categories_FULL_OUTER_JOIN.sql`](./Q52_Products_And_Categories_FULL_OUTER_JOIN.sql)

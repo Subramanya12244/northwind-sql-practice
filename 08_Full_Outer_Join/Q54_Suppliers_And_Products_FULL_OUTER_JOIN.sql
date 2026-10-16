@@ -1,41 +1,24 @@
-/*
-Question:
-Return the supplier name and product name for every supplier and every
-product — no supplier and no product should be excluded.
+/* =====================================================================
+   Q54 · Suppliers and Products (FULL OUTER JOIN)
+   Category : FULL OUTER JOIN        Difficulty : Medium
+   Concepts : FULL OUTER JOIN · NULL Handling
+   ---------------------------------------------------------------------
+   PROBLEM : Return the supplier name and product name for every supplier
+             and every product — no supplier and no product excluded.
+   APPROACH:
+     1. FULL OUTER JOIN suppliers to products on supplier_id.
+     2. Matched rows: supplier-product pair linked — both sides populated.
+     3. Left-only rows: supplier with no products — product_name NULL.
+     4. Right-only rows: product with no supplier — company_name NULL.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ---------------------------------------------------------------------
+   NOTE: Same structural template across Q51-Q54:
+     SELECT <display_A>, <display_B>
+     FROM <table_A> FULL OUTER JOIN <table_B> ON <shared_key>;
+   ===================================================================== */
 
-Business Requirement:
-Generate a complete supplier-product reconciliation report covering:
-1. Suppliers who supply products (both sides populated)
-2. Suppliers with no products (product_name = NULL)
-3. Products with no matching supplier (company_name = NULL)
-
-Why FULL OUTER JOIN:
-- LEFT JOIN suppliers → products: misses supplier-less products (type 3)
-- RIGHT JOIN suppliers → products: misses product-less suppliers (type 2)
-- FULL OUTER JOIN: preserves all rows from both tables simultaneously
-
-Structural pattern (same across Q51-Q54):
-   SELECT <display_col_A>, <display_col_B>
-   FROM <table_A>
-   FULL OUTER JOIN <table_B> ON <shared_key>;
-   -- Both sides preserved; NULLs appear only for unmatched rows.
-
-Expected Output:
-| company_name               | product_name                     |
-|----------------------------|----------------------------------|
-| Exotic Liquids             | Chai                             |
-| Grandma Kelly's Homestead  | Northwoods Cranberry Sauce       |
-| Supplier X                 | NULL                             |
-| NULL                       | Product Y                        |
-
-Concepts Used:
-- FULL OUTER JOIN
-- NULL Handling
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 select s.company_name, p.product_name
 from suppliers s
 full outer join products p on p.supplier_id = s.supplier_id;

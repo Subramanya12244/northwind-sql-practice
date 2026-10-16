@@ -1,24 +1,20 @@
-# Q51. Customers and Orders (FULL OUTER JOIN)
+# Q51 · Customers and Orders (FULL OUTER JOIN)
 
-**Category:** FULL OUTER JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** FULL OUTER JOIN | **Difficulty:** Medium
+> **Concepts:** FULL OUTER JOIN · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** only `FULL OUTER JOIN` keeps both unmatched customers AND orphaned orders — `LEFT`/`RIGHT` each silently drop one side.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate a report that displays all customers and all orders. The report should include customers who have placed orders, customers who have never placed an order, and orders that do not have a matching customer.
 
-## Objective
+**Objective:** Return the customer name and order ID for every customer and every order — no row from either table should be excluded.
 
-Return the customer name and order ID for every customer and every order — no row from either table should be excluded.
+**Tables:** `customers`, `orders`
 
-## Tables Used
-
-- `customers`
-- `orders`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,12 +32,30 @@ Return the customer name and order ID for every customer and every order — no 
 
 *(In standard Northwind, all orders have valid customers and all customers appear in one of the three row types — the NULL rows demonstrate FULL OUTER JOIN behaviour for data quality scenarios.)*
 
-## Concepts Used
+## 2. My Approach
 
-- FULL OUTER JOIN
-- NULL Handling
+1. `FULL OUTER JOIN` `customers` to `orders` on `customer_id`.
+2. Matched rows: customer has at least one order — both sides populated.
+3. Left-only rows: customer has no orders — `order_id` is NULL.
+4. Right-only rows: order has no matching customer — `contact_name` is NULL.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select c.contact_name, o.order_id
+from customers c
+full outer join orders o on o.customer_id = c.customer_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why FULL OUTER JOIN and not LEFT or RIGHT JOIN:**
 
@@ -62,18 +76,14 @@ Only `FULL OUTER JOIN` produces all three simultaneously. `LEFT JOIN` would miss
 
 **When does `contact_name = NULL` occur in practice?** When an order's `customer_id` references a customer record that has been deleted or never existed. This is an orphaned order — a data integrity anomaly that `FULL OUTER JOIN` surfaces that neither `LEFT JOIN` nor `RIGHT JOIN` alone would catch.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `LEFT JOIN` and missing orphaned orders (right-only rows).
 - Using `RIGHT JOIN` and missing customers with no orders (left-only rows).
 - Expecting `FULL OUTER JOIN` to deduplicate rows — it does not; a customer with 10 orders produces 10 matched rows, not 1.
 - Confusing `FULL OUTER JOIN` with `CROSS JOIN` — `CROSS JOIN` produces every combination of every row (N × M rows); `FULL OUTER JOIN` matches on a key and only produces unmatched rows as NULLs, not all combinations.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What is the difference between LEFT JOIN, RIGHT JOIN, and FULL OUTER JOIN? When would you use each?**
 
@@ -115,12 +125,9 @@ Five rows — one per order. `FULL OUTER JOIN` (like all joins) multiplies rows 
 
 `CROSS JOIN` produces every possible combination of every row from both tables — N × M rows with no join condition. `FULL OUTER JOIN` matches rows on a specified key condition, producing one row per matching pair (like `INNER JOIN`) plus NULL-padded rows for any unmatched rows on either side. `FULL OUTER JOIN` between a 91-row customers table and an 830-row orders table produces 830 + some NULL rows; `CROSS JOIN` would produce 91 × 830 = 75,530 rows.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that `FULL OUTER JOIN` is the only join type that preserves unmatched rows from both tables simultaneously — making it the correct choice for reconciliation, data quality auditing, and any report where neither side should lose rows.
-- Know the three row types in a `FULL OUTER JOIN` result: matched, left-only (right side NULL), and right-only (left side NULL).
-- Recognise that `FULL OUTER JOIN` = `LEFT JOIN UNION RIGHT JOIN` — a useful mental model and a practical workaround for databases that don't support `FULL OUTER JOIN` natively.
+`FULL OUTER JOIN` is the only join that preserves unmatched rows from both tables at once, producing three row types — matched, left-only, and right-only. It is the correct tool for reconciliation and data-quality auditing, and is logically equivalent to `LEFT JOIN UNION RIGHT JOIN`.
 
 ---
-
 📄 **SQL File:** [`Q51_Customers_And_Orders_FULL_OUTER_JOIN.sql`](./Q51_Customers_And_Orders_FULL_OUTER_JOIN.sql)

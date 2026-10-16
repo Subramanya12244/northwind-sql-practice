@@ -1,24 +1,20 @@
-# Q54. Suppliers and Products (FULL OUTER JOIN)
+# Q54 · Suppliers and Products (FULL OUTER JOIN)
 
-**Category:** FULL OUTER JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** FULL OUTER JOIN | **Difficulty:** Medium
+> **Concepts:** FULL OUTER JOIN · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** choose the join for correctness by design — `FULL OUTER JOIN` is right whenever neither table may lose rows, even if the current dataset has no gaps.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Generate a report showing all suppliers and all products. The report should include suppliers who supply products, suppliers who do not supply any products, and products that are not assigned to any supplier.
 
-## Objective
+**Objective:** Return the supplier name and product name — no supplier and no product should be excluded from the result.
 
-Return the supplier name and product name — no supplier and no product should be excluded from the result.
+**Tables:** `suppliers`, `products`
 
-## Tables Used
-
-- `suppliers`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,12 +32,30 @@ Return the supplier name and product name — no supplier and no product should 
 
 *(In standard Northwind, all products have a valid supplier and all suppliers have at least one product — the NULL rows demonstrate FULL OUTER JOIN behaviour for data quality scenarios.)*
 
-## Concepts Used
+## 2. My Approach
 
-- FULL OUTER JOIN
-- NULL Handling
+1. `FULL OUTER JOIN` `suppliers` to `products` on `supplier_id`.
+2. Matched rows: supplier-product pair linked — both sides populated.
+3. Left-only rows: supplier with no products — `product_name` is NULL.
+4. Right-only rows: product with no matching supplier — `company_name` is NULL.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+select s.company_name, p.product_name
+from suppliers s
+full outer join products p on p.supplier_id = s.supplier_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why FULL OUTER JOIN:** the three row types required are:
 1. A supplier-product pair where both exist and are linked — both sides populated
@@ -62,17 +76,13 @@ FULL OUTER JOIN <table_B> ON <shared_key>;
 
 The only thing that changes per question is which tables and which display columns. The `FULL OUTER JOIN` logic — both sides preserved, NULLs on unmatched sides — is the same in every case.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `INNER JOIN`, which drops both unmatched suppliers and unmatched products entirely.
 - Using `LEFT JOIN suppliers → products`, which correctly shows supplier-less products as NULLs but completely drops product-less suppliers.
 - Assuming that if standard Northwind has no NULL rows in practice, the `FULL OUTER JOIN` was unnecessary — the join type is chosen for correctness by design, not for whether the current dataset happens to have gaps.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Across Q51–Q54, all four queries share the same FULL OUTER JOIN structure. What is the single rule that determines when to use FULL OUTER JOIN?**
 
@@ -118,12 +128,9 @@ FULL OUTER JOIN suppliers s ON s.supplier_id = p.supplier_id;
 
 Each `FULL OUTER JOIN` in the chain preserves unmatched rows from that step. A product with no category and no supplier would appear with NULLs in both `category_name` and `supplier_name`. An empty category would appear with NULL for `product_name` and `supplier_name`. This is a complete three-way reconciliation in a single query.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Confirm the `FULL OUTER JOIN` structural template: identical across Q51–Q54, transferable to any two-table reconciliation requirement.
-- Know the decision rule: when neither table can lose rows in the output, `FULL OUTER JOIN` is the only correct join type.
-- Understand how `FULL OUTER JOIN` chains extend naturally to three or more tables, with each additional `FULL OUTER JOIN` preserving unmatched rows from that table.
+When neither table may lose rows, `FULL OUTER JOIN` is the only correct choice. The two-table reconciliation template is identical across Q51–Q54 and chains naturally to three or more tables.
 
 ---
-
 📄 **SQL File:** [`Q54_Suppliers_And_Products_FULL_OUTER_JOIN.sql`](./Q54_Suppliers_And_Products_FULL_OUTER_JOIN.sql)

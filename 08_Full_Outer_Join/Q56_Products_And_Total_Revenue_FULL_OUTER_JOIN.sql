@@ -1,63 +1,29 @@
-/*
-Question:
-Return the product name and total revenue for every product and every
-order detail record — no product and no order line should be excluded.
+/* =====================================================================
+   Q56 · Products and Total Revenue (FULL OUTER JOIN)
+   Category : FULL OUTER JOIN        Difficulty : Hard
+   Concepts : FULL OUTER JOIN · GROUP BY · SUM · COALESCE · ROUND/CAST
+              · NULL grouping behaviour
+   ---------------------------------------------------------------------
+   PROBLEM : Return the product name and total revenue for every product
+             and every order line — no product and no order line excluded.
+   APPROACH:
+     1. FULL OUTER JOIN products to order_details on product_id.
+     2. SUM((unit_price * quantity * (1-discount))::numeric) per product.
+     3. COALESCE(..., 0) so never-sold products show 0.00, not NULL.
+     4. ROUND to 2 dp; GROUP BY p.product_name, p.product_id.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ---------------------------------------------------------------------
+   KEY BEHAVIOUR:
+     • SUM() over an all-NULL group returns NULL → COALESCE to 0 required.
+     • GROUP BY groups all NULL product_id (orphaned lines) into ONE row.
+     • Alternative cast placement: SUM(...)::numeric (1 cast vs N) — same
+       result, slightly more efficient.
+   The most complete product revenue report — supersedes Q27 (LEFT) and
+   Q44 (RIGHT) by capturing all three row types.
+   ===================================================================== */
 
-Business Requirement:
-Generate a complete product revenue report covering all three data states:
-1. Products that have been sold (product_name populated, revenue > 0)
-2. Products that have never been sold (product_name populated, revenue = 0.00)
-3. Orphaned order lines whose product_id references a non-existent product
-   (product_name = NULL, revenue > 0 — a data integrity anomaly)
-
-Why FULL OUTER JOIN:
-- LEFT JOIN products → order_details:  misses type 3 (orphaned order lines)
-- RIGHT JOIN products → order_details: misses type 2 (never-sold products)
-- FULL OUTER JOIN: preserves all rows from both tables simultaneously
-
-This is the most complete product revenue report — superseding:
-- Q27 (LEFT JOIN version — no orphaned order line row)
-- Q44 (RIGHT JOIN version — no never-sold product row)
-
-NULL grouping behaviour:
-   All orphaned order lines have p.product_id = NULL after the FULL OUTER JOIN.
-   GROUP BY p.product_id groups all NULLs together → exactly ONE NULL row,
-   regardless of how many orphaned order lines exist.
-   SUM() accumulates revenue across all rows in that NULL group correctly
-   since od.unit_price, od.quantity, and od.discount are still populated.
-
-Note on ::numeric cast placement:
-   Your SQL: SUM((od.unit_price * od.quantity * (1-od.discount))::numeric)
-   → casts each row to numeric before summing (N casts total)
-
-   Alternative: SUM(od.unit_price * od.quantity * (1-od.discount))::numeric
-   → casts the SUM result once (1 cast total — slightly more efficient)
-   Both produce identical results.
-
-COALESCE:
-   Required because SUM() returns NULL (not 0) for never-sold products.
-   Without COALESCE, type 2 rows show NULL instead of 0.00.
-
-Expected Output:
-| product_name | total_revenue |
-|--------------|---------------|
-| Chai         | 18452.30      |
-| Chang        | 15324.75      |
-| Product X    | 0.00          |
-| NULL         | 420.00        |
-
-Concepts Used:
-- FULL OUTER JOIN
-- GROUP BY
-- Aggregate Functions (SUM)
-- NULL Handling (COALESCE)
-- ROUND / CAST
-- NULL grouping behaviour in GROUP BY
-
-Complexity:
-Hard
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 select p.product_name,
 coalesce(round(sum((od.unit_price * od.quantity * (1-od.discount))::numeric), 2), 0) as total_revenue
 from products p
