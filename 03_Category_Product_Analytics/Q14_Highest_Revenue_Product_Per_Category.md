@@ -1,25 +1,20 @@
-# Q14. Highest Revenue Product per Category
+# Q14 · Highest Revenue Product per Category
 
-**Category:** Category & Product Analytics
-**Difficulty:** Hard
+> **Revision Card**
+> **Category:** Category & Product Analytics | **Difficulty:** Hard
+> **Concepts:** CTE · Window Functions (RANK) · PARTITION BY · GROUP BY · SUM · Tie Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** use `RANK()`, not `ROW_NUMBER()` — `ROW_NUMBER()` silently drops products tied for the top revenue spot.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Category managers want to know the single best-selling product (by revenue) within each category, to understand category 'anchor' products and feature them in marketing. Ties must be handled gracefully rather than arbitrarily picking one winner.
 
-## Objective
+**Objective:** For every category, return the product(s) generating the highest revenue within that category, including all products tied for first place.
 
-For every category, return the product(s) generating the highest revenue within that category, including all products tied for first place.
+**Tables:** `products`, `order_details`, `categories`
 
-## Tables Used
-
-- `products`
-- `order_details`
-- `categories`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -39,16 +34,51 @@ For every category, return the product(s) generating the highest revenue within 
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- CTE
-- Window Functions (RANK)
-- PARTITION BY
-- GROUP BY
-- Aggregate Functions (SUM)
-- Tie Handling
+1. Build a CTE (`product_revenue`) that aggregates total discounted revenue per product, retaining `category_id`.
+2. Build a second CTE (`ranked`) that applies `RANK() OVER (PARTITION BY category_id ORDER BY total_revenue DESC)` to rank products within each category.
+3. Filter to rows where `rnk = 1`, which returns every product tied for the top spot in its category.
+4. Sort the final output by `category_id`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+WITH product_revenue AS (
+    SELECT
+        p.product_id,
+        p.product_name,
+        p.category_id,
+        SUM(od.unit_price * od.quantity * (1 - od.discount)) AS total_revenue
+    FROM products p
+    JOIN order_details od ON od.product_id = p.product_id
+    GROUP BY p.product_id, p.product_name, p.category_id
+),
+ranked AS (
+    SELECT
+        pr.*,
+        RANK() OVER (PARTITION BY category_id ORDER BY total_revenue DESC) AS rnk
+    FROM product_revenue pr
+)
+SELECT
+    category_id,
+    product_id,
+    product_name,
+    ROUND(total_revenue::numeric, 2) AS total_revenue
+FROM ranked
+WHERE rnk = 1
+ORDER BY category_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `RANK()` instead of `ROW_NUMBER()`:** `ROW_NUMBER()` would assign a strictly increasing, unique number to every row even when two products are tied for the top revenue spot — arbitrarily picking one and silently dropping the other from the result. `RANK()` assigns the *same* rank to tied rows, so filtering on `rnk = 1` correctly surfaces every product tied for first place in its category — which matters because the question explicitly says 'product(s)', acknowledging ties are possible.
 
@@ -56,29 +86,22 @@ For every category, return the product(s) generating the highest revenue within 
 
 **Why a CTE first, then a second CTE/window step:** revenue must be fully aggregated to the product level before ranking can be applied — you can't rank raw, unaggregated `order_details` rows.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `ROW_NUMBER()` instead of `RANK()`, which silently discards legitimate ties.
 - Using `MAX(total_revenue)` with a `GROUP BY category_id` and then trying to join back without a window function — workable, but more verbose than the `RANK()` approach, and easy to get wrong when reconciling floating-point equality.
 - Forgetting `PARTITION BY category_id`, which would rank products globally instead of within their own category.
 
-## Difficulty
-
-**Hard**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 1. Why does `RANK()` handle ties better than `ROW_NUMBER()` in this scenario?
 2. What would `DENSE_RANK()` do differently here, and would it matter for this particular query?
 3. How would you rewrite this without window functions, using only a CTE and a `MAX()`/join pattern?
 4. How would this query change if you wanted the top 3 products per category, not just the top 1 (handling ties at the boundary)?
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Master the 'top N per group with correct tie handling' pattern — one of the most common real-world SQL interview questions.
-- Understand the practical difference between `RANK()`, `DENSE_RANK()`, and `ROW_NUMBER()`.
-- Practice combining aggregation (`SUM`) with windowing (`RANK() OVER (PARTITION BY ...)`) in a layered CTE structure.
+For 'top N per group with correct tie handling', `RANK() OVER (PARTITION BY ...)` filtered on `rnk = 1` keeps every tied winner — know how `RANK`, `DENSE_RANK`, and `ROW_NUMBER` differ before choosing.
 
 ---
-
 📄 **SQL File:** [`Q14_Highest_Revenue_Product_Per_Category.sql`](./Q14_Highest_Revenue_Product_Per_Category.sql)

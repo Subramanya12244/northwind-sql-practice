@@ -1,34 +1,20 @@
-/*
-Question:
-Identify the 10 customers who have purchased from the highest number of distinct product categories.
+/* =====================================================================
+   Q10 · Customers Purchasing from Most Categories
+   Category : Category & Product Analytics     Difficulty : Medium
+   Concepts : INNER JOIN (multi-table) · GROUP BY · COUNT(DISTINCT) · ORDER BY · LIMIT
+   ---------------------------------------------------------------------
+   PROBLEM : Find the 10 customers who purchased from the highest number
+             of distinct product categories (cross-sell breadth).
+   APPROACH:
+     1. Join customers -> orders -> order_details -> products.
+     2. COUNT(DISTINCT p.category_id) per customer.
+     3. GROUP BY customer.
+     4. ORDER BY category_count DESC, LIMIT 10.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to identify customers with the broadest category purchasing behavior, which can indicate strong cross-category engagement opportunities.
-
-Approach:
-1. Join customers to orders, orders to order_details, and order_details to products.
-2. Count distinct category_id values per customer using COUNT(DISTINCT p.category_id).
-3. Aggregate by customer.
-4. Sort by category count descending and limit to the top 10.
-
-Expected Output:
-| customer_id | company_name | category_count |
-|-------------|--------------|----------------|
-| SAVEA | Save-a-lot Markets | 8 |
-| ERNSH | Ernst Handel | 8 |
-| QUICK | QUICK-Stop | 8 |
-
-Concepts Used:
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (COUNT DISTINCT)
-- ORDER BY
-- LIMIT
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     cu.customer_id,
     cu.company_name,

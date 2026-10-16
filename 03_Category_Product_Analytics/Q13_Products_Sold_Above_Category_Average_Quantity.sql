@@ -1,36 +1,22 @@
-/*
-Question:
-Find products whose total quantity sold exceeds the average quantity sold by products *within the same category* (not the company-wide average).
+/* =====================================================================
+   Q13 · Products Sold Above Category Average Quantity
+   Category : Category & Product Analytics     Difficulty : Hard
+   Concepts : CTE · GROUP BY · SUM/AVG · Window Functions (alt) · Compare-to-peer-group
+   ---------------------------------------------------------------------
+   PROBLEM : Products whose total quantity sold exceeds the average
+             quantity sold within their OWN category (not company-wide).
+   APPROACH:
+     1. CTE product_qty: SUM(quantity) per product, retain category_id.
+     2. CTE category_avg: AVG(total_qty) per category from product_qty.
+     3. Join product_qty to category_avg on category_id.
+     4. Filter total_qty > avg_qty_in_category.
+     5. ORDER BY category_id, total_qty DESC.
+     6. (Alt: AVG(SUM(..)) OVER (PARTITION BY category_id) in one pass.)
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to find products whose quantity sold is greater than the average quantity sold within their own category, to flag relative over-performers for inventory and reordering prioritization.
-
-Approach:
-1. Build a CTE (product_qty) that sums total quantity sold per product, retaining category_id.
-2. Build a second CTE (category_avg) that averages total_qty per category, using the first CTE as its source.
-3. Join product_qty to category_avg on category_id.
-4. Filter to products where total_qty > avg_qty_in_category.
-5. Sort by category and then by quantity descending.
-6. (Alternative shown: a window function version using AVG(SUM(quantity)) OVER (PARTITION BY category_id) achieves the same result in one pass.)
-
-Expected Output:
-| product_id | product_name | category_id | total_qty | avg_qty_in_category |
-|------------|--------------|-------------|-----------|---------------------|
-| 24 | Guaraná Fantástica | 1 | 858 | 626.4 |
-| 75 | Rhönbräu Klosterbier | 1 | 541 | 626.4 |
-| 59 | Raclette Courdavault | 4 | 1496 | 672.7 |
-
-Concepts Used:
-- CTE
-- GROUP BY
-- Aggregate Functions (SUM, AVG)
-- Window Functions (alternative)
-- Self-comparison within group
-
-Complexity:
-Hard
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH product_qty AS (
     SELECT
         p.product_id,

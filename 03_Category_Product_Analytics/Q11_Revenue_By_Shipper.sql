@@ -1,34 +1,19 @@
-/*
-Question:
-Calculate the total discounted revenue of orders handled by each shipping company.
+/* =====================================================================
+   Q11 · Revenue by Shipper
+   Category : Category & Product Analytics     Difficulty : Easy
+   Concepts : INNER JOIN (multi-table) · GROUP BY · SUM · ORDER BY
+   ---------------------------------------------------------------------
+   PROBLEM : Total discounted order revenue handled by each shipping company.
+   APPROACH:
+     1. Join shippers -> orders on ship_via = shipper_id.
+     2. Join orders -> order_details for line-item revenue.
+     3. SUM(unit_price * quantity * (1 - discount)) per shipper.
+     4. ORDER BY total_revenue DESC.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to calculate total revenue handled by each shipping company, to support logistics partner evaluation and contract negotiations.
-
-Approach:
-1. Join shippers to orders on ship_via = shipper_id.
-2. Join orders to order_details to access transaction-level revenue.
-3. Calculate discounted revenue per line item.
-4. Aggregate revenue by shipper.
-5. Sort by total revenue descending.
-
-Expected Output:
-| shipper_id | company_name | total_revenue |
-|------------|--------------|---------------|
-| 3 | Federal Shipping | 402817.59 |
-| 1 | Speedy Express | 385482.42 |
-| 2 | United Package | 374733.39 |
-
-Concepts Used:
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (SUM)
-- ORDER BY
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     s.shipper_id,
     s.company_name,

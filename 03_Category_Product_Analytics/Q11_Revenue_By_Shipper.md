@@ -1,25 +1,20 @@
-# Q11. Revenue by Shipper
+# Q11 · Revenue by Shipper
 
-**Category:** Category & Product Analytics
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Category & Product Analytics | **Difficulty:** Easy
+> **Concepts:** INNER JOIN (multi-table) · GROUP BY · SUM · ORDER BY
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** sum `order_details` revenue, not `orders.freight` — freight is the shipping cost, not the revenue handled.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Logistics and procurement want to understand how much order revenue flows through each shipping partner, to support shipper contract negotiations and performance comparisons.
 
-## Objective
+**Objective:** Calculate the total discounted revenue of orders handled by each shipping company.
 
-Calculate the total discounted revenue of orders handled by each shipping company.
+**Tables:** `shippers`, `orders`, `order_details`
 
-## Tables Used
-
-- `shippers`
-- `orders`
-- `order_details`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -37,39 +32,56 @@ Calculate the total discounted revenue of orders handled by each shipping compan
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (SUM)
-- ORDER BY
+1. Join `shippers` to `orders` on `ship_via = shipper_id`.
+2. Join `orders` to `order_details` to access transaction-level revenue.
+3. Calculate discounted revenue per line item.
+4. Aggregate revenue by shipper.
+5. Sort by total revenue descending.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    s.shipper_id,
+    s.company_name,
+    ROUND(SUM(od.unit_price * od.quantity * (1 - od.discount))::numeric, 2) AS total_revenue
+FROM shippers s
+JOIN orders o ON o.ship_via = s.shipper_id
+JOIN order_details od ON od.order_id = o.order_id
+GROUP BY s.shipper_id, s.company_name
+ORDER BY total_revenue DESC;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why join on `o.ship_via = s.shipper_id`:** `orders.ship_via` stores the foreign key pointing to the shipper used for that order — it's the only link between an order and the company that shipped it.
 
 **Why this is revenue 'handled' rather than 'shipping cost':** the question asks for order revenue attributed to each shipper, not the `freight` cost charged for shipping — a distinction worth clarifying with stakeholders, since Northwind's `orders.freight` column could easily be confused for this.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Summing `orders.freight` (the shipping cost) instead of `order_details` revenue, which answers a completely different question.
 - Forgetting that `ship_via` can technically be unpopulated for some orders, which would silently exclude those orders from any shipper's total under an `INNER JOIN`.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 1. What's the difference between 'revenue handled by a shipper' and 'shipping cost (freight) paid to a shipper'? Which does this query compute?
 2. How would you find the average order value per shipper instead of total revenue?
 3. If some orders have a `NULL` `ship_via`, how would that affect this query's totals, and how would you account for those orders?
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Practice joining through a foreign key that isn't named identically to the parent table's primary key (`ship_via` vs `shipper_id`).
-- Distinguish between order revenue and shipping cost as two different metrics that are easy to conflate.
+Joining through a foreign key named differently from its parent key (`ship_via` vs `shipper_id`) is routine — and always confirm whether 'revenue' means order value or shipping cost (`freight`), two metrics easy to conflate.
 
 ---
-
 📄 **SQL File:** [`Q11_Revenue_By_Shipper.sql`](./Q11_Revenue_By_Shipper.sql)

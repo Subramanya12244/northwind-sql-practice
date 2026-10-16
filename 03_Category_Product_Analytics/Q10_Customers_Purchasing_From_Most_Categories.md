@@ -1,26 +1,20 @@
-# Q10. Customers Purchasing from Most Categories
+# Q10 · Customers Purchasing from Most Categories
 
-**Category:** Category & Product Analytics
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** Category & Product Analytics | **Difficulty:** Medium
+> **Concepts:** INNER JOIN (multi-table) · GROUP BY · COUNT(DISTINCT) · ORDER BY · LIMIT
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** count `DISTINCT category_id`, not `product_id` — the latter measures product variety, not category breadth.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The merchandising team wants to identify customers with the broadest purchasing range across product categories — a useful signal for cross-sell health versus customers concentrated in a single category.
 
-## Objective
+**Objective:** Identify the 10 customers who have purchased from the highest number of distinct product categories.
 
-Identify the 10 customers who have purchased from the highest number of distinct product categories.
+**Tables:** `customers`, `orders`, `order_details`, `products`
 
-## Tables Used
-
-- `customers`
-- `orders`
-- `order_details`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -40,40 +34,57 @@ Identify the 10 customers who have purchased from the highest number of distinct
 
 *(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
 
-## Concepts Used
+## 2. My Approach
 
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (COUNT DISTINCT)
-- ORDER BY
-- LIMIT
+1. Join `customers` to `orders`, `orders` to `order_details`, and `order_details` to `products`.
+2. Count distinct `category_id` values per customer using `COUNT(DISTINCT p.category_id)`.
+3. Aggregate by customer.
+4. Sort by category count descending and limit to the top 10.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    cu.customer_id,
+    cu.company_name,
+    COUNT(DISTINCT p.category_id) AS category_count
+FROM customers cu
+JOIN orders o ON o.customer_id = cu.customer_id
+JOIN order_details od ON od.order_id = o.order_id
+JOIN products p ON p.product_id = od.product_id
+GROUP BY cu.customer_id, cu.company_name
+ORDER BY category_count DESC
+LIMIT 10;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `COUNT(DISTINCT p.category_id)`:** a customer typically buys multiple products, and several of those products can belong to the same category. Without `DISTINCT`, this would count *line items*, not *unique categories* — a fundamentally different (and wrong) metric for 'category breadth'.
 
 **Why four tables are needed:** the chain `customers → orders → order_details → products` is the only path from customer identity to category information.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Counting `product_id` instead of `category_id` — that measures product variety, not category breadth.
 - Omitting `DISTINCT`, which would count every line item rather than unique categories.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 1. What's the business difference between 'category breadth' (this query) and 'category revenue concentration'?
 2. How would you find customers who buy from *only one* category (the opposite extreme)?
 3. How would you adapt this to also show which specific categories each top customer buys from?
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Practice distinguishing 'breadth' metrics (distinct count of a dimension) from 'volume' metrics (raw counts or sums).
-- Reinforce the multi-hop join pattern from customer to category.
+Distinguish 'breadth' metrics (distinct count of a dimension) from 'volume' metrics (raw counts or sums), and trace the full multi-hop join from customer to category.
 
 ---
-
 📄 **SQL File:** [`Q10_Customers_Purchasing_From_Most_Categories.sql`](./Q10_Customers_Purchasing_From_Most_Categories.sql)

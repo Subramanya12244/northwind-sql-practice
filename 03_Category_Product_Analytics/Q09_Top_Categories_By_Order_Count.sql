@@ -1,34 +1,20 @@
-/*
-Question:
-Identify the 5 categories that appear in the highest number of distinct orders.
+/* =====================================================================
+   Q09 · Top Categories by Number of Orders
+   Category : Category & Product Analytics     Difficulty : Medium
+   Concepts : INNER JOIN (multi-table) · GROUP BY · COUNT(DISTINCT) · ORDER BY · LIMIT
+   ---------------------------------------------------------------------
+   PROBLEM : Find the 5 categories appearing in the highest number of
+             distinct orders (category reach/popularity).
+   APPROACH:
+     1. Join categories -> products -> order_details -> orders.
+     2. COUNT(DISTINCT o.order_id) per category.
+     3. GROUP BY category.
+     4. ORDER BY order_count DESC, LIMIT 5.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to know which categories are most frequently purchased across distinct orders, to guide merchandising and promotional focus.
-
-Approach:
-1. Join categories to products, then to order_details, then to orders.
-2. Count distinct order_id values per category using COUNT(DISTINCT o.order_id).
-3. Aggregate by category.
-4. Sort by order count descending and limit to the top 5.
-
-Expected Output:
-| category_id | category_name | order_count |
-|-------------|---------------|-------------|
-| 1 | Beverages | 186 |
-| 4 | Dairy Products | 164 |
-| 3 | Confections | 169 |
-
-Concepts Used:
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (COUNT DISTINCT)
-- ORDER BY
-- LIMIT
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     c.category_id,
     c.category_name,
