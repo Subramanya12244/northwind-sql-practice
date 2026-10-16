@@ -1,33 +1,22 @@
-/*
-Question:
-For each employee, return the customers whose revenue (from orders handled by that employee) exceeds the average revenue of all customers handled by that same employee.
+/* =====================================================================
+   Q18 · Customer Revenue Above Employee Average
+   Category : Correlated Subqueries     Difficulty : Hard
+   Concepts : CTE · Correlated Subquery · GROUP BY · Aggregates (SUM, AVG)
+   ---------------------------------------------------------------------
+   PROBLEM : For each employee, return customers whose revenue (from orders
+             handled by that employee) exceeds the average revenue of all
+             customers handled by that same employee.
+   APPROACH:
+     1. Build a CTE (employee_customer_revenue) aggregating revenue per employee-customer pair.
+     2. Select from that CTE in the outer query.
+     3. Filter via a correlated subquery computing AVG(revenue) for only the
+        rows matching the current row's employee_id.
+     4. Sort by employee, then revenue descending.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-For each employee, the business wants to find customers whose revenue is greater than the average revenue of customers handled by that specific employee — enabling employee-level account prioritization.
-
-Approach:
-1. Build a CTE (employee_customer_revenue) that aggregates revenue per employee-customer pair.
-2. In the outer query, select from that CTE.
-3. Filter using a correlated subquery that computes AVG(revenue) for *only the rows matching the current row's employee_id*.
-4. Sort by employee and then by revenue descending.
-
-Expected Output:
-| employee_id | customer_id | revenue |
-|-------------|-------------|---------|
-| 4 | QUICK | 28734.90 |
-| 4 | SAVEA | 21345.10 |
-| 3 | ERNSH | 19872.55 |
-
-Concepts Used:
-- CTE
-- Correlated Subquery
-- GROUP BY
-- Aggregate Functions (SUM, AVG)
-
-Complexity:
-Hard
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH employee_customer_revenue AS (
     SELECT
         o.employee_id,

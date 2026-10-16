@@ -1,33 +1,20 @@
-/*
-Question:
-Return customers whose total revenue exceeds the average revenue across all customers, using a HAVING clause referencing a subquery.
+/* =====================================================================
+   Q16 · Customers Above Average Revenue (Correlated Subquery)
+   Category : Correlated Subqueries     Difficulty : Medium
+   Concepts : INNER JOIN (multi-table) · GROUP BY · HAVING · Subquery (non-correlated) · Aggregates (SUM, AVG)
+   ---------------------------------------------------------------------
+   PROBLEM : Return customers whose total revenue exceeds the average
+             revenue across all customers, via a HAVING + subquery.
+   APPROACH:
+     1. Join customers, orders, order_details; aggregate discounted revenue per customer.
+     2. In HAVING, compare that total against a subquery that independently
+        recomputes revenue per customer and averages it.
+     3. Sort by total revenue descending.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to find customers whose revenue is above the average customer revenue, solved here via HAVING + subquery as an alternative to the CTE approach.
-
-Approach:
-1. Join customers, orders, and order_details; aggregate discounted revenue per customer.
-2. In HAVING, compare that total against a subquery that independently recomputes revenue per customer and averages it.
-3. Sort by total revenue descending.
-
-Expected Output:
-| customer_id | company_name | total_revenue |
-|-------------|--------------|---------------|
-| QUICK | QUICK-Stop | 117483.39 |
-| ERNSH | Ernst Handel | 104874.98 |
-| SAVEA | Save-a-lot Markets | 104361.95 |
-
-Concepts Used:
-- INNER JOIN (multi-table)
-- GROUP BY
-- HAVING
-- Subquery (non-correlated)
-- Aggregate Functions (SUM, AVG)
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     cu.customer_id,
     cu.company_name,

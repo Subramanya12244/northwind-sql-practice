@@ -1,33 +1,20 @@
-/*
-Question:
-Return employees whose total revenue exceeds the average revenue across all employees, using a HAVING clause referencing a subquery.
+/* =====================================================================
+   Q17 · Employees Above Average Revenue (Correlated Subquery)
+   Category : Correlated Subqueries     Difficulty : Medium
+   Concepts : INNER JOIN (multi-table) · GROUP BY · HAVING · Subquery (non-correlated) · Aggregates (SUM, AVG)
+   ---------------------------------------------------------------------
+   PROBLEM : Return employees whose total revenue exceeds the average
+             revenue across all employees, via a HAVING + subquery.
+   APPROACH:
+     1. Join employees, orders, order_details; aggregate discounted revenue per employee.
+     2. In HAVING, compare that total against a subquery that recomputes
+        revenue per employee and averages it.
+     3. Sort by total revenue descending.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to find employees whose revenue is above the average employee revenue, solved here via HAVING + subquery.
-
-Approach:
-1. Join employees, orders, and order_details; aggregate discounted revenue per employee.
-2. In HAVING, compare that total against a subquery that recomputes revenue per employee and averages it.
-3. Sort by total revenue descending.
-
-Expected Output:
-| employee_id | first_name | last_name | total_revenue |
-|-------------|------------|-----------|---------------|
-| 4 | Margaret | Peacock | 232890.85 |
-| 3 | Janet | Leverling | 202812.84 |
-| 1 | Nancy | Davolio | 192107.60 |
-
-Concepts Used:
-- INNER JOIN (multi-table)
-- GROUP BY
-- HAVING
-- Subquery (non-correlated)
-- Aggregate Functions (SUM, AVG)
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     e.employee_id,
     e.first_name,

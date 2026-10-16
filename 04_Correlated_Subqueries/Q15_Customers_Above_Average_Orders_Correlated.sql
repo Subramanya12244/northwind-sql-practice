@@ -1,34 +1,21 @@
-/*
-Question:
-Return customers whose order count exceeds the average order count across all customers, computed via a subquery referenced directly inside HAVING.
+/* =====================================================================
+   Q15 · Customers Above Average Orders (Correlated Subquery)
+   Category : Correlated Subqueries     Difficulty : Medium
+   Concepts : INNER JOIN · GROUP BY · HAVING · Subquery (non-correlated) · Aggregates (COUNT, AVG)
+   ---------------------------------------------------------------------
+   PROBLEM : Return customers whose order count exceeds the average order
+             count across all customers, via a subquery inside HAVING.
+   APPROACH:
+     1. Join customers -> orders and COUNT orders per customer.
+     2. In HAVING, compare that count against a subquery computing AVG(order_count).
+     3. Aggregates can't nest, so that subquery wraps a derived table that first
+        computes COUNT(order_id) GROUP BY customer_id.
+     4. Sort by order count descending.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to find customers whose order count is above the average order count across customers, using a HAVING + subquery approach as an alternative to the CTE-based solution.
-
-Approach:
-1. Join customers to orders and count orders per customer.
-2. In HAVING, compare that count against a subquery computing AVG(order_count).
-3. Since aggregates can't nest directly, that subquery itself wraps a derived table that first computes COUNT(order_id) GROUP BY customer_id.
-4. Sort by order count descending.
-
-Expected Output:
-| customer_id | company_name | order_count |
-|-------------|--------------|-------------|
-| SAVEA | Save-a-lot Markets | 31 |
-| ERNSH | Ernst Handel | 30 |
-| QUICK | QUICK-Stop | 28 |
-
-Concepts Used:
-- INNER JOIN
-- GROUP BY
-- HAVING
-- Subquery (non-correlated)
-- Aggregate Functions (COUNT, AVG)
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     cu.customer_id,
     cu.company_name,
