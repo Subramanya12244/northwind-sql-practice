@@ -1,34 +1,20 @@
-/*
-Question:
-Use a CTE to calculate per-customer revenue, and a second CTE to calculate the overall average, then return customers exceeding that average.
+/* =====================================================================
+   Q19 · Customers Above Average Revenue Using CTE
+   Category : Common Table Expressions (CTEs)     Difficulty : Medium
+   Concepts : CTE (multiple) · INNER JOIN · GROUP BY · SUM/AVG · Cross Join (implicit, scalar)
+   ---------------------------------------------------------------------
+   PROBLEM : Return customers whose total discounted revenue exceeds the
+             overall average customer revenue, using a clean two-CTE structure.
+   APPROACH:
+     1. CTE customer_revenue: per-customer discounted revenue.
+     2. CTE overall_avg: single scalar AVG(total_revenue) over the first CTE.
+     3. Comma-join both (one-row scalar broadcast); filter revenue > avg.
+     4. ORDER BY total_revenue DESC.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants customers whose revenue exceeds the overall average customer revenue, computed using a clean two-CTE structure for readability.
-
-Approach:
-1. Build a CTE (customer_revenue) for per-customer discounted revenue.
-2. Build a second CTE (overall_avg) that computes a single scalar: the average of total_revenue across the first CTE.
-3. In the final SELECT, combine both CTEs (the second produces one row, broadcast across the first) and filter where total_revenue > avg_revenue.
-4. Sort by total revenue descending.
-
-Expected Output:
-| customer_id | company_name | total_revenue |
-|-------------|--------------|---------------|
-| QUICK | QUICK-Stop | 117483.39 |
-| ERNSH | Ernst Handel | 104874.98 |
-| SAVEA | Save-a-lot Markets | 104361.95 |
-
-Concepts Used:
-- CTE (multiple)
-- INNER JOIN
-- GROUP BY
-- Aggregate Functions (SUM, AVG)
-- Cross Join (implicit, scalar)
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH customer_revenue AS (
     SELECT
         cu.customer_id,

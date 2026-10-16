@@ -1,33 +1,20 @@
-/*
-Question:
-Calculate employee revenue in one CTE, average revenue in a second CTE, and join them using the comparison itself as the join condition.
+/* =====================================================================
+   Q21 · Employees Above Average Revenue Using Multiple CTEs
+   Category : Common Table Expressions (CTEs)     Difficulty : Medium
+   Concepts : CTE (multiple) · INNER JOIN (non-equality) · GROUP BY · SUM/AVG
+   ---------------------------------------------------------------------
+   PROBLEM : Return employees whose revenue exceeds the average employee
+             revenue, using two CTEs joined via an inequality condition.
+   APPROACH:
+     1. CTE employee_revenue: per-employee discounted revenue.
+     2. CTE avg_revenue: single AVG(total_revenue) over the first CTE.
+     3. Join on er.total_revenue > ar.avg_rev (the comparison IS the join).
+     4. ORDER BY total_revenue DESC.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants employees whose revenue exceeds the average employee revenue, computed using two CTEs joined directly via an inequality condition.
-
-Approach:
-1. Build a CTE (employee_revenue) for per-employee discounted revenue.
-2. Build a second CTE (avg_revenue) producing the single average revenue value across all employees.
-3. Join the two CTEs using ON er.total_revenue > ar.avg_rev as the join condition itself.
-4. Sort by total revenue descending.
-
-Expected Output:
-| employee_id | first_name | last_name | total_revenue |
-|-------------|------------|-----------|---------------|
-| 4 | Margaret | Peacock | 232890.85 |
-| 3 | Janet | Leverling | 202812.84 |
-| 1 | Nancy | Davolio | 192107.60 |
-
-Concepts Used:
-- CTE (multiple)
-- INNER JOIN (non-equality condition)
-- GROUP BY
-- Aggregate Functions (SUM, AVG)
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH employee_revenue AS (
     SELECT
         e.employee_id,

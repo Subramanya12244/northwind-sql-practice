@@ -1,37 +1,22 @@
-/*
-Question:
-For every category, return the product(s) generating the highest revenue within that category, including all ties.
+/* =====================================================================
+   Q24 · Highest Revenue Product per Category (CTE + Window Function)
+   Category : Common Table Expressions (CTEs)     Difficulty : Hard
+   Concepts : CTE (multiple) · Window Functions (RANK) · PARTITION BY
+              · GROUP BY · SUM · Tie Handling · INNER JOIN
+   ---------------------------------------------------------------------
+   PROBLEM : For every category, return the product(s) generating the
+             highest revenue within that category, including all ties.
+   APPROACH:
+     1. CTE product_revenue: discounted revenue per product, keep category_id.
+     2. CTE ranked: RANK() OVER (PARTITION BY category_id
+        ORDER BY total_revenue DESC).
+     3. Join ranked to categories for category_name; filter rnk = 1.
+     4. ORDER BY category_id.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants the top revenue-generating product within each category, displayed with the category's name for direct use in a stakeholder-facing report.
-
-Approach:
-1. Build a CTE (product_revenue) aggregating discounted revenue per product, retaining category_id.
-2. Build a second CTE (ranked) applying RANK() OVER (PARTITION BY category_id ORDER BY total_revenue DESC).
-3. Join the ranked result to categories to bring in category_name.
-4. Filter to rnk = 1 to keep every product tied for the top spot in its category.
-5. Sort by category_id.
-
-Expected Output:
-| category_id | category_name | product_id | product_name | total_revenue |
-|-------------|---------------|------------|--------------|---------------|
-| 1 | Beverages | 38 | Côte de Blaye | 149984.20 |
-| 2 | Condiments | 63 | Vegie-spread | 21477.80 |
-| 4 | Dairy Products | 59 | Raclette Courdavault | 76683.75 |
-
-Concepts Used:
-- CTE (multiple)
-- Window Functions (RANK)
-- PARTITION BY
-- GROUP BY
-- Aggregate Functions (SUM)
-- Tie Handling
-- INNER JOIN
-
-Complexity:
-Hard
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH product_revenue AS (
     SELECT
         p.product_id,

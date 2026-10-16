@@ -1,35 +1,19 @@
-/*
-Question:
-Use a CTE to calculate per-customer revenue, then return the top 5 customers by revenue from that CTE.
+/* =====================================================================
+   Q20 · Top 5 Customers by Revenue Using CTE
+   Category : Common Table Expressions (CTEs)     Difficulty : Easy
+   Concepts : CTE · INNER JOIN · GROUP BY · SUM · ORDER BY · LIMIT
+   ---------------------------------------------------------------------
+   PROBLEM : Return the top 5 customers by total discounted revenue,
+             expressed via a CTE for clarity.
+   APPROACH:
+     1. CTE customer_revenue: aggregate discounted revenue per customer.
+     2. SELECT all columns from the CTE.
+     3. ORDER BY total_revenue DESC; LIMIT 5.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants the top 5 customers by revenue, expressed via a CTE for clarity and to set up patterns reused in later, more advanced queries.
-
-Approach:
-1. Build a CTE (customer_revenue) that aggregates discounted revenue per customer.
-2. Select all columns from the CTE.
-3. Sort by total revenue descending.
-4. Limit to the top 5 rows.
-
-Expected Output:
-| customer_id | company_name | total_revenue |
-|-------------|--------------|---------------|
-| QUICK | QUICK-Stop | 117483.39 |
-| ERNSH | Ernst Handel | 104874.98 |
-| SAVEA | Save-a-lot Markets | 104361.95 |
-
-Concepts Used:
-- CTE
-- INNER JOIN
-- GROUP BY
-- Aggregate Functions (SUM)
-- ORDER BY
-- LIMIT
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH customer_revenue AS (
     SELECT
         cu.customer_id,

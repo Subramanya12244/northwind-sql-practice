@@ -1,32 +1,21 @@
-/*
-Question:
-Find the employee(s) with the single highest total revenue, using a layered three-CTE structure: aggregate, find the maximum, then filter to matches.
+/* =====================================================================
+   Q22 · Top Employee by Revenue Using 3 CTEs
+   Category : Common Table Expressions (CTEs)     Difficulty : Medium
+   Concepts : CTE (chained) · GROUP BY · SUM/MAX · Tie Handling · INNER JOIN
+   ---------------------------------------------------------------------
+   PROBLEM : Find the employee(s) with the single highest total revenue,
+             returning all ties (not an arbitrary one).
+   APPROACH:
+     1. CTE employee_revenue: discounted revenue per employee.
+     2. CTE max_revenue: single MAX(total_revenue) across employees.
+     3. CTE ranked_employees: join first two on total_revenue = max_rev
+        (equality naturally includes every tied employee).
+     4. SELECT and ROUND the final result.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The business wants to identify the employee(s) with the highest total revenue, correctly handling the case where multiple employees are exactly tied.
-
-Approach:
-1. Build a CTE (employee_revenue) aggregating discounted revenue per employee.
-2. Build a second CTE (max_revenue) computing the single highest revenue value across all employees.
-3. Build a third CTE (ranked_employees) joining the first two on equality (total_revenue = max_rev), which naturally includes every tied employee.
-4. Select and round the final result from ranked_employees.
-
-Expected Output:
-| employee_id | first_name | last_name | total_revenue |
-|-------------|------------|-----------|---------------|
-| 4 | Margaret | Peacock | 232890.85 |
-
-Concepts Used:
-- CTE (multiple/chained)
-- GROUP BY
-- Aggregate Functions (SUM, MAX)
-- Tie Handling
-- INNER JOIN
-
-Complexity:
-Medium
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 WITH employee_revenue AS (
     SELECT
         e.employee_id,
