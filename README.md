@@ -1,6 +1,6 @@
 # Northwind SQL Practice
 
-A structured collection of 40 SQL interview-style practice problems solved against the classic **Northwind** sample database, organized by concept and written for **PostgreSQL**.
+A structured collection of **88 SQL interview-style practice problems** solved against the classic **Northwind** sample database, organized by concept and written for **PostgreSQL**.
 
 Each question includes:
 - A recruiter-friendly **problem statement** framed as a real business requirement
@@ -24,9 +24,10 @@ This repository is being built as part of a structured SQL learning journey usin
 - [x] Common Table Expressions (CTEs)
 - [x] LEFT JOIN
 - [x] RIGHT JOIN
-- [ ] FULL OUTER JOIN
-- [ ] SELF JOIN
-- [ ] CROSS JOIN
+- [x] FULL OUTER JOIN
+- [x] SELF JOIN
+- [x] CROSS JOIN
+- [x] Set Operators (UNION / INTERSECT / EXCEPT)
 - [ ] Window Functions
 - [ ] Ranking Functions
 - [ ] Advanced Analytics
@@ -35,7 +36,9 @@ This repository is being built as part of a structured SQL learning journey usin
 
 ### Current Status
 
-**Completed: 40 Northwind SQL Problems**
+**Completed: 88 Northwind SQL Problems** across 11 concept areas (aggregation through set operators).
+
+> **Note on numbering:** questions are numbered in the order they were solved (Q01 onward), so some numbers are skipped where exploratory problems were later removed or merged. The numbering is a timeline, not a gap-free sequence — each file present is a complete, documented solution.
 
 ### Skills Demonstrated
 
@@ -45,9 +48,10 @@ This repository is being built as part of a structured SQL learning journey usin
 - Product Analytics
 - Employee Analytics
 - Supplier & Logistics Analytics
-- Join Operations (INNER, LEFT)
+- Join Operations (INNER, LEFT, RIGHT, FULL OUTER, SELF, CROSS)
 - Subqueries & Correlated Subqueries
 - Common Table Expressions (CTEs)
+- Set Operators (UNION, UNION ALL, INTERSECT, EXCEPT)
 - Two-Level Aggregation Patterns
 - NULL Handling & COALESCE
 - Business-Oriented SQL Problem Solving
@@ -72,26 +76,23 @@ northwind-sql-practice/
 │
 ├── README.md
 │
-├── 01_Aggregations/                  → Q01–Q05
-├── 02_GroupBy_Having/                → Q06–Q08
-├── 03_Category_Product_Analytics/    → Q09–Q14
-├── 04_Correlated_Subqueries/         → Q15–Q18
-├── 05_CTE/                           → Q19–Q24
-├── 06_Left_Join/                     → Q25–Q40
-│
-├── 07_Right_Join/                    → planned
-├── 08_Full_Outer_Join/               → planned
-├── 09_Self_Join/                     → planned
-├── 10_Cross_Join/                    → planned
-├── 11_Window_Functions/              → planned
-├── 12_Ranking_Functions/             → planned
-├── 13_Advanced_Analytics/            → planned
-├── 14_Query_Optimization/            → planned
+├── 01_Aggregations/                  →  5 problems  (aggregation & revenue analysis)
+├── 02_GroupBy_Having/                →  3 problems  (GROUP BY / HAVING filters)
+├── 03_Category_Product_Analytics/    →  6 problems  (category & product analytics)
+├── 04_Correlated_Subqueries/         →  4 problems  (correlated subqueries)
+├── 05_CTE/                           →  6 problems  (common table expressions)
+├── 06_Left_Join/                     → 16 problems  (LEFT JOIN & anti-joins)
+├── 07_Right_Join/                    → 10 problems  (RIGHT JOIN)
+├── 08_Full_Outer_Join/              →  8 problems  (FULL OUTER JOIN)
+├── 09_Self_Join/                     → 10 problems  (SELF JOIN)
+├── 10_Cross_Join/                    →  8 problems  (CROSS JOIN)
+├── 11_Set_Operators/                 → 12 problems  (UNION / INTERSECT / EXCEPT)
 │
 └── Assets/                           → (reserved for ER diagrams / schema images)
 ```
 
-Folders 07–14 will be added as those roadmap topics are completed.
+Window functions, ranking, and query-optimization sections will be added as those
+roadmap topics are completed.
 
 ---
 
@@ -189,6 +190,16 @@ revenue = unit_price * quantity * (1 - discount)
 | Q38 | Shippers and Total Orders Handled | Easy | [📄](06_Left_Join/Q38_Shippers_And_Total_Orders_Handled.md) | [🔢](06_Left_Join/Q38_Shippers_And_Total_Orders_Handled.sql) |
 | Q39 | Categories and Total Revenue | Medium | [📄](06_Left_Join/Q39_Categories_And_Total_Revenue.md) | [🔢](06_Left_Join/Q39_Categories_And_Total_Revenue.sql) |
 | Q40 | Customers and Average Order Value | Hard | [📄](06_Left_Join/Q40_Customers_And_Average_Order_Value.md) | [🔢](06_Left_Join/Q40_Customers_And_Average_Order_Value.sql) |
+
+### 07–11 — RIGHT / FULL OUTER / SELF / CROSS JOIN & Set Operators
+
+These sections (Q41 onward, 48 further problems) follow the same `.md` + `.sql` format.
+Browse them directly in their folders:
+[`07_Right_Join/`](07_Right_Join/) ·
+[`08_Full_Outer_Join/`](08_Full_Outer_Join/) ·
+[`09_Self_Join/`](09_Self_Join/) ·
+[`10_Cross_Join/`](10_Cross_Join/) ·
+[`11_Set_Operators/`](11_Set_Operators/)
 
 ---
 
