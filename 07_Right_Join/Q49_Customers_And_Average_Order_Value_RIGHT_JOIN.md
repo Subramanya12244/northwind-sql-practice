@@ -1,25 +1,20 @@
-# Q49. Customers and Average Order Value (RIGHT JOIN)
+# Q49 · Customers and Average Order Value (RIGHT JOIN)
 
-**Category:** RIGHT JOIN + CTE
-**Difficulty:** Hard
+> **Revision Card**
+> **Category:** RIGHT JOIN + CTE | **Difficulty:** Hard
+> **Concepts:** CTE · RIGHT JOIN (chained, two levels) · GROUP BY (two levels) · SUM · AVG · COALESCE · ROUND/CAST
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** my chain `customers RIGHT JOIN orders RIGHT JOIN order_details` preserved *order_details*, not customers — so no-order customers were silently dropped. The preserved entity must be the rightmost table.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The finance team wants a report showing every customer and their average order value. Customers who have never placed an order should also appear with an average order value of 0.
 
-## Objective
+**Objective:** Return all customers along with their average order value, ensuring customers with no orders appear with 0.00. Use RIGHT JOIN only.
 
-Return all customers along with their average order value, ensuring customers with no orders appear with 0.00. Use RIGHT JOIN only.
+**Tables:** `customers`, `orders`, `order_details`
 
-## Tables Used
-
-- `customers`
-- `orders`
-- `order_details`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,29 +31,21 @@ Return all customers along with their average order value, ensuring customers wi
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
-
-- CTE (Common Table Expression)
-- RIGHT JOIN (chained, two levels)
-- GROUP BY (two levels — order-level, then customer-level)
-- Aggregate Functions (SUM, AVG, COALESCE)
-- NULL Handling
-- ROUND / CAST
-
-## Understanding the Problem — Two Levels of Aggregation Required
-
-This is the RIGHT JOIN version of Q40. The same two-level aggregation requirement applies:
-
-1. **First**: sum all line items within each order → per-order total revenue
-2. **Then**: average those per-order totals per customer → average order value
+**Two levels of aggregation are required** (this is the RIGHT JOIN version of Q40):
+1. **First**: sum all line items within each order → per-order total revenue.
+2. **Then**: average those per-order totals per customer → average order value.
 
 A single `AVG()` pass cannot do both — averaging `order_details` rows directly gives average *line item* value, not average *order* value.
 
----
+## 2. My Approach
 
-## Attempt Analysis
+1. Build a CTE (`order_totals`) summing revenue per `order_id` — the correct grain for averaging (per-order total, not per-line-item). Use `RIGHT JOIN orders` inside the CTE to preserve all orders even if some have no `order_details` rows (edge case).
+2. Outer query: `RIGHT JOIN customers` as the final right table — preserves every customer regardless of order history.
+3. `AVG(ot.order_revenue)` averages the per-order totals per customer.
+4. `COALESCE` converts NULL (from `AVG` over empty groups) to 0.00.
+5. `GROUP BY c.contact_name, c.customer_id` — both required.
 
-### ❌ Submitted Attempt — Issues Identified
+## 3. My Solution (as submitted)
 
 ```sql
 WITH sum_rev AS (
@@ -75,23 +62,14 @@ FROM sum_rev
 GROUP BY contact_name;
 ```
 
-**Issue 1 — Wrong RIGHT JOIN direction (critical):**
-The chain `customers RIGHT JOIN orders RIGHT JOIN order_details` has `order_details` as the rightmost (preserved) table. This preserves every order line item — not every customer. Customers with no orders will be dropped because `customers` is on the left, and unmatched customer rows have nothing to be preserved by. The requirement to show no-order customers with `0.00` is violated.
+## 4. Mistakes I Made
 
-**Issue 2 — CTE selects `contact_name` but groups by `customer_id`:**
-`contact_name` is in the `SELECT` list but `customer_id` is the only non-aggregated column in `GROUP BY`. PostgreSQL will raise an error: `column "c.contact_name" must appear in the GROUP BY clause`. Both must be included.
+- ⚠️ **Wrong RIGHT JOIN direction (critical).** The chain `customers RIGHT JOIN orders RIGHT JOIN order_details` makes `order_details` the rightmost (preserved) table — it preserves every line item, not every customer. → Customers with no orders are dropped because `customers` is on the left with nothing to preserve them. → **Fix:** reverse the chain to `order_details → orders → customers`, putting `customers` as the final right table.
+- ⚠️ **CTE selects `contact_name` but groups by `customer_id` / `order_id`.** `contact_name` is in `SELECT` but not in `GROUP BY`. → PostgreSQL errors: `column "c.contact_name" must appear in the GROUP BY clause`. → **Fix:** carry `customer_id` through and group correctly (per-order in the CTE, per-customer in the outer query).
+- ⚠️ **Outer `GROUP BY contact_name` only.** → Risks silently merging customers who share the same contact name. → **Fix:** group the outer query on `c.contact_name, c.customer_id`.
+- ⚠️ **No-order customers produce no CTE rows.** Because `order_details` is preserved (not `customers`), no-order customers contribute zero rows, so the outer `AVG()` has nothing to average and they disappear — no `0.00` shown. → **Fix:** the reversed chain preserves customers, giving them a NULL-padded row that `AVG` → NULL → `COALESCE` turns into 0.00.
 
-**Issue 3 — Outer GROUP BY on `contact_name` only:**
-The outer query groups on `contact_name` alone, risking silent merges for customers who share the same contact name. `customer_id` should be carried through and used in the outer GROUP BY.
-
-**Issue 4 — No-order customers produce no CTE rows:**
-Because `order_details` is preserved (not `customers`), customers with no orders produce no rows in the CTE at all. The outer `AVG()` has nothing to average for them, and they simply disappear from the output — no `0.00` is shown.
-
----
-
-### ✅ Corrected Solution
-
-The fix mirrors Q40's LEFT JOIN solution, but reverses table order for RIGHT JOIN: the chain must go `order_details → orders → customers`, with `customers` as the final right table.
+## 5. Correct / Optimal Solution
 
 ```sql
 WITH order_totals AS (
@@ -105,20 +83,23 @@ WITH order_totals AS (
 )
 SELECT
     c.contact_name,
-    COALESCE(ROUND(AVG(ot.order_revenue)::numeric, 2), 0) AS average_order_value
+    COALESCE(
+        ROUND(AVG(ot.order_revenue)::numeric, 2),
+        0
+    ) AS average_order_value
 FROM order_totals ot
 RIGHT JOIN customers c ON c.customer_id = ot.customer_id
 GROUP BY c.contact_name, c.customer_id;
 ```
 
 **Why this is correct:**
-- CTE computes per-order revenue (correct grain for averaging)
-- CTE uses `RIGHT JOIN orders` to preserve all orders even if some have no `order_details` rows
-- Outer query uses `RIGHT JOIN customers` to preserve all customers even if they have no orders
-- `customers` is the final right table — the entity we want to preserve
-- `COALESCE` converts NULL (from `AVG()` over no-order customers) to `0.00`
+- CTE computes per-order revenue (correct grain for averaging).
+- CTE uses `RIGHT JOIN orders` to preserve all orders even if some have no `order_details` rows.
+- Outer query uses `RIGHT JOIN customers` to preserve all customers even if they have no orders.
+- `customers` is the final right table — the entity we want to preserve.
+- `COALESCE` converts NULL (from `AVG()` over no-order customers) to `0.00`.
 
-## Why This Approach
+## 6. Why This Works
 
 **Why a CTE is still required with RIGHT JOIN:** the two-level aggregation problem is the same regardless of join direction. You cannot `AVG()` over `order_details` rows directly and get average *order* value — the per-order totals must be materialised first. The CTE's job is the same as in Q40: collapse line items to one total per order before averaging those totals per customer.
 
@@ -142,18 +123,14 @@ LEFT JOIN order_totals ot ON ot.order_id = o.order_id
 GROUP BY c.contact_name, c.customer_id;
 ```
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Reversing the RIGHT JOIN chain so `order_details` is the rightmost table — this preserves line items, not customers.
 - Forgetting that `contact_name` must appear in the CTE's `GROUP BY` if it is in the CTE's `SELECT` list.
 - Grouping the outer query on `contact_name` alone, risking silent customer merges.
 - Averaging `order_details` rows directly instead of pre-aggregating to order level in a CTE — the same mistake as in Q40's first attempt.
 
-## Difficulty
-
-**Hard**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What is wrong with the submitted attempt, and how does reversing the JOIN chain fix it?**
 
@@ -169,7 +146,7 @@ The CTE produces per-order totals — a customer with no orders contributes zero
 
 **4. Is it possible to solve this correctly without a CTE — in a single query?**
 
-Not cleanly. Without a CTE, you would need a correlated subquery or a window function to compute per-order totals before averaging them per customer. A correlated subquery approach:
+Not cleanly. Without a CTE, you would need a correlated subquery or a window function to compute per-order totals before averaging them per customer. A derived-table approach:
 
 ```sql
 SELECT
@@ -191,13 +168,9 @@ The CTE version and this derived-table version are logically equivalent — a CT
 
 Q45 computes total revenue per customer — a single SUM over all line items grouped by customer. That requires only one level of aggregation. Q49 computes average order value — which requires summing line items per order first, then averaging those per-order sums per customer. That is two levels of aggregation, which is why a CTE (or subquery) is mandatory. The additional cognitive step of "I need to aggregate twice, not once" is what elevates this to Hard difficulty.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that reversing the table order in a RIGHT JOIN chain changes *which* entity is preserved — the rightmost table is always the one fully preserved.
-- Recognise that the two-level aggregation requirement for "average order value" applies equally to LEFT JOIN and RIGHT JOIN solutions — join direction is independent of aggregation grain.
-- Practice debugging a submitted SQL attempt systematically: identify the preserved table, check GROUP BY completeness, verify the output grain matches the business requirement.
-- Appreciate that a CTE is a named derived table — either form works, but CTEs are cleaner and more readable for multi-step aggregation logic.
+Reversing table order in a RIGHT JOIN chain changes *which* entity is preserved — it must be the rightmost table in the final join. The two-level aggregation (sum per order, then average per customer) is mandatory regardless of join direction, so debug a query by checking: preserved table, GROUP BY completeness, and output grain.
 
 ---
-
 📄 **SQL File:** [`Q49_Customers_And_Average_Order_Value_RIGHT_JOIN.sql`](./Q49_Customers_And_Average_Order_Value_RIGHT_JOIN.sql)

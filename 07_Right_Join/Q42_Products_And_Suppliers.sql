@@ -1,47 +1,22 @@
-/*
-Question:
-Return all products and their corresponding supplier names, preserving
-every product even if it has no matching supplier record.
+/* =====================================================================
+   Q42 · Products and Suppliers
+   Category : RIGHT JOIN          Difficulty : Easy
+   Concepts : RIGHT JOIN · NULL Handling
+   ---------------------------------------------------------------------
+   PROBLEM : Return all products with their supplier name, preserving
+             every product even if it has no matching supplier (NULL if none).
+   APPROACH:
+     1. Place suppliers on the LEFT, products on the RIGHT.
+     2. RIGHT JOIN preserves every product regardless of a matching supplier.
+     3. For unmatched products, supplier_name is NULL.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The inventory team wants a complete product-supplier report. Products
-with no matching supplier (orphaned records) must still appear with
-NULL for the supplier name rather than being silently dropped.
-
-Approach:
-1. Place suppliers on the LEFT and products on the RIGHT.
-2. RIGHT JOIN preserves every row from products (the right table)
-   regardless of whether a matching supplier exists.
-3. For unmatched products, all supplier columns (including company_name)
-   are filled with NULL.
-4. Equivalent LEFT JOIN version (same result, different table order):
-   SELECT p.product_name, s.company_name AS supplier_name
-   FROM products p
-   LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id;
-
-Note:
-In standard Northwind, all products have valid supplier references,
-so no NULL rows appear in practice. The NULL scenario demonstrates
-RIGHT JOIN behaviour for orphan-row detection use cases.
-
-Expected Output:
-| product_name | supplier_name   |
-|--------------|-----------------|
-| Chai         | Exotic Liquids  |
-| Chang        | Exotic Liquids  |
-| Product X    | NULL            |
-
-Concepts Used:
-- RIGHT JOIN
-- NULL Handling
-
-Complexity:
-Easy
-*/
-
-select
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
+SELECT
     p.product_name,
-    s.company_name as supplier_name
-from suppliers s
-right join products p on
-    p.supplier_id = s.supplier_id;
+    s.company_name AS supplier_name
+FROM suppliers s
+RIGHT JOIN products p
+    ON p.supplier_id = s.supplier_id;

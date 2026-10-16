@@ -1,24 +1,20 @@
-# Q41. Customers and Orders
+# Q41 · Customers and Orders
 
-**Category:** RIGHT JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** RIGHT JOIN | **Difficulty:** Easy
+> **Concepts:** RIGHT JOIN · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** the "right" table is the one whose rows are **all preserved** — the left table is the one that may contribute NULLs.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The sales team wants a report showing every order along with the customer who placed it. If an order somehow has no matching customer record, it should still appear in the report.
 
-## Objective
+**Objective:** Return all orders and their corresponding customer names, preserving every order even if it has no matching customer.
 
-Return all orders and their corresponding customer names, preserving every order even if it has no matching customer.
+**Tables:** `customers`, `orders`
 
-## Tables Used
-
-- `customers`
-- `orders`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,12 +31,30 @@ Return all orders and their corresponding customer names, preserving every order
 
 *(Sample values are illustrative. In the standard Northwind dataset, all orders have a valid customer — the NULL row demonstrates the RIGHT JOIN behaviour for data quality scenarios.)*
 
-## Concepts Used
+## 2. My Approach
 
-- RIGHT JOIN
-- NULL Handling
+1. Place `customers` on the LEFT and `orders` on the RIGHT.
+2. `RIGHT JOIN` preserves every row from `orders` (the right table) regardless of whether a matching customer exists.
+3. For unmatched orders, all customer columns (including `contact_name`) are filled with NULL.
+4. Equivalent `LEFT JOIN` version (same result, different table order): swap table order and use `orders LEFT JOIN customers`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT o.order_id, c.contact_name
+FROM customers c
+RIGHT JOIN orders o ON o.customer_id = c.customer_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **What RIGHT JOIN does:** `RIGHT JOIN` preserves every row from the **right-hand table** (`orders`) regardless of whether a match exists in the left-hand table (`customers`). For any order whose `customer_id` does not match any row in `customers`, the columns from `customers` (including `contact_name`) are filled with `NULL` — the order still appears in the result.
 
@@ -59,17 +73,13 @@ Both produce identical results. The choice between them is purely about which ta
 
 **When would a NULL `contact_name` actually occur?** In a well-maintained relational database with foreign key constraints enforced, it shouldn't — `orders.customer_id` would be constrained to reference a valid `customers.customer_id`. In practice, NULL rows in this result indicate a data quality problem: orphaned orders whose customer record was deleted, or orders imported without a matching customer. This query is useful precisely for surfacing such anomalies.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Confusing which table is "right" — the right table is the one whose rows are **all preserved**; the left table is the one that may contribute NULLs.
 - Swapping the table positions without changing `LEFT` to `RIGHT` (or vice versa), producing an `INNER JOIN` or the wrong outer join behaviour.
 - Assuming `RIGHT JOIN` is inherently different in power from `LEFT JOIN` — every `RIGHT JOIN` can be rewritten as a `LEFT JOIN` by reversing the table order.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What is the difference between LEFT JOIN and RIGHT JOIN, and when would you choose one over the other?**
 
@@ -108,13 +118,9 @@ This is the RIGHT JOIN equivalent of the anti-join pattern — returning only th
 
 `FULL OUTER JOIN` is a superset of both `LEFT JOIN` and `RIGHT JOIN` — it preserves unmatched rows from *both* tables simultaneously. A `RIGHT JOIN` only preserves unmatched rows from the right table; unmatched rows from the left table are dropped. `FULL OUTER JOIN` is used when you want to see every row from both sides regardless of whether a match exists.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that `RIGHT JOIN` and `LEFT JOIN` are mirror images — any query written with one can be rewritten with the other by swapping table order.
-- Recognise that `RIGHT JOIN` preserves the right table completely, filling NULLs for unmatched left-table columns.
-- Know that `RIGHT JOIN` is practically useful for surfacing orphaned records and data quality issues in systems without enforced foreign key constraints.
-- Build the habit of defaulting to `LEFT JOIN` for readability while being comfortable reading and writing `RIGHT JOIN` when encountered.
+`RIGHT JOIN` and `LEFT JOIN` are mirror images — any query written with one can be rewritten with the other by swapping table order. The right table is preserved completely; unmatched left-table columns come back NULL, making RIGHT JOIN a practical tool for surfacing orphaned records.
 
 ---
-
 📄 **SQL File:** [`Q41_Customers_And_Orders.sql`](./Q41_Customers_And_Orders.sql)

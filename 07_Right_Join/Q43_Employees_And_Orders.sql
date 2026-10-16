@@ -1,43 +1,20 @@
-/*
-Question:
-Return all orders along with the corresponding employee name, preserving
-every order even if it has no matching employee record.
+/* =====================================================================
+   Q43 · Employees and Orders
+   Category : RIGHT JOIN          Difficulty : Easy
+   Concepts : RIGHT JOIN · NULL Handling · String Concatenation (CONCAT)
+   ---------------------------------------------------------------------
+   PROBLEM : Return all orders with the handling employee's name,
+             preserving every order even if it has no matching employee.
+   APPROACH:
+     1. Place employees on the LEFT, orders on the RIGHT.
+     2. RIGHT JOIN preserves every order regardless of a matching employee.
+     3. CONCAT(first, ' ', last) builds employee_name; all-NULL inputs
+        yield a space in PostgreSQL (use NULLIF(CONCAT(...), ' ') for clean NULL).
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-The HR team wants a complete order-to-employee mapping report. Orders
-with no matching employee (e.g. assigned to a deleted employee record)
-must still appear with NULL for the employee name rather than being
-silently dropped.
-
-Approach:
-1. Place employees on the LEFT and orders on the RIGHT.
-2. RIGHT JOIN preserves every row from orders (the right table)
-   regardless of whether a matching employee exists.
-3. For unmatched orders, all employee columns are filled with NULL —
-   CONCAT(NULL, ' ', NULL) returns a space via CONCAT() in PostgreSQL;
-   use NULLIF(CONCAT(...), ' ') if a clean NULL is preferred.
-4. Equivalent LEFT JOIN version (same result):
-   SELECT o.order_id,
-          CONCAT(e.first_name, ' ', e.last_name) AS employee_name
-   FROM orders o
-   LEFT JOIN employees e ON o.employee_id = e.employee_id;
-
-Expected Output:
-| order_id | employee_name   |
-|----------|-----------------|
-| 10248    | Nancy Davolio   |
-| 10249    | Andrew Fuller   |
-| 10250    | NULL            |
-
-Concepts Used:
-- RIGHT JOIN
-- NULL Handling
-- String Concatenation (CONCAT)
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     o.order_id,
     CONCAT(e.first_name, ' ', e.last_name) AS employee_name

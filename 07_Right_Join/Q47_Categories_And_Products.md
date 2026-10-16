@@ -1,24 +1,20 @@
-# Q47. Categories and Products
+# Q47 · Categories and Products
 
-**Category:** RIGHT JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** RIGHT JOIN | **Difficulty:** Easy
+> **Concepts:** RIGHT JOIN · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** put `products` on the RIGHT to preserve products — placing `products` on the left would instead preserve all categories (including empty ones).
 
----
-
-## Problem Statement
+## 1. Problem
 
 The inventory team wants a report showing every product along with the category it belongs to. Products without a matching category should also appear in the report.
 
-## Objective
+**Objective:** Return all products along with their category names, preserving every product even if it has no matching category.
 
-Return all products along with their category names, preserving every product even if it has no matching category.
+**Tables:** `categories`, `products`
 
-## Tables Used
-
-- `categories`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,12 +31,33 @@ Return all products along with their category names, preserving every product ev
 
 *(Sample values are illustrative. In standard Northwind, all products have a valid category — the NULL row demonstrates RIGHT JOIN behaviour for uncategorised products.)*
 
-## Concepts Used
+## 2. My Approach
 
-- RIGHT JOIN
-- NULL Handling
+1. Place `categories` on the LEFT and `products` on the RIGHT.
+2. `RIGHT JOIN` preserves every row from `products` (the right table) regardless of whether a matching category exists.
+3. For unmatched products, `category_name` is filled with NULL.
+4. Equivalent `LEFT JOIN` version (same result): `products LEFT JOIN categories`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    p.product_name,
+    c.category_name
+FROM categories c
+RIGHT JOIN products p
+    ON p.category_id = c.category_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `categories` is on the LEFT and `products` is on the RIGHT:** the requirement is to preserve every product. Placing `products` as the right table in a `RIGHT JOIN` ensures all products appear in the result regardless of whether a matching category exists. For any product whose `category_id` does not match a row in `categories`, the `category_name` column is filled with NULL.
 
@@ -55,17 +72,13 @@ LEFT JOIN categories c ON p.category_id = c.category_id;
 
 **When would `category_name` be NULL in practice?** If a category is deleted from `categories` without first reassigning products to another category, those products become uncategorised — their `category_id` references a row that no longer exists. In a database with FK constraints enforced, this deletion would be blocked. In a data warehouse or loosely-constrained system, this query would surface those orphaned products.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Placing `products` on the left and `categories` on the right with `RIGHT JOIN` — this would preserve all categories (including empty ones with no products), not all products.
 - Using `INNER JOIN`, which would drop uncategorised products entirely from the result.
 - Confusing this with Q35 (Categories and Number of Products with LEFT JOIN) — that query counted products per category; this query lists products with their category name, a fundamentally different output grain.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. How is this query structurally identical to Q42, and what is the transferable pattern?**
 
@@ -113,12 +126,9 @@ ORDER BY c.category_name NULLS LAST, p.product_name;
 
 `NULLS LAST` places uncategorised products at the bottom rather than the top when sorting by `category_name DESC`.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Reinforce the RIGHT JOIN "preserve right table, look up from left" pattern as a direct template for any "child record with nullable parent attribute" report.
-- Recognise this as structurally identical to Q42 — building the habit of recognising SQL patterns across different table pairs rather than treating every query as a unique problem.
-- Practice the RIGHT JOIN anti-join extension for data quality auditing.
+The RIGHT JOIN "preserve right table, look up from left" pattern is a direct template for any "child record with nullable parent attribute" report — structurally identical to Q42. Recognise the pattern across different table pairs rather than treating every query as new.
 
 ---
-
 📄 **SQL File:** [`Q47_Categories_And_Products.sql`](./Q47_Categories_And_Products.sql)

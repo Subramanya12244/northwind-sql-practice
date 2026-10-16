@@ -1,25 +1,20 @@
-# Q45. Customers and Total Revenue
+# Q45 · Customers and Total Revenue
 
-**Category:** RIGHT JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** RIGHT JOIN | **Difficulty:** Medium
+> **Concepts:** RIGHT JOIN (chained, two levels) · GROUP BY · SUM · NULL Handling (COALESCE) · ROUND/CAST
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** in a chained RIGHT JOIN, the entity preserved is the **rightmost** table in the final join (`customers`) — making either join INNER drops the customers you meant to keep.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The finance team wants a report showing every customer and the total revenue generated from their orders. Every customer should appear in the report, even if they have never placed an order.
 
-## Objective
+**Objective:** Return all customers along with their total revenue, ensuring customers with no orders appear with a revenue of 0.00.
 
-Return all customers along with their total revenue, ensuring customers with no orders appear with a revenue of 0.00.
+**Tables:** `order_details`, `orders`, `customers`
 
-## Tables Used
-
-- `order_details`
-- `orders`
-- `customers`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -36,15 +31,45 @@ Return all customers along with their total revenue, ensuring customers with no 
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- RIGHT JOIN (chained, two levels)
-- GROUP BY
-- Aggregate Functions (SUM)
-- NULL Handling (COALESCE)
-- ROUND / CAST
+1. Place `order_details` on the LEFT, `orders` in the middle, `customers` on the RIGHT.
+2. First `RIGHT JOIN`: `order_details RIGHT JOIN orders` — preserves all orders even if they have no line items (edge case).
+3. Second `RIGHT JOIN`: `[order_details + orders] RIGHT JOIN customers` — preserves all customers even if they have no matching orders. Net effect: `customers` is fully preserved (the rightmost table).
+4. Calculate discounted revenue: `quantity * unit_price * (1 - discount)`.
+5. Aggregate with `SUM()`; wrap in `COALESCE(..., 0)` — `SUM` returns NULL (not 0) for empty groups.
+6. Cast to `numeric` and `ROUND` to 2 decimal places.
+7. `GROUP BY c.contact_name, c.customer_id` to ensure one row per customer.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    c.contact_name,
+    COALESCE(
+        ROUND(
+            SUM(od.quantity * od.unit_price * (1 - od.discount))::numeric,
+            2
+        ),
+        0
+    ) AS total_revenue
+FROM order_details od
+RIGHT JOIN orders o
+    ON o.order_id = od.order_id
+RIGHT JOIN customers c
+    ON c.customer_id = o.customer_id
+GROUP BY c.contact_name, c.customer_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why two `RIGHT JOIN`s instead of one:** the revenue data lives in `order_details`, but the chain from `order_details` to `customers` requires going through `orders`. Two joins are needed: `order_details → orders → customers`. Both must be `RIGHT JOIN` to preserve the right-most table (`customers`) all the way through the chain.
 
@@ -70,18 +95,14 @@ This is structurally identical to Q31, which used `LEFT JOIN`. The RIGHT JOIN ve
 
 **Why `::numeric` cast before `ROUND()`:** the revenue expression produces `double precision` due to the `discount` column. PostgreSQL's two-argument `ROUND()` only accepts `numeric`, so the explicit cast is required.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Making either `RIGHT JOIN` an `INNER JOIN`, which would drop the customers it was designed to preserve — the same chain-integrity rule as chained `LEFT JOIN`s in Q31/Q39, just in the opposite direction.
 - Forgetting `COALESCE` — `SUM()` returns NULL (not 0) for empty groups.
 - Grouping by `contact_name` alone instead of including `customer_id` — risks silent merges for customers with identical contact names.
 - Forgetting `::numeric` before `ROUND()`, causing a PostgreSQL type error.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. How is this query the RIGHT JOIN equivalent of Q31 (Customers and Total Revenue using LEFT JOIN)?**
 
@@ -132,12 +153,9 @@ WHERE total_revenue > (SELECT AVG(total_revenue) FROM customer_revenue)
 ORDER BY total_revenue DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand how chained `RIGHT JOIN`s work — the rightmost table in the final join is the one ultimately preserved, regardless of what happens in earlier joins in the chain.
-- Confirm that chained `RIGHT JOIN` and chained `LEFT JOIN` are syntactic mirrors of each other — identical logic, different table ordering in the query.
-- Reinforce that `SUM()` always requires `COALESCE` for zero-default handling in outer join contexts, regardless of join direction.
+In chained `RIGHT JOIN`s, the rightmost table in the final join is the one preserved — the chain is a syntactic mirror of chained `LEFT JOIN`s. `SUM()` always needs `COALESCE` for zero-default handling, regardless of join direction.
 
 ---
-
 📄 **SQL File:** [`Q45_Customers_And_Total_Revenue.sql`](./Q45_Customers_And_Total_Revenue.sql)

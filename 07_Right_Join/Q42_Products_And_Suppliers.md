@@ -1,24 +1,20 @@
-# Q42. Products and Suppliers
+# Q42 · Products and Suppliers
 
-**Category:** RIGHT JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** RIGHT JOIN | **Difficulty:** Easy
+> **Concepts:** RIGHT JOIN · NULL Handling
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** put the table you want to preserve (`products`) on the RIGHT — placing it on the left would preserve suppliers instead, the opposite of the requirement.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The inventory team wants a report showing every product along with the supplier who provides it. If a product has no matching supplier record, it should still appear in the report.
 
-## Objective
+**Objective:** Return all products and their corresponding supplier names, preserving every product even if it has no matching supplier.
 
-Return all products and their corresponding supplier names, preserving every product even if it has no matching supplier.
+**Tables:** `suppliers`, `products`
 
-## Tables Used
-
-- `suppliers`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,12 +31,33 @@ Return all products and their corresponding supplier names, preserving every pro
 
 *(Sample values are illustrative. In standard Northwind, all products have a valid supplier — the NULL row demonstrates the RIGHT JOIN behaviour for orphaned product records.)*
 
-## Concepts Used
+## 2. My Approach
 
-- RIGHT JOIN
-- NULL Handling
+1. Place `suppliers` on the LEFT and `products` on the RIGHT.
+2. `RIGHT JOIN` preserves every row from `products` (the right table) regardless of whether a matching supplier exists.
+3. For unmatched products, all supplier columns (including `company_name`) are filled with NULL.
+4. Equivalent `LEFT JOIN` version (same result, different table order): `products LEFT JOIN suppliers`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    p.product_name,
+    s.company_name AS supplier_name
+FROM suppliers s
+RIGHT JOIN products p ON
+    p.supplier_id = s.supplier_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why `suppliers` is on the LEFT and `products` is on the RIGHT:** the table to preserve completely is `products` — every product must appear in the output regardless of whether a matching supplier exists. Placing `products` as the right table in a `RIGHT JOIN` achieves exactly this. `suppliers` is the lookup table whose columns may come back NULL when a product has no matching supplier.
 
@@ -56,17 +73,13 @@ LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id;
 
 **When would `supplier_name` be NULL in practice?** If a supplier record is deleted from `suppliers` without first reassigning or deleting their products, those products become orphaned — still in the catalog with a `supplier_id` that references nothing. This query surfaces that data quality problem. In a properly constrained database, this shouldn't occur, but it's common in data warehouse environments where referential integrity isn't enforced at the database level.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Placing `products` on the left and `suppliers` on the right with `RIGHT JOIN` — this would preserve all suppliers (including those with no products), which is the opposite of the requirement.
 - Confusing "preserve the right table" with "the more important table goes on the right" — the placement is a mechanical JOIN direction choice, not a value judgment.
 - Using `INNER JOIN`, which would drop any product with no matching supplier entirely from the result.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. How would you rewrite this using LEFT JOIN instead of RIGHT JOIN?**
 
@@ -112,12 +125,9 @@ RIGHT JOIN products p ON p.supplier_id = s.supplier_id
 ORDER BY p.product_name;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Reinforce that `RIGHT JOIN` always preserves the right-hand table, and that choosing which table goes on which side is the key decision when writing outer joins.
-- Understand the practical use case for `RIGHT JOIN` — surfacing orphaned records where a foreign key reference has no corresponding parent row.
-- Recognise that every `RIGHT JOIN` is mechanically interchangeable with a `LEFT JOIN` by reversing table order — the logic is identical, only the syntax differs.
+The RIGHT JOIN "preserve right table, look up from left" pattern applies to any "child record with nullable parent attribute" report. Every `RIGHT JOIN` is mechanically interchangeable with a `LEFT JOIN` by reversing table order — the logic is identical, only the syntax differs.
 
 ---
-
 📄 **SQL File:** [`Q42_Products_And_Suppliers.sql`](./Q42_Products_And_Suppliers.sql)

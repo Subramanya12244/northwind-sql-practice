@@ -1,24 +1,20 @@
-# Q44. Products and Total Quantity Sold
+# Q44 · Products and Total Quantity Sold
 
-**Category:** RIGHT JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** RIGHT JOIN | **Difficulty:** Medium
+> **Concepts:** RIGHT JOIN · GROUP BY · Aggregate Functions (SUM) · NULL Handling (COALESCE)
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `SUM()` returns NULL (not 0) for products with no orders — wrap it in `COALESCE(..., 0)`.
 
----
-
-## Problem Statement
+## 1. Problem
 
 The sales team wants a report showing every product and the total quantity sold. Products that have never been ordered should also appear with a total quantity sold of 0.
 
-## Objective
+**Objective:** Return all products along with the total quantity sold, ensuring products with no orders appear with a quantity of 0.
 
-Return all products along with the total quantity sold, ensuring products with no orders appear with a quantity of 0.
+**Tables:** `order_details`, `products`
 
-## Tables Used
-
-- `order_details`
-- `products`
-
-## Expected Output
+**Expected output:**
 
 | Column Name | Description |
 |-------------|-------------|
@@ -35,14 +31,39 @@ Return all products along with the total quantity sold, ensuring products with n
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- RIGHT JOIN
-- GROUP BY
-- Aggregate Functions (SUM)
-- NULL Handling (COALESCE)
+1. Place `order_details` on the LEFT and `products` on the RIGHT.
+2. `RIGHT JOIN` preserves every row from `products` (the right table) regardless of whether matching `order_details` rows exist.
+3. `SUM(od.quantity)` aggregates total units sold per product; for products with no orders `SUM` returns NULL, so `COALESCE` converts it to 0.
+4. `GROUP BY p.product_name, p.product_id` — `product_id` is the unique key; `product_name` is a non-aggregated selected column.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT
+    p.product_name,
+    COALESCE(
+        ROUND(SUM(od.quantity), 2),
+        0
+    ) AS total_quantity_sold
+FROM order_details od
+RIGHT JOIN products p
+    ON p.product_id = od.product_id
+GROUP BY p.product_name, p.product_id;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+(Minor style note, not an error: `ROUND(..., 2)` is harmless but technically unnecessary on the integer `quantity` column — `COALESCE(SUM(od.quantity), 0)` would produce the same integer result more cleanly.)
+
+## 6. Why This Works
 
 **Why `order_details` is on the LEFT and `products` is on the RIGHT:** the requirement is to preserve every product. Placing `products` as the right table in a `RIGHT JOIN` guarantees every product appears in the result regardless of whether it has any matching rows in `order_details`.
 
@@ -61,18 +82,14 @@ GROUP BY p.product_name, p.product_id;
 
 This is structurally identical to Q27 (Products and Total Quantity Sold), which used `LEFT JOIN`. The only difference here is the join direction — `products` moves from left to right, and `LEFT JOIN` becomes `RIGHT JOIN`.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Using `COUNT(od.quantity)` instead of `SUM(od.quantity)` — `COUNT` counts the number of order line items (rows), not the total units sold within each line item. A single order for 100 units of Chai would contribute `COUNT = 1` but `SUM = 100`.
 - Forgetting `COALESCE` — `SUM()` returns NULL for empty groups, not 0.
 - Grouping by `product_name` alone, risking silent merges for products with identical names.
 - Using `ROUND` on an integer column unnecessarily — while harmless, it signals a misunderstanding of the data type being aggregated.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. This produces the same result as Q27, which used LEFT JOIN. What is the structural difference between the two queries?**
 
@@ -117,12 +134,9 @@ FROM product_qty
 ORDER BY total_quantity_sold DESC;
 ```
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Confirm that `RIGHT JOIN` and `LEFT JOIN` produce identical results when the preserved table and lookup table are swapped — building confidence to read and write both interchangeably.
-- Recognise that `SUM()` (unlike `COUNT()`) requires `COALESCE` for empty-group NULL handling, regardless of whether the outer join is `LEFT` or `RIGHT`.
-- Practice identifying unnecessary `ROUND()` calls on integer columns — a code quality habit relevant for production SQL.
+`RIGHT JOIN` and `LEFT JOIN` produce identical results when the preserved and lookup tables are swapped. `SUM()` (unlike `COUNT()`) always needs `COALESCE` for empty-group NULL handling — regardless of join direction — and avoid `ROUND()` on integer columns.
 
 ---
-
 📄 **SQL File:** [`Q44_Products_And_Total_Quantity_Sold.sql`](./Q44_Products_And_Total_Quantity_Sold.sql)
