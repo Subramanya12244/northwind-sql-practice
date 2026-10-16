@@ -1,35 +1,18 @@
-/*
-Question:
-Identify the 5 employees who generated the highest total discounted revenue across all orders they processed.
+/* =====================================================================
+   Q04 · Top 5 Employees by Revenue
+   Category : Aggregations & Revenue Analysis     Difficulty : Easy
+   Concepts : INNER JOIN (multi-table) · GROUP BY · SUM · ORDER BY · LIMIT
+   ---------------------------------------------------------------------
+   PROBLEM : Top 5 employees by total discounted revenue of orders handled.
+   APPROACH:
+     1. employees -> orders (employee_id) -> order_details (order_id).
+     2. SUM revenue grouped by employee.
+     3. ORDER BY revenue DESC, then LIMIT 5.
+   MISTAKES I MADE:
+     • none recorded
+   ===================================================================== */
 
-Business Requirement:
-The business wants to identify top-performing employees by revenue generated, to support performance evaluation and incentive decisions.
-
-Approach:
-1. Join employees to orders on employee_id, then to order_details on order_id.
-2. Calculate discounted revenue per line item.
-3. Aggregate revenue at the employee level.
-4. Sort by total revenue descending.
-5. Limit results to the top 5 employees.
-
-Expected Output:
-| employee_id | first_name | last_name | total_revenue |
-|-------------|------------|-----------|---------------|
-| 4 | Margaret | Peacock | 232890.85 |
-| 3 | Janet | Leverling | 202812.84 |
-| 1 | Nancy | Davolio | 192107.60 |
-
-Concepts Used:
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (SUM)
-- ORDER BY
-- LIMIT
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     e.employee_id,
     e.first_name,

@@ -1,76 +1,84 @@
-# Q05. Top 5 Customers by Number of Orders
+# Q05 · Top 5 Customers by Number of Orders
 
-**Category:** Aggregations & Revenue Analysis
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Aggregations & Revenue Analysis | **Difficulty:** Easy
+> **Concepts:** INNER JOIN · GROUP BY · COUNT · ORDER BY · LIMIT
+> **Outcome:** ❓ not recorded
+> **Watch out for:** frequency (order count) ≠ value (revenue, Q03) — different business question, different list.
 
----
+## 1. Problem
 
-## Problem Statement
+Operations wants to know which customers order most *frequently* — a different signal than total revenue, useful for spotting high-frequency, potentially lower-basket accounts versus high-value/low-frequency ones.
 
-Operations wants to understand which customers order most *frequently* — a different signal than total revenue, useful for identifying high-frequency, potentially lower-basket-size accounts versus high-value/low-frequency ones.
+**Objective:** Identify the 5 customers who placed the highest number of distinct orders.
 
-## Objective
+**Tables:** `customers`, `orders`
 
-Identify the 5 customers who placed the highest number of distinct orders.
+**Expected output:**
 
-## Tables Used
-
-- `customers`
-- `orders`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | customer_id | Unique identifier of the customer |
-| company_name | Name of the customer's company |
-| order_count | Total number of distinct orders placed by the customer |
-
-**Sample output:**
+| company_name | Customer's company name |
+| order_count | Number of distinct orders placed |
 
 | customer_id | company_name | order_count |
-|-------------|--------------|-------------|
+|---|---|---|
 | SAVEA | Save-a-lot Markets | 31 |
 | ERNSH | Ernst Handel | 30 |
 | QUICK | QUICK-Stop | 28 |
-| FOLKO | Folk och fä HB | 19 |
-| HUNGO | Hungry Owl All-Night Grocers | 19 |
 
-*(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
+*(Sample values illustrative of the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- INNER JOIN
-- GROUP BY
-- Aggregate Functions (COUNT)
-- ORDER BY
-- LIMIT
+1. Join `customers` to `orders` on `customer_id`.
+2. `COUNT(DISTINCT order_id)` per customer.
+3. Group by customer.
+4. Sort by order count descending.
+5. `LIMIT 5`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
 
-**Why `COUNT(DISTINCT o.order_id)` rather than plain `COUNT(o.order_id)`:** with only `customers` joined to `orders` (no `order_details` involved), each order already appears exactly once per customer, so the two are equivalent here. `DISTINCT` is added defensively — it's a safe habit that prevents inflated counts if this query is later extended to join in `order_details` (which would duplicate rows per line item, one row per product in the order).
+```sql
+SELECT
+    cu.customer_id,
+    cu.company_name,
+    COUNT(DISTINCT o.order_id) AS order_count
+FROM customers cu
+JOIN orders o ON o.customer_id = cu.customer_id
+GROUP BY cu.customer_id, cu.company_name
+ORDER BY order_count DESC
+LIMIT 5;
+```
 
-## Common Mistakes
+## 4. Mistakes I Made
 
-- Joining in `order_details` unnecessarily, then using plain `COUNT(order_id)` — this would count each order once *per line item*, wildly overstating order counts.
-- Confusing 'most orders' (frequency) with 'most revenue' (value, see Q3) — these are different business questions with potentially different customer lists.
+- _Not recorded — add from memory, or change Outcome to ✅ "clean on first attempt"._
 
-## Difficulty
+## 5. Correct / Optimal Solution
 
-**Easy**
+Same as §3.
 
-## Interview Follow-up Questions
+## 6. Why This Works
 
-1. Why is `COUNT(DISTINCT order_id)` a safer default than plain `COUNT(order_id)`, even when it's not strictly necessary in this specific query?
-2. What business difference is there between a customer who appears in this list versus the Q3 top-revenue list, but not both?
-3. How would you extend this to find the average order count per customer segment or region?
-4. If you joined `order_details` into this query, what would break, and how would you fix it?
+**Why `COUNT(DISTINCT o.order_id)` rather than `COUNT(o.order_id)`:** with only `customers` joined to `orders` (no `order_details`), each order appears once per customer, so the two are equivalent here. `DISTINCT` is a defensive habit — it prevents inflated counts if the query is later extended to join `order_details`, which duplicates rows per line item.
 
-## Learning Outcomes
+## 7. Common Pitfalls (generic)
 
-- Distinguish between frequency-based metrics (order count) and value-based metrics (revenue) in business reporting.
-- Build the habit of using `COUNT(DISTINCT ...)` defensively in joins that may later be extended.
+- Joining `order_details` unnecessarily then using plain `COUNT(order_id)` → counts each order once per line item, wildly overstating counts.
+- Confusing 'most orders' (frequency) with 'most revenue' (value, Q03) — different questions.
+
+## 8. Interview Follow-ups
+
+1. Why is `COUNT(DISTINCT order_id)` a safer default than plain `COUNT(order_id)`?
+2. What's the business difference between a customer here vs the Q03 top-revenue list?
+3. How would you extend this to average order count per segment/region?
+4. If you joined `order_details`, what would break and how would you fix it?
+
+## 9. Key Takeaway
+
+Separate frequency metrics from value metrics, and use `COUNT(DISTINCT ...)` defensively in joins that may later fan out to a finer grain.
 
 ---
-
 📄 **SQL File:** [`Q05_Top5_Customers_By_Order_Count.sql`](./Q05_Top5_Customers_By_Order_Count.sql)

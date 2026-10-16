@@ -1,80 +1,89 @@
-# Q04. Top 5 Employees by Revenue
+# Q04 · Top 5 Employees by Revenue
 
-**Category:** Aggregations & Revenue Analysis
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Aggregations & Revenue Analysis | **Difficulty:** Easy
+> **Concepts:** INNER JOIN (multi-table) · GROUP BY · SUM · ORDER BY · LIMIT
+> **Outcome:** ❓ not recorded
+> **Watch out for:** group by `employee_id` (the key), not just name — two employees could share a name and merge silently.
 
----
+## 1. Problem
 
-## Problem Statement
+Sales leadership wants to recognize and analyze the top-performing sales employees by the total revenue they personally closed, to inform performance reviews and incentive planning.
 
-Sales leadership wants to recognize and analyze the top-performing sales employees based on the total revenue they have personally closed, to inform performance reviews and incentive planning.
+**Objective:** Identify the 5 employees who generated the highest total discounted revenue across all orders they processed.
 
-## Objective
+**Tables:** `employees`, `orders`, `order_details`
 
-Identify the 5 employees who generated the highest total discounted revenue across all orders they processed.
+**Expected output:**
 
-## Tables Used
-
-- `employees`
-- `orders`
-- `order_details`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | employee_id | Unique identifier of the employee |
 | first_name | Employee's first name |
 | last_name | Employee's last name |
-| total_revenue | Sum of discounted revenue generated across all orders handled by this employee |
-
-**Sample output:**
+| total_revenue | Sum of discounted revenue across orders handled |
 
 | employee_id | first_name | last_name | total_revenue |
-|-------------|------------|-----------|---------------|
+|---|---|---|---|
 | 4 | Margaret | Peacock | 232890.85 |
 | 3 | Janet | Leverling | 202812.84 |
 | 1 | Nancy | Davolio | 192107.60 |
-| 2 | Andrew | Fuller | 166537.76 |
-| 8 | Laura | Callahan | 126862.28 |
 
-*(Sample values are illustrative, based on the standard Northwind dataset, and intended to show shape/format — not guaranteed to match your exact data instance.)*
+*(Sample values illustrative of the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- INNER JOIN (multi-table)
-- GROUP BY
-- Aggregate Functions (SUM)
-- ORDER BY
-- LIMIT
+1. Join `employees → orders → order_details`.
+2. Compute per-line discounted revenue.
+3. `SUM()` grouped by employee.
+4. Sort by revenue descending.
+5. `LIMIT 5`.
 
-## Why This Approach
+## 3. My Solution (as submitted)
 
-**Why join through `orders`:** an employee's contribution to revenue is indirect — they are linked to `orders`, and revenue itself lives in `order_details`. The join chain `employees → orders → order_details` is required.
+```sql
+SELECT
+    e.employee_id,
+    e.first_name,
+    e.last_name,
+    ROUND(SUM(od.unit_price * od.quantity * (1 - od.discount))::numeric, 2) AS total_revenue
+FROM employees e
+JOIN orders o ON o.employee_id = e.employee_id
+JOIN order_details od ON od.order_id = o.order_id
+GROUP BY e.employee_id, e.first_name, e.last_name
+ORDER BY total_revenue DESC
+LIMIT 5;
+```
 
-**Why include both `first_name` and `last_name` in `GROUP BY`:** since both are selected as non-aggregated columns, PostgreSQL requires them in the grouping clause even though `employee_id` alone is already a unique key.
+## 4. Mistakes I Made
 
-## Common Mistakes
+- _Not recorded — add from memory, or change Outcome to ✅ "clean on first attempt"._
 
-- Grouping only by name (`first_name`, `last_name`) instead of `employee_id` — two employees could theoretically share a name, silently merging their revenue.
-- Forgetting that an employee with zero orders won't appear at all with `INNER JOIN` (acceptable here since the question implies active salespeople, but worth flagging in an interview).
+## 5. Correct / Optimal Solution
 
-## Difficulty
+Same as §3.
 
-**Easy**
+## 6. Why This Works
 
-## Interview Follow-up Questions
+**Why join through `orders`:** an employee's contribution to revenue is indirect — they link to `orders`, and revenue lives in `order_details`, so the chain `employees → orders → order_details` is required.
 
-1. Why might you still include `employee_id` in `GROUP BY` even if you're confident no two employees share the same name?
-2. How would you modify this to show revenue by employee and by year separately?
-3. If an employee had zero orders, would this query include them in the output? How would you change it if the requirement was to include all employees regardless?
-4. How does this query differ structurally from Q3 (Top 10 Customers)?
+**Why `first_name` and `last_name` in `GROUP BY`:** both are selected non-aggregated columns, so PostgreSQL requires them in the grouping clause even though `employee_id` alone is the unique key.
 
-## Learning Outcomes
+## 7. Common Pitfalls (generic)
 
-- Reinforce the join-through-bridge-table pattern, this time anchored on employees instead of customers.
-- Practice recognizing when `INNER JOIN` excludes legitimately relevant zero-activity rows versus when that's the desired behavior.
+- Grouping only by name instead of `employee_id` → two same-named employees silently merge.
+- Forgetting an employee with zero orders won't appear under `INNER JOIN` (fine here, but note it in interviews).
+
+## 8. Interview Follow-ups
+
+1. Why include `employee_id` in `GROUP BY` even if names seem unique?
+2. How would you show revenue by employee *and* by year?
+3. Would a zero-order employee appear? How to include all employees?
+4. How does this differ structurally from Q03 (Top 10 Customers)?
+
+## 9. Key Takeaway
+
+Group by the stable key (`employee_id`), not display attributes — and remember `INNER JOIN` quietly drops zero-activity rows.
 
 ---
-
 📄 **SQL File:** [`Q04_Top5_Employees_By_Revenue.sql`](./Q04_Top5_Employees_By_Revenue.sql)

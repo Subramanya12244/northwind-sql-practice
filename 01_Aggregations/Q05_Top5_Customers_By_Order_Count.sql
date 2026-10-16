@@ -1,35 +1,18 @@
-/*
-Question:
-Identify the 5 customers who placed the highest number of distinct orders.
+/* =====================================================================
+   Q05 · Top 5 Customers by Number of Orders
+   Category : Aggregations & Revenue Analysis     Difficulty : Easy
+   Concepts : INNER JOIN · GROUP BY · COUNT · ORDER BY · LIMIT
+   ---------------------------------------------------------------------
+   PROBLEM : Top 5 customers by number of distinct orders placed.
+   APPROACH:
+     1. customers -> orders (customer_id).
+     2. COUNT(DISTINCT order_id) grouped by customer.
+     3. ORDER BY order_count DESC, then LIMIT 5.
+   MISTAKES I MADE:
+     • none recorded
+   ===================================================================== */
 
-Business Requirement:
-The business wants to identify customers who order most frequently, which can indicate strong engagement or a candidate for bulk/subscription contract offers.
-
-Approach:
-1. Join customers to orders on customer_id.
-2. Count distinct orders per customer using COUNT(DISTINCT order_id).
-3. Aggregate by customer.
-4. Sort by order count descending.
-5. Limit to the top 5 customers.
-
-Expected Output:
-| customer_id | company_name | order_count |
-|-------------|--------------|-------------|
-| SAVEA | Save-a-lot Markets | 31 |
-| ERNSH | Ernst Handel | 30 |
-| QUICK | QUICK-Stop | 28 |
-
-Concepts Used:
-- INNER JOIN
-- GROUP BY
-- Aggregate Functions (COUNT)
-- ORDER BY
-- LIMIT
-
-Complexity:
-Easy
-*/
-
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
 SELECT
     cu.customer_id,
     cu.company_name,
