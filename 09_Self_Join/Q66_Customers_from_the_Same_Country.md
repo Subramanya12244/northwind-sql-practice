@@ -1,31 +1,26 @@
-# Q66. Customers from the Same Country
+# Q66 · Customers from the Same Country
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · INNER JOIN · duplicate-pair elimination (`id < id`)
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** use `<` (not `<>`) for deduplication — `<>` removes self-pairs but still returns both (A,B) and (B,A).
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve customer pairs from the same country.
 
-## Objective
+**Objective:** Return every unique pair of customers who share the same country, along with that country. Exclude self-pairs and duplicate pairs.
 
-Return every unique pair of customers who share the same country, along with that country. Exclude self-pairs and duplicate pairs.
+**Tables:** `customers` (aliased twice: `c1`, `c2`)
 
-## Tables Used
+**Expected output:**
 
-- `customers (aliased twice: c1, c2)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | customer_1_name | Contact name of the first customer |
 | customer_2_name | Contact name of the second customer |
 | country | The shared country |
-
-**Sample output:**
 
 | customer_1_name | customer_2_name | country |
 |-----------------|-----------------|---------|
@@ -34,13 +29,34 @@ Return every unique pair of customers who share the same country, along with tha
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- INNER JOIN
-- Duplicate pair elimination (id < id)
+1. Self-join `customers c1` to `customers c2`.
+2. Use `c1.customer_id < c2.customer_id` to drop self/duplicate pairs.
+3. Restrict to `c1.country = c2.country`.
+4. Select both contact names and the shared country.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT c1.contact_name AS customer_1_name,
+       c2.contact_name AS customer_2_name,
+       c1.country
+FROM customers c1
+JOIN customers c2
+    ON c1.customer_id < c2.customer_id
+    AND c1.country = c2.country;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why this is the purest form of the standard SELF JOIN pair pattern:** `ON c1.customer_id < c2.customer_id AND c1.country = c2.country` — the `<` deduplicates, the `=` defines the "same" condition. No date functions, no third aliases, no aggregation. This is the template that all previous pair questions were building toward.
 
@@ -53,16 +69,12 @@ AND t1.common_column = t2.common_column
 ```
 The `id < id` condition is the universal deduplication mechanism; the second condition defines what "same" means for the specific question.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - Forgetting `c1.country = c2.country` — without it, every customer is paired with every other customer (a Cartesian product within the SELF JOIN).
 - Using `<>` instead of `<` — removes self-pairs but still returns each pair twice (A,B) and (B,A).
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What does the condition `c1.customer_id < c2.customer_id` accomplish, and why is `<` better than `<>`?**
 
@@ -80,16 +92,9 @@ The `id < id` condition is the universal deduplication mechanism; the second con
 
 `SELECT country, COUNT(*) AS customer_count FROM customers GROUP BY country HAVING COUNT(*) >= 3 ORDER BY customer_count DESC`. This answers 'how many customers per country' — a simpler aggregation question. The SELF JOIN is needed when you specifically want the pairs themselves, not just the counts.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Confirm mastery of the standard SELF JOIN pair pattern: `t1.id < t2.id AND t1.column = t2.column`.
-- Understand the difference between `<>` (removes self-pairs only) and `<` (removes self-pairs AND duplicates).
-- Know when SELF JOIN is needed (to return pairs) vs when GROUP BY HAVING is sufficient (to count entities with a shared attribute).
+The classic self-join pair pattern is `t1.id < t2.id AND t1.common_column = t2.common_column` — `<` removes self-pairs and duplicates in one condition; use SELF JOIN (not GROUP BY) when the output must show the actual pairs.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** Classic SELF JOIN pattern: `t1.id < t2.id AND t1.common_column = t2.common_column`.
-
 📄 **SQL File:** [`Q66_Customers_from_the_Same_Country.sql`](./Q66_Customers_from_the_Same_Country.sql)

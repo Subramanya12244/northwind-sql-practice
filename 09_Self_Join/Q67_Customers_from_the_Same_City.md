@@ -1,31 +1,26 @@
-# Q67. Customers from the Same City
+# Q67 · Customers from the Same City
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · INNER JOIN · duplicate-pair elimination (`id < id`)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** a correct join condition isn't enough — verify every SELECT column answers the question (select `c1.city`, not `c1.country`).
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve pairs of customers from the same city.
 
-## Objective
+**Objective:** Return every unique pair of customers who share the same city, along with that city. Exclude self-pairs and duplicate pairs.
 
-Return every unique pair of customers who share the same city, along with that city. Exclude self-pairs and duplicate pairs.
+**Tables:** `customers` (aliased twice: `c1`, `c2`)
 
-## Tables Used
+**Expected output:**
 
-- `customers (aliased twice: c1, c2)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | customer_1_name | Contact name of the first customer |
 | customer_2_name | Contact name of the second customer |
 | city | The shared city |
-
-**Sample output:**
 
 | customer_1_name | customer_2_name | city |
 |-----------------|-----------------|------|
@@ -34,42 +29,54 @@ Return every unique pair of customers who share the same city, along with that c
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- INNER JOIN
-- Duplicate pair elimination (id < id)
+1. Reuse the Q66 template — "same city" is structurally identical to "same country".
+2. Self-join `customers c1` to `customers c2` with `c1.customer_id < c2.customer_id` and `c1.city = c2.city`.
+3. Select both contact names and the shared city.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+-- Join condition correct, but the SELECT showed the wrong dimension
+SELECT c1.contact_name AS customer_1_name,
+       c2.contact_name AS customer_2_name,
+       c1.country              -- should be c1.city
+FROM customers c1
+JOIN customers c2
+    ON c1.customer_id < c2.customer_id
+    AND c1.city = c2.city;
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ **Wrong SELECT column:** the join condition correctly compared `c1.city = c2.city`, but the SELECT list showed `c1.country` instead of `c1.city` — a copy-paste error carried over from Q66. The rows were right; the displayed attribute was wrong. → Fix: select `c1.city`. Always verify the SELECT list matches the question's dimension, not just the join condition.
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT c1.contact_name AS customer_1_name,
+       c2.contact_name AS customer_2_name,
+       c1.city
+FROM customers c1
+JOIN customers c2
+    ON c1.customer_id < c2.customer_id
+    AND c1.city = c2.city;
+```
+
+## 6. Why This Works
 
 **Why structurally identical to Q66:** "same city" is the same pattern as "same country" — only the matching column changes from `country` to `city`. The join structure, alias pattern, and deduplication condition are unchanged.
 
-**The mistake to avoid:** the join condition `c1.city = c2.city` is the correct "same" condition — but the SELECT list must also show `c1.city`, not `c1.country`. These are easy to conflate when rapidly adapting one query to another, as Q67's mistake demonstrates.
+**The mistake to avoid:** the join condition `c1.city = c2.city` is the correct "same" condition — but the SELECT list must also show `c1.city`, not `c1.country`. These are easy to conflate when rapidly adapting one query to another, as this question's mistake demonstrates. The join condition determines which rows are returned; the SELECT list determines what is shown for those rows — both must independently match the requirement.
 
-### ❌ Attempt — Correct join condition, wrong SELECT column:
+## 7. Common Pitfalls (generic)
 
-```sql
-select c1.contact_name as Customer_1_Name,
-c2.contact_name as Customer_2_Name,
-c1.country  -- ❌ should be c1.city
-from customers c1
-join customers c2
-on c1.customer_id < c2.customer_id
-and c1.city = c2.city;
-```
+- Getting the join condition right but selecting the wrong attribute — the query finds correct rows but displays the wrong column.
+- Copy-pasting a near-identical query (e.g. from a "same country" question) and forgetting to update every reference to the changed dimension.
+- Using `<>` instead of `<`, or omitting the `c1.city = c2.city` condition entirely.
 
-**Why it fails:** Join condition is correct (`c1.city = c2.city`) but SELECT shows `c1.country` instead of `c1.city`.
-
-
-## Common Mistakes
-
-- **Column selection error — selected `c1.country` instead of `c1.city`:** `c1.country  -- ❌ wrong column selected` — The join condition correctly compared `c1.city = c2.city`, but the SELECT list showed `c1.country` — a copy-paste error from Q66. Always verify the SELECT list matches the question's dimension, not just the join condition.
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Q67 had the correct join condition but wrong SELECT column. What does this suggest about a common mistake type in SQL?**
 
@@ -87,15 +94,9 @@ Add both conditions to the join: `ON c1.customer_id < c2.customer_id AND c1.city
 
 `SELECT city, COUNT(*) AS customer_count FROM customers GROUP BY city HAVING COUNT(*) > 2 ORDER BY customer_count DESC`. For just counting and filtering, GROUP BY HAVING is simpler. SELF JOIN is only needed when the output must show the actual pairs.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Always verify both the join condition AND the SELECT list against the question's requirement — errors in either produce wrong output.
-- Reinforce that the SELF JOIN pair template only changes the matching column and the primary key alias between questions.
+Always verify both the join condition AND the SELECT list against the question — a correct join with the wrong selected column still produces wrong output.
 
 ---
-
-**Score from review session: 9.5/10**
-
-**Interview Takeaway:** Always double-check the selected columns, not just the join condition.
-
 📄 **SQL File:** [`Q67_Customers_from_the_Same_City.sql`](./Q67_Customers_from_the_Same_City.sql)

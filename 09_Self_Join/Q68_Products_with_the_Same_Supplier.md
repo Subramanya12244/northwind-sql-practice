@@ -1,31 +1,26 @@
-# Q68. Products with the Same Supplier
+# Q68 · Products with the Same Supplier
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · INNER JOIN · duplicate-pair elimination (`id < id`)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** `id < id` only deduplicates — without the `p1.supplier_id = p2.supplier_id` condition you get a Cartesian product.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve pairs of products supplied by the same supplier.
 
-## Objective
+**Objective:** Return every unique pair of products that share the same `supplier_id`, along with that supplier ID. Exclude self-pairs and duplicate pairs.
 
-Return every unique pair of products that share the same `supplier_id`, along with that supplier ID. Exclude self-pairs and duplicate pairs.
+**Tables:** `products` (aliased twice: `p1`, `p2`)
 
-## Tables Used
+**Expected output:**
 
-- `products (aliased twice: p1, p2)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | product_1_name | Name of the first product in the pair |
 | product_2_name | Name of the second product in the pair |
 | supplier_id | The shared supplier ID |
-
-**Sample output:**
 
 | product_1_name | product_2_name | supplier_id |
 |----------------|----------------|-------------|
@@ -34,41 +29,54 @@ Return every unique pair of products that share the same `supplier_id`, along wi
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- INNER JOIN
-- Duplicate pair elimination (id < id)
+1. Self-join `products p1` to `products p2`.
+2. Use `p1.product_id < p2.product_id` to drop self/duplicate pairs.
+3. Restrict to the same supplier with `p1.supplier_id = p2.supplier_id`.
+4. Select both product names and the shared supplier ID.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+-- First attempt: missing the same-supplier condition → Cartesian product
+SELECT p1.product_name AS product_1_name,
+       p2.product_name AS product_2_name,
+       p1.supplier_id
+FROM products p1
+JOIN products p2
+    ON p1.product_id < p2.product_id;   -- missing AND p1.supplier_id = p2.supplier_id
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ **Missing the "same supplier" condition:** the join had only `p1.product_id < p2.product_id`, which deduplicates but does not filter → every product was paired with every other product (a Cartesian product restricted only by `<`). → Fix: add `AND p1.supplier_id = p2.supplier_id` — the condition that makes it a meaningful business query.
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT p1.product_name AS product_1_name,
+       p2.product_name AS product_2_name,
+       p1.supplier_id
+FROM products p1
+JOIN products p2
+    ON p1.product_id < p2.product_id
+    AND p1.supplier_id = p2.supplier_id;
+```
+
+## 6. Why This Works
 
 **Why the standard pair pattern applies:** `ON p1.product_id < p2.product_id AND p1.supplier_id = p2.supplier_id` — `<` deduplicates, `supplier_id =` defines the "same supplier" condition. The template is unchanged from Q66/Q67.
 
 **What "same" means here:** two products share the same supplier when `p1.supplier_id = p2.supplier_id`. Without this condition, the join pairs every product with every other product that also satisfies the `<` condition — a Cartesian product over all products, which is not what the question asks.
 
-### ❌ Attempt 1 — Missing same-supplier condition (Cartesian product):
+## 7. Common Pitfalls (generic)
 
-```sql
-select p1.product_name as Product_1_Name,
-p2.product_name as Product_2_Name,
-p1.supplier_id
-from products p1
-join products p2
-on p1.product_id < p2.product_id  -- ❌ missing: AND p1.supplier_id = p2.supplier_id
-```
+- Writing only `t1.id < t2.id` and omitting the "same" condition — deduplicates but does not filter, producing a Cartesian product.
+- Not sanity-checking the result row count — an unexpectedly large count is the tell-tale sign of a missing join condition.
+- Using `<>` instead of `<` — keeps both (A,B) and (B,A).
 
-**Why it fails:** Pairs every product with every other product — a Cartesian product. Missing `AND p1.supplier_id = p2.supplier_id`.
-
-
-## Common Mistakes
-
-- **Attempt 1 — Missing the 'same supplier' condition:** `on p1.product_id < p2.product_id  -- ❌ only deduplicates, does not filter by supplier` — Without `p1.supplier_id = p2.supplier_id`, every product is paired with every other product (where p1.id < p2.id) — a full Cartesian product. The 'same supplier' condition is what makes this a meaningful business query.
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What happens if you only write `ON p1.product_id < p2.product_id` without the supplier condition?**
 
@@ -86,15 +94,9 @@ Join the `suppliers` table: `SELECT p1.product_name, p2.product_name, s.company_
 
 Check the row count of the result against expectations. For 77 products, `p1.product_id < p2.product_id` alone produces 2,926 pairs — far more than the number of same-supplier pairs. Any time a SELF JOIN produces significantly more rows than expected, the first thing to check is whether the 'same' condition is missing from the join.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand that `t1.id < t2.id` alone is insufficient — it deduplicates but does not filter. The 'same column' condition is what makes the query meaningful.
-- Always ask 'what does same mean here?' before writing the join condition — the answer determines the second part of the ON clause.
+`t1.id < t2.id` alone only deduplicates — always ask "what does *same* mean here?" and put that equality as the second condition of the ON clause, or you get a Cartesian product.
 
 ---
-
-**Score from review session: 8.5/10**
-
-**Interview Takeaway:** Always ask 'what does same mean?' — the answer goes in the second condition of the ON clause.
-
 📄 **SQL File:** [`Q68_Products_with_the_Same_Supplier.sql`](./Q68_Products_with_the_Same_Supplier.sql)

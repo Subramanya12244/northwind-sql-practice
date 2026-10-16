@@ -1,36 +1,22 @@
-/*
-Question:
-Return every unique pair of customers who share the same country, along with that country. Exclude self-pairs and duplicate pairs.
+/* =====================================================================
+   Q66 · Customers from the Same Country
+   Category : Self Join          Difficulty : Easy
+   Concepts : SELF JOIN · INNER JOIN · dedup (id < id)
+   ---------------------------------------------------------------------
+   PROBLEM : Return every unique pair of customers sharing the same
+             country, plus that country. No self/duplicate pairs.
+   APPROACH:
+     1. Self-join customers c1 to c2.
+     2. ON c1.customer_id < c2.customer_id (dedup) AND c1.country = c2.country.
+   MISTAKES I MADE:
+     • none — clean on first attempt
+   ===================================================================== */
 
-Business Requirement:
-Retrieve customer pairs from the same country.
-
-Approach:
-See markdown file for full reasoning. Key points:
-- *
-
-Expected Output:
-| customer_1_name | customer_2_name | country |
-|-----------------|-----------------|---------|
-| Maria Anders | Ana Trujillo | Germany |
-| Maria Anders | Antonio Moreno | Germany |
-
-Concepts Used:
-- SELF JOIN
-- INNER JOIN
-- Duplicate pair elimination (id < id)
-
-Score: 10/10
-Takeaway: Classic SELF JOIN pattern: `t1.id < t2.id AND t1.common_column = t2.common_column`.
-
-Complexity:
-Easy
-*/
-
-select c1.contact_name as Customer_1_Name,
-c2.contact_name as Customer_2_Name,
-c1.country
-from customers c1
-join customers c2
-on c1.customer_id < c2.customer_id
-and c1.country = c2.country;
+-- ── MY SUBMITTED ATTEMPT (correct — this is the solution) ────────────
+SELECT c1.contact_name AS customer_1_name,
+       c2.contact_name AS customer_2_name,
+       c1.country
+FROM customers c1
+JOIN customers c2
+    ON c1.customer_id < c2.customer_id
+    AND c1.country = c2.country;

@@ -1,31 +1,26 @@
-# Q64. Employees Having the Same Job Title
+# Q64 · Employees Having the Same Job Title
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · INNER JOIN · duplicate-pair elimination (`id < id`)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** don't add a join for data you already have — once `e1.title = e2.title` is in the ON clause, `e1.title` is directly selectable.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve pairs of employees having the same job title.
 
-## Objective
+**Objective:** Return every unique pair of employees who share the same `title` value, along with that shared title. Exclude self-pairs and duplicate pairs.
 
-Return every unique pair of employees who share the same `title` value, along with that shared title. Exclude self-pairs and duplicate pairs.
+**Tables:** `employees` (aliased twice: `e1`, `e2`)
 
-## Tables Used
+**Expected output:**
 
-- `employees (aliased twice: e1, e2)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | employee_name1 | Full name of the first employee in the pair |
 | employee_name2 | Full name of the second employee in the pair |
 | title | The shared job title |
-
-**Sample output:**
 
 | employee_name1 | employee_name2 | title |
 |----------------|----------------|-------|
@@ -34,45 +29,56 @@ Return every unique pair of employees who share the same `title` value, along wi
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- INNER JOIN
-- Duplicate pair elimination (id < id)
+1. Self-join `employees e1` to `employees e2`.
+2. In the ON clause, use `e1.employee_id < e2.employee_id` to drop self/duplicate pairs and `e1.title = e2.title` to restrict to shared titles.
+3. Select both names plus the shared title (available directly from `e1`).
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+-- First attempt: added an unnecessary third join just to read the title
+SELECT CONCAT(e1.first_name,' ',e1.last_name) AS employee_name1,
+       CONCAT(e2.first_name,' ',e2.last_name) AS employee_name2,
+       j.title
+FROM employees e1
+JOIN employees e2
+    ON e1.employee_id < e2.employee_id
+    AND e1.title = e2.title
+JOIN employees j
+    ON e1.employee_id = j.employee_id;
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ **Unnecessary third join:** added `JOIN employees j ON e1.employee_id = j.employee_id` just to read `j.title` → since `e1.title = e2.title` is already in the join condition, `e1.title` is directly accessible; the third alias is completely redundant and adds a join with zero benefit. → Fix: drop the third join and select `e1.title`.
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT CONCAT(e1.first_name,' ',e1.last_name) AS employee_name1,
+       CONCAT(e2.first_name,' ',e2.last_name) AS employee_name2,
+       e1.title
+FROM employees e1
+JOIN employees e2
+    ON e1.employee_id < e2.employee_id
+    AND e1.title = e2.title;
+```
+
+## 6. Why This Works
 
 **Why the standard SELF JOIN pair pattern:** `JOIN employees e2 ON e1.employee_id < e2.employee_id AND e1.title = e2.title` accomplishes two things in one condition — `<` eliminates self-pairs and duplicates, and `e1.title = e2.title` restricts the join to only employees sharing the same title.
 
 **Why no third alias is needed:** once you establish `e1.title = e2.title` in the join condition, `e1.title` and `e2.title` are guaranteed to be identical. Either can be used in the SELECT list — `e1.title` is the conventional choice. There is no need to join a third alias just to display a value that's already available from `e1`.
 
-### ❌ Attempt 1 — Unnecessary third join on employees:
+## 7. Common Pitfalls (generic)
 
-```sql
-select concat(e1.first_name,' ',e1.last_name) as employee_name1,
-concat(e2.first_name,' ',e2.last_name) as employee_name2,
-j.title
-from
-employees e1
-join employees e2
-on e1.employee_id < e2.employee_id
-and e1.title = e2.title
-join employees j
-on e1.employee_id = j.employee_id
-```
+- Adding an extra join/alias to fetch a value that is already reachable from an existing alias — pure overhead.
+- Using `<>` instead of `<` in the deduplication condition — removes self-pairs but keeps both (A,B) and (B,A).
+- Forgetting the `e1.title = e2.title` condition — produces a Cartesian product of all employee pairs.
 
-**Why it fails:** The third join fetches `j.title`, but `e1.title` is already identical to `e2.title` via the join condition. Completely redundant.
-
-
-## Common Mistakes
-
-- **Attempt 1 — Unnecessary third join:** `join employees j on e1.employee_id = j.employee_id` — Since `e1.title = e2.title` is already in the join condition, `e1.title` is directly accessible. A third alias just to display `title` is completely redundant — it adds a join with zero benefit.
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is a third join on `employees` unnecessary here, when Q63 required one?**
 
@@ -90,15 +96,9 @@ The standard pattern is: `FROM table t1 JOIN table t2 ON t1.id < t2.id AND t1.co
 
 That approach finds titles with more than one employee, but it doesn't return the actual pairs — just the titles and their employee counts. To return the individual pairs (employee 1, employee 2, title), the SELF JOIN is required. The GROUP BY approach answers 'which titles have multiple holders'; the SELF JOIN answers 'who are those holders, paired up'.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Internalise the rule: only join another alias/table if the data needed isn't already reachable from existing aliases.
-- Reinforce the standard SELF JOIN pair pattern: `t1.id < t2.id AND t1.column = t2.column`.
+Only join another alias/table if the data you need isn't already reachable from an existing alias — and reuse the standard pair pattern `t1.id < t2.id AND t1.column = t2.column`.
 
 ---
-
-**Score from review session: 9.5/10**
-
-**Interview Takeaway:** Only join another table if you actually need data that isn't already available from existing aliases.
-
 📄 **SQL File:** [`Q64_Employees_Having_the_Same_Job_Title.sql`](./Q64_Employees_Having_the_Same_Job_Title.sql)

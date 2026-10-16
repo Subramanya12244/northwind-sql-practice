@@ -1,31 +1,26 @@
-# Q70. Customers Sharing the Same Postal Code
+# Q70 · Customers Sharing the Same Postal Code
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · INNER JOIN · duplicate-pair elimination (`id < id`)
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** `NULL = NULL` is never true in a join condition — rows with NULL postal codes never pair with each other.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve pairs of customers having the same postal code.
 
-## Objective
+**Objective:** Return every unique pair of customers who share the same postal code, along with that postal code. Exclude self-pairs and duplicate pairs.
 
-Return every unique pair of customers who share the same postal code, along with that postal code. Exclude self-pairs and duplicate pairs.
+**Tables:** `customers` (aliased twice: `c1`, `c2`)
 
-## Tables Used
+**Expected output:**
 
-- `customers (aliased twice: c1, c2)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | contact_name (c1) | Contact name of the first customer |
 | contact_name (c2) | Contact name of the second customer |
 | postal_code | The shared postal code |
-
-**Sample output:**
 
 | contact_name (c1) | contact_name (c2) | postal_code |
 |-------------------|-------------------|-------------|
@@ -34,13 +29,34 @@ Return every unique pair of customers who share the same postal code, along with
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- INNER JOIN
-- Duplicate pair elimination (id < id)
+1. Self-join `customers c1` to `customers c2`.
+2. Use `c1.customer_id < c2.customer_id` to drop self/duplicate pairs.
+3. Restrict to `c1.postal_code = c2.postal_code`.
+4. Select both contact names and the shared postal code.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT c1.contact_name,
+       c2.contact_name,
+       c1.postal_code
+FROM customers c1
+JOIN customers c2
+    ON c1.customer_id < c2.customer_id
+    AND c1.postal_code = c2.postal_code;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt.
+
+## 5. Correct / Optimal Solution
+
+Same as §3.
+
+## 6. Why This Works
 
 **Why this confirms full mastery of the SELF JOIN pair pattern:** Q70 is a clean application of the established template with no mistakes, no extra complexity, and no additional joins. `ON c1.customer_id < c2.customer_id AND c1.postal_code = c2.postal_code` — the pattern is now mechanical.
 
@@ -53,14 +69,13 @@ JOIN table t2
 ```
 Both elements are always present. The specific table, key, and match column are the only things that change per question.
 
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
+- Using `<=` or `<>` instead of `<` for deduplication — `<=` keeps self-pairs' ordering issues and `<>` keeps both (A,B) and (B,A).
+- Forgetting that `NULL = NULL` is unknown (not true) in join conditions — rows with NULL match columns never pair with each other.
+- Omitting the `c1.postal_code = c2.postal_code` condition — produces a Cartesian product.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Summarise the SELF JOIN pair pattern established across Q63–Q70 in one formula.**
 
@@ -78,16 +93,9 @@ Use a CTE to get the pairs, then count appearances per entity: `WITH pairs AS (S
 
 Yes — when the match column has NULL values. `NULL = NULL` evaluates to NULL (unknown) in SQL join conditions, so rows with NULL postal codes will never match each other and won't appear in the result. If you want to pair rows with matching NULLs, you need: `ON c1.customer_id < c2.customer_id AND (c1.postal_code = c2.postal_code OR (c1.postal_code IS NULL AND c2.postal_code IS NULL))`. In standard datasets like Northwind this is rarely an issue, but worth knowing for production data.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Confirm complete mastery of the SELF JOIN pair pattern: `t1.id < t2.id AND t1.column = t2.column`.
-- Know the difference between `<`, `<=`, and `<>` for SELF JOIN deduplication — `<` is the universal correct choice for unique pairs.
-- Understand the NULL matching edge case in SELF JOIN conditions — `NULL = NULL` is false in join conditions, so rows with NULL match columns never pair with each other.
+The SELF JOIN pair pattern `t1.id < t2.id AND t1.common_column = t2.common_column` is now fully mastered — `<` is the universal dedup choice, and remember `NULL = NULL` never matches in a join.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** By Q70, the SELF JOIN pair pattern is fully mastered: `t1.id < t2.id AND t1.common_column = t2.common_column`.
-
 📄 **SQL File:** [`Q70_Customers_Sharing_the_Same_Postal_Code.sql`](./Q70_Customers_Sharing_the_Same_Postal_Code.sql)

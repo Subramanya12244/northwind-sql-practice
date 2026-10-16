@@ -1,32 +1,26 @@
-# Q69. Products in the Same Category
+# Q69 · Products in the Same Category
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · INNER JOIN · LEFT JOIN (name lookup) · duplicate-pair elimination (`id < id`)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** `id < id` alone is a Cartesian product — the `p1.category_id = p2.category_id` condition is the essential filter.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve pairs of products belonging to the same category.
 
-## Objective
+**Objective:** Return every unique pair of products that share the same `category_id`, along with the category name. Exclude self-pairs and duplicate pairs.
 
-Return every unique pair of products that share the same `category_id`, along with the category name. Exclude self-pairs and duplicate pairs.
+**Tables:** `products` (aliased twice: `p1`, `p2`), `categories`
 
-## Tables Used
+**Expected output:**
 
-- `products (aliased twice: p1, p2)`
-- `categories`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | product_1_name | Name of the first product in the pair |
 | product_2_name | Name of the second product in the pair |
 | category_name | Name of the shared category |
-
-**Sample output:**
 
 | product_1_name | product_2_name | category_name |
 |----------------|----------------|---------------|
@@ -35,46 +29,58 @@ Return every unique pair of products that share the same `category_id`, along wi
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- INNER JOIN
-- LEFT JOIN (to lookup category name)
-- Duplicate pair elimination (id < id)
+1. Self-join `products p1` to `products p2`.
+2. Use `p1.product_id < p2.product_id` to drop self/duplicate pairs and `p1.category_id = p2.category_id` to restrict to the same category.
+3. `LEFT JOIN categories` on `p1.category_id` to fetch the category name (not present on `products`).
+4. Select both product names and the category name.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+-- First attempt: missing the same-category condition → Cartesian product
+SELECT p1.product_name AS product_1_name,
+       p2.product_name AS product_2_name,
+       c.category_name
+FROM products p1
+JOIN products p2
+    ON p1.product_id < p2.product_id   -- missing AND p1.category_id = p2.category_id
+LEFT JOIN categories c ON c.category_id = p1.category_id;
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ **Missing the "same category" condition:** the join had only `p1.product_id < p2.product_id`, so every product was paired with every other product — a Cartesian product (same class of mistake as Q68). → Fix: add `AND p1.category_id = p2.category_id` as the essential filter.
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT p1.product_name AS product_1_name,
+       p2.product_name AS product_2_name,
+       c.category_name
+FROM products p1
+JOIN products p2
+    ON p1.product_id < p2.product_id
+    AND p1.category_id = p2.category_id
+LEFT JOIN categories c ON c.category_id = p1.category_id;
+```
+
+## 6. Why This Works
 
 **Why an additional `LEFT JOIN categories`:** unlike Q64–Q68 where the display value (`title`, `country`, `city`, `supplier_id`) was directly available on the self-joined table, the question asks for `category_name` — which lives in the `categories` table, not `products`. A third join on `categories c ON c.category_id = p1.category_id` is needed to fetch the name. Since `p1.category_id = p2.category_id`, joining on `p1.category_id` is sufficient.
 
 **Why `LEFT JOIN` for categories:** `INNER JOIN` would also work here since every product in Northwind has a valid category. `LEFT JOIN` is slightly more defensive — it preserves product pairs even if their `category_id` somehow has no matching category row, displaying NULL for `category_name` in that edge case rather than dropping the pair entirely.
 
-### ❌ Attempt 1 — Missing same-category condition:
+**Why the same-category condition is essential:** without `p1.category_id = p2.category_id`, the `<` condition alone pairs every product with every other product — a Cartesian product, not the intended "same category" result.
 
-```sql
-select p1.product_name as Product_1_Name,
-p2.product_name as Product_2_Name,
-c.category_name
-from products p1
-join products p2
-on p1.product_id < p2.product_id
-left join categories c on c.category_id = p1.category_id
-```
+## 7. Common Pitfalls (generic)
 
-**Why it fails:** Missing `AND p1.category_id = p2.category_id` — pairs every product with every other product.
+- Omitting the `p1.category_id = p2.category_id` condition — `id < id` alone produces a Cartesian product.
+- Forgetting the extra lookup join when the required display value (e.g. category name) lives in a separate table rather than on the self-joined table.
+- Joining the lookup table redundantly on both `p1` and `p2` — joining once on `p1.category_id` is sufficient because the two are equal.
 
-
-## Common Mistakes
-
-- **Attempt 1 — Missing same-category condition:** `from products p1
-join products p2
-on p1.product_id < p2.product_id
--- ❌ missing: AND p1.category_id = p2.category_id` — Same mistake as Q68 — `id < id` alone pairs every product with every other product. `AND p1.category_id = p2.category_id` is the essential filter.
-
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. This question adds a `LEFT JOIN categories` on top of the SELF JOIN. When is a third table join needed in a SELF JOIN pair query?**
 
@@ -92,15 +98,9 @@ Simply add `c.description` to the SELECT list — it's already available once th
 
 `SELECT c.category_name, COUNT(*) AS pair_count FROM products p1 JOIN products p2 ON p1.product_id < p2.product_id AND p1.category_id = p2.category_id LEFT JOIN categories c ON c.category_id = p1.category_id GROUP BY c.category_name ORDER BY pair_count DESC`.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Know when a third table join is needed alongside a SELF JOIN — when the shared attribute's display name lives in a separate lookup table.
-- Confirm that joining the lookup table on `p1.column` is correct and sufficient since `p1.column = p2.column` is already guaranteed by the SELF JOIN condition.
+Reuse `id < id AND category = category`, and add a lookup join only when the display value (the name) isn't already on the self-joined table.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** Pattern: `id < id AND category = category`. Join a lookup table only when the display value (name) isn't already on the self-joined table.
-
 📄 **SQL File:** [`Q69_Products_in_the_Same_Category.sql`](./Q69_Products_in_the_Same_Category.sql)

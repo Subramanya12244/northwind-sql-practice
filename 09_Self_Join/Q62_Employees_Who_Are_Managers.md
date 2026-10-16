@@ -1,29 +1,24 @@
-# Q62. Employees Who Are Managers
+# Q62 · Employees Who Are Managers
 
-**Category:** SELF JOIN
-**Difficulty:** Medium
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Medium
+> **Concepts:** SELF JOIN · LEFT JOIN · GROUP BY · HAVING · COUNT · DISTINCT (alt)
+> **Outcome:** ⚠️ had mistakes (see §4)
+> **Watch out for:** count the subordinate entity `COUNT(e.employee_id)`, not the FK column `COUNT(e.reports_to)` — same result here, but the former states intent.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve all employees who manage at least one other employee.
 
-## Objective
+**Objective:** Return the full name of every employee who appears in at least one other employee's `reports_to` field.
 
-Return the full name of every employee who appears in at least one other employee's `reports_to` field.
+**Tables:** `employees` (aliased twice: `e` = employee being managed, `m` = the manager)
 
-## Tables Used
+**Expected output:**
 
-- `employees (aliased twice: e = employee being managed, m = the manager)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | employee_name | Full name of the employee who is a manager |
-
-**Sample output:**
 
 | employee_name |
 |---------------|
@@ -32,16 +27,49 @@ Return the full name of every employee who appears in at least one other employe
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- LEFT JOIN
-- GROUP BY
-- HAVING
-- Aggregate Functions (COUNT)
-- DISTINCT (alternative)
+1. Recognise that a manager is any employee ID that appears in another employee's `reports_to`.
+2. Join `employees e` (managed) to `employees m` (managers) on `e.reports_to = m.employee_id` — one row per manager-employee relationship.
+3. Group on the manager and count subordinates.
+4. Keep only managers with at least one direct report.
 
-## Why This Approach
+## 3. My Solution (as submitted)
+
+```sql
+SELECT CONCAT(m.first_name,' ',m.last_name) AS employee_name
+FROM employees e
+LEFT JOIN employees m
+    ON e.reports_to = m.employee_id
+GROUP BY m.first_name, m.last_name
+HAVING COUNT(e.reports_to) > 0;
+```
+
+## 4. Mistakes I Made
+
+- ⚠️ Counted the FK column `COUNT(e.reports_to)` instead of the subordinate entity `COUNT(e.employee_id)` → the result is correct here, but it is semantically imprecise: the intent is "how many employees report to this manager", so you should count the employees (`e.employee_id`), not the reference column. → Fix: use `HAVING COUNT(e.employee_id) > 0`.
+
+## 5. Correct / Optimal Solution
+
+```sql
+SELECT CONCAT(m.first_name,' ',m.last_name) AS employee_name
+FROM employees e
+LEFT JOIN employees m
+    ON e.reports_to = m.employee_id
+GROUP BY m.first_name, m.last_name
+HAVING COUNT(e.employee_id) > 0;
+```
+
+A concise, equally correct alternative using `DISTINCT` + `INNER JOIN`:
+
+```sql
+SELECT DISTINCT CONCAT(m.first_name,' ',m.last_name) AS employee_name
+FROM employees e
+JOIN employees m
+    ON e.reports_to = m.employee_id;
+```
+
+## 6. Why This Works
 
 **Why SELF JOIN:** to find employees who are managers, we need to know which employee IDs appear in another employee's `reports_to` column. Joining `employees e` (the managed employees) to `employees m` (the managers) on `e.reports_to = m.employee_id` creates one row for every manager-employee relationship. Grouping on the manager and counting subordinates then identifies who has at least one report.
 
@@ -49,43 +77,13 @@ Return the full name of every employee who appears in at least one other employe
 
 **Why `COUNT(e.employee_id)` not `COUNT(e.reports_to)`:** `e.employee_id` is the unique identifier of the subordinate employee — counting it gives the correct number of direct reports per manager. `e.reports_to` contains the manager's ID (not a unique per-subordinate value), and while it produces the same count here, `COUNT(e.employee_id)` is semantically clearer — you're counting employees, not the reference column.
 
-### ❌ Attempt 1 — Correct but with imprecise COUNT:
-
-```sql
-select
-concat(m.first_name,' ',m.last_name) as employee_name
-from employees e
-left join employees m
-on e.reports_to = m.employee_id
-group by m.first_name, m.last_name
-having count(e.reports_to) > 0;
-```
-
-**Why it fails:** Correct result, but `COUNT(e.reports_to)` is imprecise. Prefer `COUNT(e.employee_id)` — you're counting employees, not the FK column.
-
-
-**Improved version:**
-
-```sql
--- Alternative (concise, equally correct):
-SELECT DISTINCT
-    CONCAT(m.first_name,' ',m.last_name) AS employee_name
-FROM employees e
-JOIN employees m
-    ON e.reports_to = m.employee_id;
-```
-
-## Common Mistakes
+## 7. Common Pitfalls (generic)
 
 - `HAVING COUNT(e.reports_to) > 0` works but is semantically imprecise — count the employee being managed (`e.employee_id`), not the FK reference column (`e.reports_to`).
 - Not grouping by `m.employee_id` alongside the name columns — risks merging two managers with identical names.
 - Selecting from the wrong alias — selecting `e.*` (the subordinate) rather than `m.*` (the manager) when the goal is to show manager names.
 
-## Difficulty
-
-**Medium**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. What are the three valid approaches to solve this, and which would you use in an interview?**
 
@@ -103,16 +101,9 @@ Add `COUNT(e.employee_id) AS direct_reports` to the SELECT list — the GROUP BY
 
 `EXISTS` uses a correlated subquery that stops scanning as soon as one matching row is found — it is short-circuit evaluating and can be very efficient when the index on `reports_to` is present. `DISTINCT` requires the database to process all join rows and then deduplicate. For a small table like `employees`, the difference is negligible, but `EXISTS` scales better for large tables where a manager has thousands of reports.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Know three valid approaches to 'find entities with at least one related record' — GROUP BY + HAVING, DISTINCT, and EXISTS.
-- Understand why `COUNT(e.employee_id)` is more semantically precise than `COUNT(e.reports_to)` when counting subordinates.
-- Recognise that GROUP BY + HAVING is the interview-preferred approach because it's extensible and demonstrates aggregation fluency.
+Three valid approaches — GROUP BY + HAVING, DISTINCT, and EXISTS; GROUP BY + HAVING is the interview favourite for showing aggregation fluency. Always count the entity (`COUNT(e.employee_id)`), not the FK column.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** Three valid approaches: GROUP BY + HAVING, DISTINCT, EXISTS. GROUP BY + HAVING is preferred in interviews for demonstrating aggregation skills.
-
 📄 **SQL File:** [`Q62_Employees_Who_Are_Managers.sql`](./Q62_Employees_Who_Are_Managers.sql)

@@ -1,29 +1,24 @@
-# Q61. Employees Without a Manager
+# Q61 · Employees Without a Manager
 
-**Category:** SELF JOIN
-**Difficulty:** Easy
+> **Revision Card**
+> **Category:** Self Join | **Difficulty:** Easy
+> **Concepts:** SELF JOIN · LEFT JOIN · NULL handling (anti-join)
+> **Outcome:** ✅ correct first attempt
+> **Watch out for:** filtering `WHERE m.employee_id IS NULL` (joined table's PK) is the robust anti-join — it also catches orphaned `reports_to` references that `WHERE e.reports_to IS NULL` misses.
 
----
-
-## Problem Statement
+## 1. Problem
 
 Retrieve employees who do not report to any manager.
 
-## Objective
+**Objective:** Return the full name of every employee who has no manager assigned (i.e. their `reports_to` column is NULL).
 
-Return the full name of every employee who has no manager assigned (i.e. their `reports_to` column is NULL).
+**Tables:** `employees` (aliased twice: `e` = employee, `m` = manager)
 
-## Tables Used
+**Expected output:**
 
-- `employees (aliased twice: e = employee, m = manager)`
-
-## Expected Output
-
-| Column Name | Description |
-|-------------|-------------|
+| Column | Description |
+|---|---|
 | employee_name | Full name of the employee with no manager |
-
-**Sample output:**
 
 | employee_name |
 |---------------|
@@ -31,44 +26,54 @@ Return the full name of every employee who has no manager assigned (i.e. their `
 
 *(Sample values are illustrative, based on the standard Northwind dataset.)*
 
-## Concepts Used
+## 2. My Approach
 
-- SELF JOIN
-- LEFT JOIN
-- NULL Handling (anti-join pattern)
+1. Recognise that `employees` holds both employees and managers, with `reports_to` referencing `employee_id` in the same table.
+2. `LEFT JOIN employees` to itself: `e` is the employee, `m` is the manager they report to.
+3. Keep every employee row (LEFT JOIN) so non-matches surface as NULL on the `m.*` side.
+4. Filter for the employees with no manager match.
 
-## Why This Approach
-
-**Why SELF JOIN:** the `employees` table stores both employees and their managers. The `reports_to` column references `employee_id` in the same table. To find employees with no manager, we join `employees` to itself — `e` is the employee, `m` is the manager record they report to — and then filter for rows where no manager match was found.
-
-**Why `LEFT JOIN` and not `INNER JOIN`:** an `INNER JOIN` would only return employees who have a matching manager row — exactly the employees we want to exclude. `LEFT JOIN` preserves every employee row, placing NULL in all `m.*` columns when no manager match exists. Filtering for NULL then isolates the employees with no manager.
-
-**Why `WHERE m.employee_id IS NULL` is preferred over `WHERE e.reports_to IS NULL`:**
-Both produce the same result in this dataset — if `e.reports_to` is NULL, there will be no matching manager row, so `m.employee_id` will also be NULL. However, `WHERE m.employee_id IS NULL` (filtering on the joined table's primary key) is the more general and robust anti-join pattern. It catches not just the case where `reports_to` is NULL, but also the case where `reports_to` has a value that doesn't match any existing `employee_id` — an orphaned reference. `WHERE e.reports_to IS NULL` would miss that second scenario.
-
-**Improved version:**
+## 3. My Solution (as submitted)
 
 ```sql
--- Better interview version (filter on joined table's PK — more general anti-join):
-SELECT
-    CONCAT(e.first_name,' ',e.last_name) AS employee_name
+SELECT CONCAT(e.first_name,' ',e.last_name) AS employee_name
+FROM employees e
+LEFT JOIN employees m
+    ON e.reports_to = m.employee_id
+WHERE e.reports_to IS NULL;
+```
+
+## 4. Mistakes I Made
+
+- None — solved correctly on first attempt. (The submitted query returns the correct result on this dataset.)
+
+## 5. Correct / Optimal Solution
+
+The more robust anti-join filters on the joined table's primary key rather than the FK — it also catches orphaned `reports_to` references (a value that matches no existing `employee_id`):
+
+```sql
+SELECT CONCAT(e.first_name,' ',e.last_name) AS employee_name
 FROM employees e
 LEFT JOIN employees m
     ON e.reports_to = m.employee_id
 WHERE m.employee_id IS NULL;
 ```
 
-## Common Mistakes
+## 6. Why This Works
+
+**Why SELF JOIN:** the `employees` table stores both employees and their managers. The `reports_to` column references `employee_id` in the same table. To find employees with no manager, we join `employees` to itself — `e` is the employee, `m` is the manager record they report to — and then filter for rows where no manager match was found.
+
+**Why `LEFT JOIN` and not `INNER JOIN`:** an `INNER JOIN` would only return employees who have a matching manager row — exactly the employees we want to exclude. `LEFT JOIN` preserves every employee row, placing NULL in all `m.*` columns when no manager match exists. Filtering for NULL then isolates the employees with no manager.
+
+**Why `WHERE m.employee_id IS NULL` is preferred over `WHERE e.reports_to IS NULL`:** both produce the same result in this dataset — if `e.reports_to` is NULL, there will be no matching manager row, so `m.employee_id` will also be NULL. However, `WHERE m.employee_id IS NULL` (filtering on the joined table's primary key) is the more general and robust anti-join pattern. It catches not just the case where `reports_to` is NULL, but also the case where `reports_to` has a value that doesn't match any existing `employee_id` — an orphaned reference. `WHERE e.reports_to IS NULL` would miss that second scenario.
+
+## 7. Common Pitfalls (generic)
 
 - Using `INNER JOIN` — only returns employees who have managers, which is the opposite of the requirement.
 - Filtering on `WHERE e.reports_to IS NULL` instead of `WHERE m.employee_id IS NULL` — works for this dataset but misses orphaned `reports_to` references where the manager ID doesn't exist.
 - Aliasing the table incorrectly — `e` must be the employee side, `m` must be the manager side.
 
-## Difficulty
-
-**Easy**
-
-## Interview Follow-up Questions
+## 8. Interview Follow-ups
 
 **1. Why is this called a SELF JOIN even though we only have one table?**
 
@@ -86,16 +91,9 @@ The same query works regardless of hierarchy depth. The top-level employee simpl
 
 The anti-join pattern is the same: `LEFT JOIN <lookup_table> ON <fk> = <pk> WHERE <lookup_table>.<pk> IS NULL`. For products: `FROM products p LEFT JOIN suppliers s ON p.supplier_id = s.supplier_id WHERE s.supplier_id IS NULL`. The SELF JOIN aspect is specific to this question because both entities live in the same table — for other anti-join scenarios, the tables are different.
 
-## Learning Outcomes
+## 9. Key Takeaway
 
-- Understand the SELF JOIN concept — one table given two aliases to represent two logical roles (employee and manager).
-- Master the `LEFT JOIN + WHERE joined_table.primary_key IS NULL` anti-join pattern for finding unmatched rows.
-- Know why filtering on the joined table's PK is more robust than filtering on the FK column in the original table.
+To find rows with no matching record after a LEFT JOIN, filter on the joined table's primary key (`WHERE joined_table.pk IS NULL`) — it is the general, robust anti-join and catches orphaned references that filtering the FK column would miss.
 
 ---
-
-**Score from review session: 10/10**
-
-**Interview Takeaway:** To find rows with no matching record after a LEFT JOIN: `WHERE joined_table.primary_key IS NULL`
-
 📄 **SQL File:** [`Q61_Employees_Without_a_Manager.sql`](./Q61_Employees_Without_a_Manager.sql)

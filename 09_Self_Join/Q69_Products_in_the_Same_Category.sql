@@ -1,45 +1,35 @@
-/*
-Question:
-Return every unique pair of products that share the same `category_id`, along with the category name. Exclude self-pairs and duplicate pairs.
+/* =====================================================================
+   Q69 · Products in the Same Category
+   Category : Self Join          Difficulty : Easy
+   Concepts : SELF JOIN · INNER JOIN · LEFT JOIN (name lookup) · dedup
+   ---------------------------------------------------------------------
+   PROBLEM : Return every unique pair of products sharing the same
+             category_id, plus the category name. No self/duplicate pairs.
+   APPROACH:
+     1. Self-join products p1 to p2.
+     2. ON p1.product_id < p2.product_id (dedup)
+        AND p1.category_id = p2.category_id (same category).
+     3. LEFT JOIN categories on p1.category_id for the category name.
+   MISTAKES I MADE:
+     • omitted AND p1.category_id = p2.category_id → Cartesian product
+       (same as Q68) → add the same-category condition.
+   ===================================================================== */
 
-Business Requirement:
-Retrieve pairs of products belonging to the same category.
+-- ── MY SUBMITTED ATTEMPT (missing same-category → Cartesian product) ──
+-- SELECT p1.product_name AS product_1_name,
+--        p2.product_name AS product_2_name,
+--        c.category_name
+-- FROM products p1
+-- JOIN products p2
+--     ON p1.product_id < p2.product_id
+-- LEFT JOIN categories c ON c.category_id = p1.category_id;
 
-Approach:
-See markdown file for full reasoning. Key points:
-
-
-
--- Attempt 1 — Missing same-category condition:
--- Reason it fails: Missing `AND p1.category_id = p2.category_id` — pairs every product with every other product.
---
--- 
-select p1.product_name as Product_1_Name,-- p2.product_name as Product_2_Name,-- c.category_name-- from products p1-- join products p2-- on p1.product_id < p2.product_id-- left join categories c on c.category_id = p1.category_id
-
-Expected Output:
-| product_1_name | product_2_name | category_name |
-|----------------|----------------|---------------|
-| Chai | Chang | Beverages |
-| Chai | Guaraná Fantástica | Beverages |
-
-Concepts Used:
-- SELF JOIN
-- INNER JOIN
-- LEFT JOIN (to lookup category name)
-- Duplicate pair elimination (id < id)
-
-Score: 10/10
-Takeaway: Pattern: `id < id AND category = category`. Join a lookup table only when the display value (name) isn't already on the self-joined table.
-
-Complexity:
-Easy
-*/
-
-select p1.product_name as Product_1_Name,
-p2.product_name as Product_2_Name,
-c.category_name
-from products p1
-join products p2
-on p1.product_id < p2.product_id
-and p1.category_id = p2.category_id
-left join categories c on c.category_id = p1.category_id;
+-- ── FINAL CORRECT SOLUTION ───────────────────────────────────────────
+SELECT p1.product_name AS product_1_name,
+       p2.product_name AS product_2_name,
+       c.category_name
+FROM products p1
+JOIN products p2
+    ON p1.product_id < p2.product_id
+    AND p1.category_id = p2.category_id
+LEFT JOIN categories c ON c.category_id = p1.category_id;
