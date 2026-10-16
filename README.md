@@ -10,6 +10,15 @@ Each question includes:
 
 This repo is intended as a portfolio artifact demonstrating SQL proficiency across aggregation, grouping, subqueries, CTEs, and outer joins — the core toolkit tested in most data analyst / data engineer SQL interviews.
 
+### Revision format
+
+Every question follows a consistent **revision layout** (see [`STYLE.md`](STYLE.md)). Each `.md`
+opens with a **Revision Card** (concepts, difficulty, an outcome flag, and the key trap) and then
+separates **My Approach → My Solution → Mistakes I Made → Correct/Optimal Solution** from the
+deeper teaching notes — so a quick scan shows what the problem tested and where I slipped up.
+The paired `.sql` keeps exactly one runnable query (any buggy first attempt is retained but
+commented out).
+
 ---
 
 ## 📈 Learning Progress
