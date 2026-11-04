@@ -1,6 +1,6 @@
 # 🗂️ Flashcards — Northwind SQL Practice
 
-A single-page revision deck for all **88 questions**. Each card shows the **question**, the
+A single-page revision deck for all **133 questions**. Each card shows the **question**, the
 **core answer/approach**, any **mistake** I made, and the **one-line learning**.
 
 > **How to use:** click a card to expand the answer. Try to recall the approach *before*
@@ -16,7 +16,12 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 [08 FULL OUTER JOIN](#08--full-outer-join) ·
 [09 SELF JOIN](#09--self-join) ·
 [10 CROSS JOIN](#10--cross-join) ·
-[11 Set Operators](#11--set-operators)
+[11 Set Operators](#11--set-operators) ·
+[12 Window Functions](#12--window-functions) ·
+[13 Date & Time](#13--date--time) ·
+[14 String Functions](#14--string-functions) ·
+[15 CASE & Conditional](#15--case--conditional-logic) ·
+[16 DML & DDL](#16--dml--ddl)
 
 ---
 
@@ -1208,3 +1213,607 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 
 ---
 
+## 12 · Window Functions
+
+<details>
+<summary><strong>Q98 · Latest Order Per Customer</strong> — Easy — ROW_NUMBER · PARTITION BY · ORDER BY DESC · Top-1 per Group</summary>
+
+**Q:** For every customer who has ordered, return exactly one row describing their latest order (latest `order_date`; if two orders share a date, the higher `order_id` wins).
+
+**A:** 1. Number each customer's orders with `ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY order_date DESC, order_id DESC)`. 2. Keep only `rn = 1` in the outer query (window results cannot be filtered in the same `WHERE`). 3. Join `customers` for the company name and sort by `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Top-1-per-group = `ROW_NUMBER() OVER (PARTITION BY group ORDER BY metric DESC, unique_id)` in a CTE, then filter `rn = 1` outside.
+
+</details>
+
+<details>
+<summary><strong>Q99 · Rank Vs Dense Rank Product Prices</strong> — Easy — RANK · DENSE_RANK · PARTITION BY · Tie Handling</summary>
+
+**Q:** For each product, show its price rank within its category using both `RANK()` and `DENSE_RANK()` (highest price = 1).
+
+**A:** 1. Join `products` to `categories`. 2. Compute `RANK()` and `DENSE_RANK()` over the same window: `PARTITION BY category_id ORDER BY unit_price DESC`. 3. Sort by category, rank, then `product_id` as the tie-breaker.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** RANK skips numbers after ties, DENSE_RANK does not, ROW_NUMBER never ties. Pick based on how the question treats equal values.
+
+</details>
+
+<details>
+<summary><strong>Q100 · Top 3 Products By Revenue Per Category</strong> — Medium — DENSE_RANK · PARTITION BY · GROUP BY · SUM</summary>
+
+**Q:** For each category, return the top 3 revenue positions (using `DENSE_RANK`), where revenue = `unit_price * quantity * (1 - discount)` from `order_details`.
+
+**A:** 1. CTE `product_revenue`: sum net revenue per product (with its `category_id`). 2. CTE `ranked`: `DENSE_RANK() OVER (PARTITION BY category_id ORDER BY revenue DESC)`. 3. Filter `revenue_rank <= 3`, join `categories` for the name, and round.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Top-N per group: aggregate, rank with `PARTITION BY`, then filter the rank in an outer query.
+
+</details>
+
+<details>
+<summary><strong>Q101 · Running Total Of Monthly Revenue</strong> — Easy — SUM OVER · ROWS BETWEEN UNBOUNDED PRECEDING · DATE_TRUNC · CTE</summary>
+
+**Q:** Return one row per order month with its revenue and the running total of revenue to date.
+
+**A:** 1. CTE `monthly`: `DATE_TRUNC('month', order_date)` and sum net revenue per month. 2. Outer query: `SUM(revenue) OVER (ORDER BY order_month ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)`. 3. Round both values and order by month.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Running total = `SUM(x) OVER (ORDER BY t ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW)` over pre-aggregated rows.
+
+</details>
+
+<details>
+<summary><strong>Q102 · Three Month Moving Average Revenue</strong> — Medium — AVG OVER · ROWS BETWEEN 2 PRECEDING · Named WINDOW · DATE_TRUNC</summary>
+
+**Q:** Return each order month's revenue, the number of months in its trailing window, and the 3-month trailing moving average.
+
+**A:** 1. CTE `monthly`: revenue per `DATE_TRUNC('month', order_date)`. 2. Define `WINDOW w AS (ORDER BY order_month ROWS BETWEEN 2 PRECEDING AND CURRENT ROW)`. 3. Compute `AVG(revenue) OVER w` and `COUNT(*) OVER w`; round and order by month.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Moving averages use a bounded frame: `AVG(x) OVER (ORDER BY t ROWS BETWEEN n-1 PRECEDING AND CURRENT ROW)`.
+
+</details>
+
+<details>
+<summary><strong>Q103 · Month Over Month Revenue Change</strong> — Medium — LAG · NULLIF · Percent Change · DATE_TRUNC</summary>
+
+**Q:** For each order month, return revenue, previous month revenue (via `LAG`), absolute change, and percent change rounded to 2 dp.
+
+**A:** 1. CTE `monthly`: revenue per month. 2. CTE `with_prev`: add `LAG(revenue) OVER (ORDER BY order_month)`. 3. Compute change and `100.0 * change / NULLIF(prev, 0)`; round and order by month.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `LAG()` compares a row with its predecessor without a self-join; guard percentage math with `NULLIF`.
+
+</details>
+
+<details>
+<summary><strong>Q104 · Days Until Next Customer Order</strong> — Medium — LEAD · PARTITION BY · Date Arithmetic · Named WINDOW</summary>
+
+**Q:** For each order, return the same customer's next order ID, its date, and the number of days between the two (NULL if there is no next order).
+
+**A:** 1. Define `WINDOW w AS (PARTITION BY customer_id ORDER BY order_date, order_id)`. 2. Use `LEAD(order_id)` and `LEAD(order_date)` over `w`. 3. Subtract `order_date` from the lead date to get days (date − date = integer). 4. Order by customer, date, order_id.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `LEAD()` with `PARTITION BY entity ORDER BY time` gives 'next event' metrics per entity in one pass.
+
+</details>
+
+<details>
+<summary><strong>Q105 · Customer Share Of Total Revenue</strong> — Medium — SUM() OVER () · Percent of Total · GROUP BY · CTE</summary>
+
+**Q:** For each customer, return their net revenue, the company-wide total, and their share as a percentage (2 dp), largest first.
+
+**A:** 1. CTE `customer_revenue`: net revenue per customer. 2. Outer query: `SUM(revenue) OVER ()` gives the grand total on every row. 3. Share = `100.0 * revenue / SUM(revenue) OVER ()`; round and order by share descending, then `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `SUM(x) OVER ()` puts the grand total on every row, making percent-of-total a one-step calculation.
+
+</details>
+
+<details>
+<summary><strong>Q106 · Customer Revenue Quartiles</strong> — Medium — NTILE · Bucketing · GROUP BY · CTE</summary>
+
+**Q:** Assign every customer to a revenue quartile (1 = highest revenue) using `NTILE(4)`.
+
+**A:** 1. CTE `customer_revenue`: net revenue per customer. 2. `NTILE(4) OVER (ORDER BY revenue DESC, customer_id)` to bucket customers. 3. Join `customers`; order by quartile, revenue descending, `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `NTILE(n)` makes n equal-count buckets over an ordered set — always add a tie-breaker.
+
+</details>
+
+<details>
+<summary><strong>Q107 · First And Latest Product Per Customer</strong> — Hard — FIRST_VALUE · LAST_VALUE · Window Frame · ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</summary>
+
+**Q:** For each customer, return the product on their earliest order line and the product on their latest order line (ordered by order date, then order ID, then product ID).
+
+**A:** 1. Join orders, order lines and products. 2. Define a window per customer ordered by `order_date, order_id, product_id` with frame `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING`. 3. Take `FIRST_VALUE(product_name)` and `LAST_VALUE(product_name)`. 4. Collapse to one row per customer with `DISTINCT`; join…
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `LAST_VALUE` needs `ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING` — the default frame stops at the current row.
+
+</details>
+
+<details>
+<summary><strong>Q108 · Employee Revenue Percentile Rank</strong> — Hard — PERCENT_RANK · CUME_DIST · GROUP BY · CTE</summary>
+
+**Q:** For each employee with orders, return total revenue, `PERCENT_RANK()` and `CUME_DIST()` (both ordered by revenue ascending, 4 dp).
+
+**A:** 1. CTE `employee_revenue`: net revenue per employee. 2. Compute `PERCENT_RANK()` and `CUME_DIST()` over `ORDER BY revenue` (ascending, so higher = better). 3. Join employees, round, order by revenue descending then `employee_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `PERCENT_RANK` = relative rank from 0 to 1; `CUME_DIST` = share of rows at or below — know both formulas.
+
+</details>
+
+<details>
+<summary><strong>Q109 · Average Gap Between Employee Orders</strong> — Hard — LAG · PARTITION BY · Date Arithmetic · AVG</summary>
+
+**Q:** For each employee, compute the number of orders, the average and maximum days between consecutive orders, and the difference between their average gap and the average of all employees' averages.
+
+**A:** 1. CTE `order_gaps`: `order_date - LAG(order_date) OVER (PARTITION BY employee_id ORDER BY order_date, order_id)`. 2. CTE `employee_gaps`: per employee `COUNT(*)`, `AVG(gap_days)`, `MAX(gap_days)`. 3. Outer query: `avg_gap_days - AVG(avg_gap_days) OVER ()`; join employees; order by `avg_gap_days`, `employee_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Compute row-level window values (LAG) in one CTE, aggregate in the next — window functions cannot be nested in aggregates.
+
+</details>
+
+---
+
+## 13 · Date & Time
+
+<details>
+<summary><strong>Q110 · Orders Per Year And Month</strong> — Easy — EXTRACT · GROUP BY · COUNT · Integer Casting</summary>
+
+**Q:** Return the number of orders placed per calendar year and month, with year and month as integers.
+
+**A:** 1. Extract the year and month from `order_date` with `EXTRACT(...)::int`. 2. Group by both parts and `COUNT(*)` the orders. 3. Order by year, then month.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Period reports group on every part of the period key — year AND month — and cast `EXTRACT` to int for clean output.
+
+</details>
+
+<details>
+<summary><strong>Q111 · Revenue By Quarter</strong> — Easy — EXTRACT(QUARTER) · JOIN · SUM · COUNT DISTINCT</summary>
+
+**Q:** Return order count and net revenue (rounded to 2 decimals) per year and quarter.
+
+**A:** 1. Join `orders` to `order_details` on `order_id`. 2. Extract year and quarter from `order_date`. 3. `SUM` the net line revenue and `COUNT(DISTINCT order_id)`. 4. Round revenue with `ROUND(...::numeric, 2)` and order by year, quarter.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Quarterly revenue = join to line items, group by year + `EXTRACT(QUARTER)`, `COUNT(DISTINCT order_id)`, and cast to numeric before rounding.
+
+</details>
+
+<details>
+<summary><strong>Q112 · Late Shipments With Days Late</strong> — Easy — DATE Subtraction · NULL Filtering · Comparison</summary>
+
+**Q:** Return all shipped orders where shipped_date > required_date, with the number of days late.
+
+**A:** 1. Keep only orders with a non-NULL `shipped_date`. 2. Filter `shipped_date > required_date`. 3. Compute `shipped_date - required_date` as `days_late`. 4. Sort by `days_late DESC`, then `order_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** In PostgreSQL, `date - date` is an integer day count — the simplest way to measure lateness, after filtering out NULL ship dates.
+
+</details>
+
+<details>
+<summary><strong>Q113 · Average Days To Ship Per Shipper</strong> — Medium — DATE Subtraction · AVG · MAX · JOIN</summary>
+
+**Q:** Per shipper, return shipped order count, average and maximum days between order_date and shipped_date.
+
+**A:** 1. Join `shippers` to `orders` on `ship_via = shipper_id`. 2. Filter `shipped_date IS NOT NULL`. 3. Aggregate `COUNT`, `AVG` and `MAX` of `shipped_date - order_date`. 4. Round the average and sort fastest first, tie-break on `shipper_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Lead-time metrics = `date - date` aggregated per group, with the NULL population excluded once in WHERE so every metric shares the same base.
+
+</details>
+
+<details>
+<summary><strong>Q114 · Unshipped Orders Older Than 30 Days</strong> — Medium — NULL Filtering · DATE ± Integer · Fixed Reference Date · Boolean Expression</summary>
+
+**Q:** Return unshipped orders with order_date more than 30 days before 1998-12-31, with days open and an overdue flag.
+
+**A:** 1. Filter `shipped_date IS NULL`. 2. Keep rows where `order_date < DATE '1998-12-31' - 30`. 3. Compute `days_open` and a boolean `past_required_date`. 4. Sort oldest first (`days_open DESC`), tie-break on `order_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Aging reports need a fixed as-of date, `IS NULL` for open items, and `as_of - date` for integer days open.
+
+</details>
+
+<details>
+<summary><strong>Q115 · Employee Age At Hire And Tenure</strong> — Medium — AGE() · EXTRACT from INTERVAL · DATE Subtraction · Fixed Reference Date</summary>
+
+**Q:** Return each employee's age at hire, tenure in completed years and tenure in days as of 1998-12-31.
+
+**A:** 1. `AGE(hire_date, birth_date)` gives an interval in years/months/days; extract YEAR for completed years. 2. `AGE(DATE '1998-12-31', hire_date)` for tenure years. 3. `DATE '1998-12-31' - hire_date` for tenure in days. 4. Sort youngest hire first, tie-break on `employee_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Use `AGE(later, earlier)` + `EXTRACT(YEAR ...)` for completed years and plain `date - date` for exact days.
+
+</details>
+
+<details>
+<summary><strong>Q116 · Orders By Day Of Week</strong> — Medium — EXTRACT(ISODOW) · TO_CHAR · TRIM · JOIN</summary>
+
+**Q:** Return order count and net revenue for each day of the week, ordered Monday through Sunday.
+
+**A:** 1. Join `orders` to `order_details`. 2. Derive `EXTRACT(ISODOW ...)::int` and `TRIM(TO_CHAR(order_date, 'Day'))`. 3. Group by both; count distinct orders and sum net revenue. 4. Order by `day_number`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Group weekdays by a numeric `ISODOW` key for correct ordering, and display a trimmed `TO_CHAR` name alongside it.
+
+</details>
+
+<details>
+<summary><strong>Q117 · Year Over Year Revenue Growth</strong> — Hard — CTE · LAG · Window Functions · NULLIF</summary>
+
+**Q:** Return yearly net revenue, previous year's revenue and YoY growth % (all rounded to 2 decimals).
+
+**A:** 1. CTE `yearly`: sum net revenue per `EXTRACT(YEAR ...)::int`. 2. Use `LAG(revenue) OVER (ORDER BY order_year)` for the prior year. 3. Growth % = `(revenue - prev) * 100.0 / NULLIF(prev, 0)`. 4. Round each output column and order by year.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Aggregate to one row per period, then `LAG` over the period order; compute growth on unrounded values with `NULLIF` on the divisor.
+
+</details>
+
+<details>
+<summary><strong>Q118 · Customers Inactive In Last Six Months</strong> — Hard — LEFT JOIN · MAX · INTERVAL · NULLS FIRST</summary>
+
+**Q:** Return customers whose most recent order is before 1998-06-30, or who have no orders, with last order date and days since then.
+
+**A:** 1. CTE: LEFT JOIN customers to orders; take `MAX(order_date)` and `COUNT(o.order_id)` per customer. 2. Cutoff = `(DATE '1998-12-31' - INTERVAL '6 months')::date` = 1998-06-30. 3. Keep rows where last order is NULL or before the cutoff. 4. Order by `last_order_date NULLS FIRST`, tie-break on `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Churn = aggregate to each customer's latest order via LEFT JOIN, then filter on that max — and keep the NULL never-ordered rows explicitly.
+
+</details>
+
+<details>
+<summary><strong>Q119 · First Order Month Cohort Size</strong> — Hard — DATE_TRUNC · MIN · CTE · GROUP BY</summary>
+
+**Q:** Return, per first-order year and month, the number of newly acquired customers and the cumulative total.
+
+**A:** 1. CTE `first_orders`: per customer, `DATE_TRUNC('month', MIN(order_date))::date`. 2. Group by cohort month and `COUNT(*)` customers. 3. Running total with `SUM(COUNT(*)) OVER (ORDER BY cohort_month)`. 4. Split into integer year and month; order by both.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Cohorts start with one row per customer — `DATE_TRUNC('month', MIN(order_date))` — then count and window over those rows.
+
+</details>
+
+---
+
+## 14 · String Functions
+
+<details>
+<summary><strong>Q120 · Employee Full Name And Initials</strong> — Easy — || Concatenation · CONCAT · UPPER · LOWER · LEFT</summary>
+
+**Q:** Return each employee's full name, upper-case initials and lower-case last name.
+
+**A:** 1. Concatenate `first_name || ' ' || last_name` for the full name. 2. Take `LEFT(..., 1)` of each name, concatenate and wrap in `UPPER()`. 3. Apply `LOWER(last_name)` and order by `employee_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `||` for NOT NULL inputs, `CONCAT`/`CONCAT_WS` when NULLs are possible; `LEFT`, `UPPER` and `LOWER` handle simple formatting.
+
+</details>
+
+<details>
+<summary><strong>Q121 · Customers Matching Name Patterns</strong> — Easy — LIKE · ILIKE · Wildcards % and _ · OR</summary>
+
+**Q:** Return customers whose company name starts with 'La' or contains 'market' in any case.
+
+**A:** 1. Filter with `company_name LIKE 'La%'` OR `company_name ILIKE '%market%'`. 2. Label the matching rule with a `CASE` expression. 3. Order by `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Anchor with `%` to choose starts-with vs contains, and reach for `ILIKE` whenever letter case should not matter.
+
+</details>
+
+<details>
+<summary><strong>Q122 · Longest Product Names</strong> — Easy — LENGTH · CHAR_LENGTH · ORDER BY · LIMIT</summary>
+
+**Q:** Return the 10 products with the longest names and their character counts.
+
+**A:** 1. Compute `LENGTH(product_name)`. 2. Sort by length descending, then `product_id` to break ties. 3. Keep the first 10 rows with `LIMIT`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `LENGTH` counts characters; always pair a computed sort key with a unique tie-breaker before `LIMIT`.
+
+</details>
+
+<details>
+<summary><strong>Q123 · Split Contact Name Into First And Last</strong> — Medium — SPLIT_PART · POSITION · SUBSTRING · LENGTH</summary>
+
+**Q:** Split German customers' contact_name into first and last name using POSITION, SPLIT_PART and SUBSTRING.
+
+**A:** 1. Find the first space with `POSITION(' ' IN contact_name)`. 2. `SPLIT_PART(contact_name, ' ', 1)` gives the first word. 3. `SUBSTRING(contact_name FROM space_pos + 1)` keeps the rest, including multi-word surnames. 4. Filter to Germany and order by `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `SPLIT_PART` for a fixed field, `POSITION` + `SUBSTRING` for "everything after the first delimiter".
+
+</details>
+
+<details>
+<summary><strong>Q124 · Normalize Postal Codes With Replace</strong> — Medium — REPLACE · UPPER · LENGTH · Regex Match ~</summary>
+
+**Q:** Clean customer postal codes that contain spaces or hyphens and compare lengths.
+
+**A:** 1. Keep rows where `postal_code ~ '[ -]'`. 2. Nest `REPLACE(REPLACE(postal_code, ' ', ''), '-', '')` and wrap in `UPPER`. 3. Compare lengths before and after, ordered by `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `REPLACE` for literal substitutions (nest for several), `REGEXP_REPLACE ... 'g'` or `TRANSLATE` for character sets.
+
+</details>
+
+<details>
+<summary><strong>Q125 · Product List Per Category With String Agg</strong> — Medium — STRING_AGG · ORDER BY inside aggregate · JOIN · GROUP BY · COUNT</summary>
+
+**Q:** Return each category with its active product count and an alphabetical comma-separated product list.
+
+**A:** 1. Join `categories` to `products` and keep `discontinued = false`. 2. Group by category. 3. `STRING_AGG(product_name, ', ' ORDER BY product_name)` builds the list; `COUNT(*)` counts. 4. Order by `category_name`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `STRING_AGG(col, sep ORDER BY col)` turns a group into a sorted delimited list — sort inside the aggregate.
+
+</details>
+
+<details>
+<summary><strong>Q126 · Parse Category Description Keywords</strong> — Hard — SPLIT_PART · REPLACE · LENGTH · TRIM · Delimiter Counting</summary>
+
+**Q:** Parse each category description into its first keyword, item count and cleaned last item.
+
+**A:** 1. `SPLIT_PART(description, ',', 1)` gives the first keyword. 2. Count commas with `LENGTH(description) - LENGTH(REPLACE(description, ',', ''))`, then add 1. 3. Take the last comma field with `SPLIT_PART(description, ',', -1)`, `TRIM` it and strip a leading `and ` with `REGEXP_REPLACE`. 4. Order by `category_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Count delimiters with `LENGTH - LENGTH(REPLACE())`, pick fields with `SPLIT_PART` (negative index from the end) and clean with `TRIM`/anchored regex.
+
+</details>
+
+<details>
+<summary><strong>Q127 · Customer Cities Per Country With Distinct String Agg</strong> — Hard — STRING_AGG DISTINCT · COUNT DISTINCT · HAVING · UPPER · LEFT</summary>
+
+**Q:** For countries with 5+ customers, return a code, customer and city counts, and a distinct city list.
+
+**A:** 1. Group customers by `country`. 2. `COUNT(*)` customers and `COUNT(DISTINCT city)` cities. 3. `STRING_AGG(DISTINCT city, ' | ' ORDER BY city)` for the list. 4. `HAVING COUNT(*) >= 5`; order by customer count descending, then country.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `STRING_AGG(DISTINCT x, sep ORDER BY x)` deduplicates a list; filter groups with `HAVING` and tie-break the outer sort.
+
+</details>
+
+---
+
+## 15 · CASE & Conditional Logic
+
+<details>
+<summary><strong>Q128 · Product Price Bands</strong> — Easy — Searched CASE · WHEN Order · ELSE · Bucketing</summary>
+
+**Q:** Label each product Budget (<20), Mid-range (<50) or Premium.
+
+**A:** 1. Write a searched `CASE` with `WHEN unit_price < 20`, then `< 50`, then `ELSE`. 2. Order by `product_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Order `CASE` branches so each bound only needs one comparison; first match wins.
+
+</details>
+
+<details>
+<summary><strong>Q129 · Product Count And Average Price Per Band</strong> — Easy — CASE in GROUP BY · COUNT · AVG · MIN · MAX</summary>
+
+**Q:** Return product count and min/max/avg price per price band.
+
+**A:** 1. Compute the band with `CASE`. 2. `GROUP BY` the band alias. 3. Aggregate `COUNT`, `MIN`, `MAX`, `AVG`. 4. Order by `min_price` so bands appear cheapest first.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Bucket with `CASE`, group by the bucket, then aggregate — the CASE becomes the grouping key.
+
+</details>
+
+<details>
+<summary><strong>Q130 · Employee Shipping Status Counts</strong> — Medium — COUNT FILTER · SUM(CASE) · Conditional Aggregation · NULL Handling</summary>
+
+**Q:** Per employee, count total, on-time, late and unshipped orders using FILTER and SUM(CASE).
+
+**A:** 1. Join employees to orders. 2. Use `COUNT(*) FILTER (WHERE ...)` for on-time and late. 3. Use `SUM(CASE WHEN shipped_date IS NULL THEN 1 ELSE 0 END)` for unshipped (to show both styles). 4. Group by employee and order by `employee_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Conditional aggregation = one GROUP BY, many `COUNT(*) FILTER (WHERE ...)` / `SUM(CASE ...)` columns.
+
+</details>
+
+<details>
+<summary><strong>Q131 · Pivot Category Revenue By Year</strong> — Medium — Pivot · SUM FILTER · EXTRACT · COALESCE · JOIN</summary>
+
+**Q:** Pivot net revenue per category into 1996, 1997 and 1998 columns plus a total.
+
+**A:** 1. Join categories → products → order_details → orders. 2. For each year, `SUM(net) FILTER (WHERE EXTRACT(YEAR FROM order_date) = yyyy)`. 3. `COALESCE(..., 0)` and round each column. 4. Group by category and order by `category_name`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Pivot = `GROUP BY` the row key + one `SUM(...) FILTER (WHERE col = value)` per output column.
+
+</details>
+
+<details>
+<summary><strong>Q132 · Custom Country Sort Order With CASE</strong> — Medium — CASE in ORDER BY · Custom Sort · Tie-breakers</summary>
+
+**Q:** Order Americas customers USA first, then Canada/Mexico, then others, with a CASE in ORDER BY.
+
+**A:** 1. Filter to the five Americas countries. 2. Map country to a priority number with `CASE`. 3. Order by the priority, then `country`, then `company_name`, then `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Custom sort = `ORDER BY CASE ... END` for the priority, then real columns down to a unique key.
+
+</details>
+
+<details>
+<summary><strong>Q133 · Average Order Value With NULLIF And COALESCE</strong> — Medium — COALESCE · NULLIF · LEFT JOIN · Safe Division · COUNT DISTINCT</summary>
+
+**Q:** For German customers, return order count, revenue (COALESCE 0) and average order value (NULLIF-safe).
+
+**A:** 1. `LEFT JOIN` customers to orders and order_details so customers without orders stay. 2. `COUNT(DISTINCT o.order_id)` and `SUM` net revenue. 3. `COALESCE(SUM(...), 0)` for revenue; `SUM(...) / NULLIF(COUNT(DISTINCT ...), 0)` for the average. 4. Label with `CASE` and order by `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `NULLIF(divisor, 0)` makes division safe; `COALESCE(agg, 0)` turns missing aggregates into zero — use each where its meaning fits.
+
+</details>
+
+<details>
+<summary><strong>Q134 · Customer Value Segment Summary</strong> — Hard — CASE Segmentation · LEFT JOIN · COALESCE · CTE · CASE in ORDER BY · Window SUM</summary>
+
+**Q:** Segment all customers by revenue (High/Medium/Low/Inactive) and summarise count, revenue and share per segment.
+
+**A:** 1. CTE `cust_rev`: LEFT JOIN customers to orders/order_details and `COALESCE(SUM(...), 0)` per customer. 2. CTE `seg`: bucket revenue with `CASE` (Inactive when 0). 3. Group by segment; compute share with `SUM(SUM(revenue)) OVER ()`. 4. Order with a `CASE` mapping segments to 1–4.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Segment in a CTE (one row per entity, NULLs coalesced), aggregate per segment, and order segments with a `CASE`.
+
+</details>
+
+---
+
+## 16 · DML & DDL
+
+<details>
+<summary><strong>Q135 · Insert New Shipper With Returning</strong> — Easy — INSERT · RETURNING · SERIAL Default · Multi-row VALUES</summary>
+
+**Q:** Insert two shippers and return their generated ids with RETURNING.
+
+**A:** 1. `INSERT INTO shippers (company_name, phone) VALUES (...), (...)` — omit the id. 2. Add `RETURNING shipper_id, company_name, phone`. 3. Wrap in a CTE and `SELECT ... ORDER BY shipper_id` so the output order is guaranteed.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Insert without the id, read generated values with `RETURNING`, and wrap in a CTE when you need ordered output.
+
+</details>
+
+<details>
+<summary><strong>Q136 · Raise Prices For One Supplier</strong> — Easy — UPDATE · SET Expression · WHERE · RETURNING · ROUND</summary>
+
+**Q:** Raise supplier 1's product prices by 5% and return the new prices.
+
+**A:** 1. `UPDATE products SET unit_price = ROUND(unit_price * 1.05, 2)`. 2. Restrict with `WHERE supplier_id = 1`. 3. `RETURNING` the new price; wrap in a CTE and order by `product_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `UPDATE ... SET col = f(col) WHERE ... RETURNING` — always scope with `WHERE` and verify with `RETURNING`.
+
+</details>
+
+<details>
+<summary><strong>Q137 · Update Prices Using A Join With FROM</strong> — Medium — UPDATE … FROM · Join Condition in WHERE · RETURNING · CTE</summary>
+
+**Q:** Raise prices 10% for Seafood products using UPDATE ... FROM categories.
+
+**A:** 1. `UPDATE products p SET ... FROM categories c`. 2. `WHERE c.category_id = p.category_id AND c.category_name = 'Seafood'`. 3. `RETURNING` columns from both tables; wrap in a CTE and order by `product_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `UPDATE target SET ... FROM other WHERE join_condition AND filter` — never list the target in `FROM` again.
+
+</details>
+
+<details>
+<summary><strong>Q138 · Delete Small Order Lines With Returning</strong> — Medium — DELETE · RETURNING · CTE · Aggregating Deleted Rows</summary>
+
+**Q:** Delete order lines with quantity <= 2 and return each deleted line with its value.
+
+**A:** 1. `DELETE FROM order_details WHERE quantity <= 2 RETURNING *` inside a CTE. 2. Compute the line value in the outer `SELECT`. 3. Order by the primary key `(order_id, product_id)`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** `WITH d AS (DELETE ... RETURNING ...) SELECT ... FROM d` lets you audit, summarise or archive exactly what was removed.
+
+</details>
+
+<details>
+<summary><strong>Q139 · Upsert Customers With On Conflict</strong> — Hard — INSERT … ON CONFLICT · DO UPDATE · EXCLUDED · RETURNING · xmax</summary>
+
+**Q:** Upsert an existing and a new customer with ON CONFLICT and report inserted vs updated.
+
+**A:** 1. `INSERT INTO customers (...) VALUES (...), (...)`. 2. `ON CONFLICT (customer_id) DO UPDATE SET city = EXCLUDED.city, postal_code = EXCLUDED.postal_code`. 3. `RETURNING ..., CASE WHEN xmax = 0 THEN 'inserted' ELSE 'updated' END`. 4. Wrap in a CTE and order by `customer_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Upsert = `INSERT ... ON CONFLICT (key) DO UPDATE SET col = EXCLUDED.col`, backed by a unique index.
+
+</details>
+
+<details>
+<summary><strong>Q140 · Create Order And Lines With Chained CTE Inserts</strong> — Hard — Data-Modifying CTE · INSERT … SELECT · RETURNING · CROSS JOIN · Current Price Lookup</summary>
+
+**Q:** Insert an order header and its lines in one statement via chained data-modifying CTEs.
+
+**A:** 1. CTE `new_order`: `INSERT INTO orders ... RETURNING order_id`. 2. CTE `lines`: `INSERT INTO order_details SELECT new_order.order_id, p.product_id, p.unit_price, v.qty, 0 FROM new_order CROSS JOIN (VALUES ...) v JOIN products p ...  RETURNING *`. 3. Final `SELECT` joins `lines` to `products` for names and orders by `product_id`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Chain inserts with CTEs and pass generated keys through `RETURNING` — one atomic statement for header and lines.
+
+</details>
+
+<details>
+<summary><strong>Q141 · Create Customer Revenue Summary Table As Select</strong> — Medium — CREATE TABLE AS · Aggregation · Primary Key via ALTER · Query the New Table</summary>
+
+**Q:** Create a customer revenue summary table with CREATE TABLE AS, add a primary key and query it.
+
+**A:** 1. `CREATE TABLE customer_revenue_summary AS SELECT ... GROUP BY customer_id`. 2. `ALTER TABLE ... ADD PRIMARY KEY (customer_id)`. 3. `SELECT` from the new table ordered by `revenue DESC, customer_id` with `LIMIT 10`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** CTAS snapshots a query into a table; add keys afterwards, and remember it never refreshes on its own.
+
+</details>
+
+<details>
+<summary><strong>Q142 · Add Column And Check Constraint To Products</strong> — Hard — ALTER TABLE ADD COLUMN · CHECK Constraint · UPDATE with CASE · NOT NULL · pg_constraint</summary>
+
+**Q:** Add and backfill a price_band column, enforce NOT NULL and CHECK constraints, and count products per band.
+
+**A:** 1. `ALTER TABLE products ADD COLUMN price_band VARCHAR(10)`. 2. `UPDATE products SET price_band = CASE ... END` to backfill. 3. `ALTER COLUMN price_band SET NOT NULL` and add `CHECK (price_band IN (...))` and `CHECK (unit_price >= 0)`. 4. `SELECT` count and min price per band ordered by `min_price`.
+
+**⚠️ Mistake:** — (new practice question, not attempted yet)
+
+**💡 Learning:** Add column → backfill → enforce (`NOT NULL`, `CHECK`) — constraints are validated against existing rows when added.
+
+</details>
+
+---

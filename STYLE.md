@@ -61,6 +61,10 @@ immediately see **my approach**, **the solution I wrote**, **the mistakes I made
 - **§4 (Mistakes I Made)** is personal; **§7 (Common Pitfalls)** is generic. Keep them distinct.
 - `Outcome` in the Revision Card: `⚠️` if §4 records a real mistake, otherwise `✅ correct first attempt`. (Where a past attempt genuinely wasn't recorded, default to `✅` and write `None — solved correctly on first attempt.` in §4; upgrade to `⚠️` later if you recall a mistake.)
 - If §5 equals §3, write `Same as §3.` rather than duplicating the query.
+- **New practice questions** that haven't been attempted yet use
+  `Outcome: 🆕 new practice question — not attempted yet`, write `_Not attempted yet._` in §3 and §4,
+  and put the reference solution in §5. After solving one, replace §3/§4 with your real attempt and
+  switch the Outcome to ✅ or ⚠️.
 
 ---
 
