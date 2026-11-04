@@ -1216,7 +1216,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 ## 12 · Window Functions
 
 <details>
-<summary><strong>Q98 · Latest Order Per Customer</strong> — Easy — ROW_NUMBER · PARTITION BY · ORDER BY DESC · Top-1 per Group</summary>
+<summary><strong>Q147 · Latest Order Per Customer</strong> — Easy — ROW_NUMBER · PARTITION BY · ORDER BY DESC · Top-1 per Group</summary>
 
 **Q:** For every customer who has ordered, return exactly one row describing their latest order (latest `order_date`; if two orders share a date, the higher `order_id` wins).
 
@@ -1229,7 +1229,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q99 · Rank Vs Dense Rank Product Prices</strong> — Easy — RANK · DENSE_RANK · PARTITION BY · Tie Handling</summary>
+<summary><strong>Q148 · Rank Vs Dense Rank Product Prices</strong> — Easy — RANK · DENSE_RANK · PARTITION BY · Tie Handling</summary>
 
 **Q:** For each product, show its price rank within its category using both `RANK()` and `DENSE_RANK()` (highest price = 1).
 
@@ -1242,7 +1242,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q100 · Top 3 Products By Revenue Per Category</strong> — Medium — DENSE_RANK · PARTITION BY · GROUP BY · SUM</summary>
+<summary><strong>Q149 · Top 3 Products By Revenue Per Category</strong> — Medium — DENSE_RANK · PARTITION BY · GROUP BY · SUM</summary>
 
 **Q:** For each category, return the top 3 revenue positions (using `DENSE_RANK`), where revenue = `unit_price * quantity * (1 - discount)` from `order_details`.
 
@@ -1255,7 +1255,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q101 · Running Total Of Monthly Revenue</strong> — Easy — SUM OVER · ROWS BETWEEN UNBOUNDED PRECEDING · DATE_TRUNC · CTE</summary>
+<summary><strong>Q150 · Running Total Of Monthly Revenue</strong> — Easy — SUM OVER · ROWS BETWEEN UNBOUNDED PRECEDING · DATE_TRUNC · CTE</summary>
 
 **Q:** Return one row per order month with its revenue and the running total of revenue to date.
 
@@ -1268,7 +1268,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q102 · Three Month Moving Average Revenue</strong> — Medium — AVG OVER · ROWS BETWEEN 2 PRECEDING · Named WINDOW · DATE_TRUNC</summary>
+<summary><strong>Q151 · Three Month Moving Average Revenue</strong> — Medium — AVG OVER · ROWS BETWEEN 2 PRECEDING · Named WINDOW · DATE_TRUNC</summary>
 
 **Q:** Return each order month's revenue, the number of months in its trailing window, and the 3-month trailing moving average.
 
@@ -1281,7 +1281,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q103 · Month Over Month Revenue Change</strong> — Medium — LAG · NULLIF · Percent Change · DATE_TRUNC</summary>
+<summary><strong>Q152 · Month Over Month Revenue Change</strong> — Medium — LAG · NULLIF · Percent Change · DATE_TRUNC</summary>
 
 **Q:** For each order month, return revenue, previous month revenue (via `LAG`), absolute change, and percent change rounded to 2 dp.
 
@@ -1294,7 +1294,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q104 · Days Until Next Customer Order</strong> — Medium — LEAD · PARTITION BY · Date Arithmetic · Named WINDOW</summary>
+<summary><strong>Q153 · Days Until Next Customer Order</strong> — Medium — LEAD · PARTITION BY · Date Arithmetic · Named WINDOW</summary>
 
 **Q:** For each order, return the same customer's next order ID, its date, and the number of days between the two (NULL if there is no next order).
 
@@ -1307,7 +1307,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q105 · Customer Share Of Total Revenue</strong> — Medium — SUM() OVER () · Percent of Total · GROUP BY · CTE</summary>
+<summary><strong>Q154 · Customer Share Of Total Revenue</strong> — Medium — SUM() OVER () · Percent of Total · GROUP BY · CTE</summary>
 
 **Q:** For each customer, return their net revenue, the company-wide total, and their share as a percentage (2 dp), largest first.
 
@@ -1320,7 +1320,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q106 · Customer Revenue Quartiles</strong> — Medium — NTILE · Bucketing · GROUP BY · CTE</summary>
+<summary><strong>Q155 · Customer Revenue Quartiles</strong> — Medium — NTILE · Bucketing · GROUP BY · CTE</summary>
 
 **Q:** Assign every customer to a revenue quartile (1 = highest revenue) using `NTILE(4)`.
 
@@ -1333,7 +1333,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q107 · First And Latest Product Per Customer</strong> — Hard — FIRST_VALUE · LAST_VALUE · Window Frame · ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</summary>
+<summary><strong>Q156 · First And Latest Product Per Customer</strong> — Hard — FIRST_VALUE · LAST_VALUE · Window Frame · ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING</summary>
 
 **Q:** For each customer, return the product on their earliest order line and the product on their latest order line (ordered by order date, then order ID, then product ID).
 
@@ -1346,7 +1346,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q108 · Employee Revenue Percentile Rank</strong> — Hard — PERCENT_RANK · CUME_DIST · GROUP BY · CTE</summary>
+<summary><strong>Q157 · Employee Revenue Percentile Rank</strong> — Hard — PERCENT_RANK · CUME_DIST · GROUP BY · CTE</summary>
 
 **Q:** For each employee with orders, return total revenue, `PERCENT_RANK()` and `CUME_DIST()` (both ordered by revenue ascending, 4 dp).
 
@@ -1359,7 +1359,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q109 · Average Gap Between Employee Orders</strong> — Hard — LAG · PARTITION BY · Date Arithmetic · AVG</summary>
+<summary><strong>Q158 · Average Gap Between Employee Orders</strong> — Hard — LAG · PARTITION BY · Date Arithmetic · AVG</summary>
 
 **Q:** For each employee, compute the number of orders, the average and maximum days between consecutive orders, and the difference between their average gap and the average of all employees' averages.
 
@@ -1376,7 +1376,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 ## 13 · Date & Time
 
 <details>
-<summary><strong>Q110 · Orders Per Year And Month</strong> — Easy — EXTRACT · GROUP BY · COUNT · Integer Casting</summary>
+<summary><strong>Q159 · Orders Per Year And Month</strong> — Easy — EXTRACT · GROUP BY · COUNT · Integer Casting</summary>
 
 **Q:** Return the number of orders placed per calendar year and month, with year and month as integers.
 
@@ -1389,7 +1389,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q111 · Revenue By Quarter</strong> — Easy — EXTRACT(QUARTER) · JOIN · SUM · COUNT DISTINCT</summary>
+<summary><strong>Q160 · Revenue By Quarter</strong> — Easy — EXTRACT(QUARTER) · JOIN · SUM · COUNT DISTINCT</summary>
 
 **Q:** Return order count and net revenue (rounded to 2 decimals) per year and quarter.
 
@@ -1402,7 +1402,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q112 · Late Shipments With Days Late</strong> — Easy — DATE Subtraction · NULL Filtering · Comparison</summary>
+<summary><strong>Q161 · Late Shipments With Days Late</strong> — Easy — DATE Subtraction · NULL Filtering · Comparison</summary>
 
 **Q:** Return all shipped orders where shipped_date > required_date, with the number of days late.
 
@@ -1415,7 +1415,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q113 · Average Days To Ship Per Shipper</strong> — Medium — DATE Subtraction · AVG · MAX · JOIN</summary>
+<summary><strong>Q162 · Average Days To Ship Per Shipper</strong> — Medium — DATE Subtraction · AVG · MAX · JOIN</summary>
 
 **Q:** Per shipper, return shipped order count, average and maximum days between order_date and shipped_date.
 
@@ -1428,7 +1428,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q114 · Unshipped Orders Older Than 30 Days</strong> — Medium — NULL Filtering · DATE ± Integer · Fixed Reference Date · Boolean Expression</summary>
+<summary><strong>Q163 · Unshipped Orders Older Than 30 Days</strong> — Medium — NULL Filtering · DATE ± Integer · Fixed Reference Date · Boolean Expression</summary>
 
 **Q:** Return unshipped orders with order_date more than 30 days before 1998-12-31, with days open and an overdue flag.
 
@@ -1441,7 +1441,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q115 · Employee Age At Hire And Tenure</strong> — Medium — AGE() · EXTRACT from INTERVAL · DATE Subtraction · Fixed Reference Date</summary>
+<summary><strong>Q164 · Employee Age At Hire And Tenure</strong> — Medium — AGE() · EXTRACT from INTERVAL · DATE Subtraction · Fixed Reference Date</summary>
 
 **Q:** Return each employee's age at hire, tenure in completed years and tenure in days as of 1998-12-31.
 
@@ -1454,7 +1454,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q116 · Orders By Day Of Week</strong> — Medium — EXTRACT(ISODOW) · TO_CHAR · TRIM · JOIN</summary>
+<summary><strong>Q165 · Orders By Day Of Week</strong> — Medium — EXTRACT(ISODOW) · TO_CHAR · TRIM · JOIN</summary>
 
 **Q:** Return order count and net revenue for each day of the week, ordered Monday through Sunday.
 
@@ -1467,7 +1467,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q117 · Year Over Year Revenue Growth</strong> — Hard — CTE · LAG · Window Functions · NULLIF</summary>
+<summary><strong>Q166 · Year Over Year Revenue Growth</strong> — Hard — CTE · LAG · Window Functions · NULLIF</summary>
 
 **Q:** Return yearly net revenue, previous year's revenue and YoY growth % (all rounded to 2 decimals).
 
@@ -1480,7 +1480,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q118 · Customers Inactive In Last Six Months</strong> — Hard — LEFT JOIN · MAX · INTERVAL · NULLS FIRST</summary>
+<summary><strong>Q167 · Customers Inactive In Last Six Months</strong> — Hard — LEFT JOIN · MAX · INTERVAL · NULLS FIRST</summary>
 
 **Q:** Return customers whose most recent order is before 1998-06-30, or who have no orders, with last order date and days since then.
 
@@ -1493,7 +1493,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q119 · First Order Month Cohort Size</strong> — Hard — DATE_TRUNC · MIN · CTE · GROUP BY</summary>
+<summary><strong>Q168 · First Order Month Cohort Size</strong> — Hard — DATE_TRUNC · MIN · CTE · GROUP BY</summary>
 
 **Q:** Return, per first-order year and month, the number of newly acquired customers and the cumulative total.
 
@@ -1510,7 +1510,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 ## 14 · String Functions
 
 <details>
-<summary><strong>Q120 · Employee Full Name And Initials</strong> — Easy — || Concatenation · CONCAT · UPPER · LOWER · LEFT</summary>
+<summary><strong>Q169 · Employee Full Name And Initials</strong> — Easy — || Concatenation · CONCAT · UPPER · LOWER · LEFT</summary>
 
 **Q:** Return each employee's full name, upper-case initials and lower-case last name.
 
@@ -1523,7 +1523,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q121 · Customers Matching Name Patterns</strong> — Easy — LIKE · ILIKE · Wildcards % and _ · OR</summary>
+<summary><strong>Q170 · Customers Matching Name Patterns</strong> — Easy — LIKE · ILIKE · Wildcards % and _ · OR</summary>
 
 **Q:** Return customers whose company name starts with 'La' or contains 'market' in any case.
 
@@ -1536,7 +1536,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q122 · Longest Product Names</strong> — Easy — LENGTH · CHAR_LENGTH · ORDER BY · LIMIT</summary>
+<summary><strong>Q171 · Longest Product Names</strong> — Easy — LENGTH · CHAR_LENGTH · ORDER BY · LIMIT</summary>
 
 **Q:** Return the 10 products with the longest names and their character counts.
 
@@ -1549,7 +1549,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q123 · Split Contact Name Into First And Last</strong> — Medium — SPLIT_PART · POSITION · SUBSTRING · LENGTH</summary>
+<summary><strong>Q172 · Split Contact Name Into First And Last</strong> — Medium — SPLIT_PART · POSITION · SUBSTRING · LENGTH</summary>
 
 **Q:** Split German customers' contact_name into first and last name using POSITION, SPLIT_PART and SUBSTRING.
 
@@ -1562,7 +1562,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q124 · Normalize Postal Codes With Replace</strong> — Medium — REPLACE · UPPER · LENGTH · Regex Match ~</summary>
+<summary><strong>Q173 · Normalize Postal Codes With Replace</strong> — Medium — REPLACE · UPPER · LENGTH · Regex Match ~</summary>
 
 **Q:** Clean customer postal codes that contain spaces or hyphens and compare lengths.
 
@@ -1575,7 +1575,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q125 · Product List Per Category With String Agg</strong> — Medium — STRING_AGG · ORDER BY inside aggregate · JOIN · GROUP BY · COUNT</summary>
+<summary><strong>Q174 · Product List Per Category With String Agg</strong> — Medium — STRING_AGG · ORDER BY inside aggregate · JOIN · GROUP BY · COUNT</summary>
 
 **Q:** Return each category with its active product count and an alphabetical comma-separated product list.
 
@@ -1588,7 +1588,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q126 · Parse Category Description Keywords</strong> — Hard — SPLIT_PART · REPLACE · LENGTH · TRIM · Delimiter Counting</summary>
+<summary><strong>Q175 · Parse Category Description Keywords</strong> — Hard — SPLIT_PART · REPLACE · LENGTH · TRIM · Delimiter Counting</summary>
 
 **Q:** Parse each category description into its first keyword, item count and cleaned last item.
 
@@ -1601,7 +1601,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q127 · Customer Cities Per Country With Distinct String Agg</strong> — Hard — STRING_AGG DISTINCT · COUNT DISTINCT · HAVING · UPPER · LEFT</summary>
+<summary><strong>Q176 · Customer Cities Per Country With Distinct String Agg</strong> — Hard — STRING_AGG DISTINCT · COUNT DISTINCT · HAVING · UPPER · LEFT</summary>
 
 **Q:** For countries with 5+ customers, return a code, customer and city counts, and a distinct city list.
 
@@ -1618,7 +1618,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 ## 15 · CASE & Conditional Logic
 
 <details>
-<summary><strong>Q128 · Product Price Bands</strong> — Easy — Searched CASE · WHEN Order · ELSE · Bucketing</summary>
+<summary><strong>Q177 · Product Price Bands</strong> — Easy — Searched CASE · WHEN Order · ELSE · Bucketing</summary>
 
 **Q:** Label each product Budget (<20), Mid-range (<50) or Premium.
 
@@ -1631,7 +1631,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q129 · Product Count And Average Price Per Band</strong> — Easy — CASE in GROUP BY · COUNT · AVG · MIN · MAX</summary>
+<summary><strong>Q178 · Product Count And Average Price Per Band</strong> — Easy — CASE in GROUP BY · COUNT · AVG · MIN · MAX</summary>
 
 **Q:** Return product count and min/max/avg price per price band.
 
@@ -1644,7 +1644,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q130 · Employee Shipping Status Counts</strong> — Medium — COUNT FILTER · SUM(CASE) · Conditional Aggregation · NULL Handling</summary>
+<summary><strong>Q179 · Employee Shipping Status Counts</strong> — Medium — COUNT FILTER · SUM(CASE) · Conditional Aggregation · NULL Handling</summary>
 
 **Q:** Per employee, count total, on-time, late and unshipped orders using FILTER and SUM(CASE).
 
@@ -1657,7 +1657,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q131 · Pivot Category Revenue By Year</strong> — Medium — Pivot · SUM FILTER · EXTRACT · COALESCE · JOIN</summary>
+<summary><strong>Q180 · Pivot Category Revenue By Year</strong> — Medium — Pivot · SUM FILTER · EXTRACT · COALESCE · JOIN</summary>
 
 **Q:** Pivot net revenue per category into 1996, 1997 and 1998 columns plus a total.
 
@@ -1670,7 +1670,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q132 · Custom Country Sort Order With CASE</strong> — Medium — CASE in ORDER BY · Custom Sort · Tie-breakers</summary>
+<summary><strong>Q181 · Custom Country Sort Order With CASE</strong> — Medium — CASE in ORDER BY · Custom Sort · Tie-breakers</summary>
 
 **Q:** Order Americas customers USA first, then Canada/Mexico, then others, with a CASE in ORDER BY.
 
@@ -1683,7 +1683,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q133 · Average Order Value With NULLIF And COALESCE</strong> — Medium — COALESCE · NULLIF · LEFT JOIN · Safe Division · COUNT DISTINCT</summary>
+<summary><strong>Q182 · Average Order Value With NULLIF And COALESCE</strong> — Medium — COALESCE · NULLIF · LEFT JOIN · Safe Division · COUNT DISTINCT</summary>
 
 **Q:** For German customers, return order count, revenue (COALESCE 0) and average order value (NULLIF-safe).
 
@@ -1696,7 +1696,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q134 · Customer Value Segment Summary</strong> — Hard — CASE Segmentation · LEFT JOIN · COALESCE · CTE · CASE in ORDER BY · Window SUM</summary>
+<summary><strong>Q183 · Customer Value Segment Summary</strong> — Hard — CASE Segmentation · LEFT JOIN · COALESCE · CTE · CASE in ORDER BY · Window SUM</summary>
 
 **Q:** Segment all customers by revenue (High/Medium/Low/Inactive) and summarise count, revenue and share per segment.
 
@@ -1713,7 +1713,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 ## 16 · DML & DDL
 
 <details>
-<summary><strong>Q135 · Insert New Shipper With Returning</strong> — Easy — INSERT · RETURNING · SERIAL Default · Multi-row VALUES</summary>
+<summary><strong>Q184 · Insert New Shipper With Returning</strong> — Easy — INSERT · RETURNING · SERIAL Default · Multi-row VALUES</summary>
 
 **Q:** Insert two shippers and return their generated ids with RETURNING.
 
@@ -1726,7 +1726,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q136 · Raise Prices For One Supplier</strong> — Easy — UPDATE · SET Expression · WHERE · RETURNING · ROUND</summary>
+<summary><strong>Q185 · Raise Prices For One Supplier</strong> — Easy — UPDATE · SET Expression · WHERE · RETURNING · ROUND</summary>
 
 **Q:** Raise supplier 1's product prices by 5% and return the new prices.
 
@@ -1739,7 +1739,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q137 · Update Prices Using A Join With FROM</strong> — Medium — UPDATE … FROM · Join Condition in WHERE · RETURNING · CTE</summary>
+<summary><strong>Q186 · Update Prices Using A Join With FROM</strong> — Medium — UPDATE … FROM · Join Condition in WHERE · RETURNING · CTE</summary>
 
 **Q:** Raise prices 10% for Seafood products using UPDATE ... FROM categories.
 
@@ -1752,7 +1752,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q138 · Delete Small Order Lines With Returning</strong> — Medium — DELETE · RETURNING · CTE · Aggregating Deleted Rows</summary>
+<summary><strong>Q187 · Delete Small Order Lines With Returning</strong> — Medium — DELETE · RETURNING · CTE · Aggregating Deleted Rows</summary>
 
 **Q:** Delete order lines with quantity <= 2 and return each deleted line with its value.
 
@@ -1765,7 +1765,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q139 · Upsert Customers With On Conflict</strong> — Hard — INSERT … ON CONFLICT · DO UPDATE · EXCLUDED · RETURNING · xmax</summary>
+<summary><strong>Q188 · Upsert Customers With On Conflict</strong> — Hard — INSERT … ON CONFLICT · DO UPDATE · EXCLUDED · RETURNING · xmax</summary>
 
 **Q:** Upsert an existing and a new customer with ON CONFLICT and report inserted vs updated.
 
@@ -1778,7 +1778,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q140 · Create Order And Lines With Chained CTE Inserts</strong> — Hard — Data-Modifying CTE · INSERT … SELECT · RETURNING · CROSS JOIN · Current Price Lookup</summary>
+<summary><strong>Q189 · Create Order And Lines With Chained CTE Inserts</strong> — Hard — Data-Modifying CTE · INSERT … SELECT · RETURNING · CROSS JOIN · Current Price Lookup</summary>
 
 **Q:** Insert an order header and its lines in one statement via chained data-modifying CTEs.
 
@@ -1791,7 +1791,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q141 · Create Customer Revenue Summary Table As Select</strong> — Medium — CREATE TABLE AS · Aggregation · Primary Key via ALTER · Query the New Table</summary>
+<summary><strong>Q190 · Create Customer Revenue Summary Table As Select</strong> — Medium — CREATE TABLE AS · Aggregation · Primary Key via ALTER · Query the New Table</summary>
 
 **Q:** Create a customer revenue summary table with CREATE TABLE AS, add a primary key and query it.
 
@@ -1804,7 +1804,7 @@ Jump to: [01 Aggregations](#01--aggregations) ·
 </details>
 
 <details>
-<summary><strong>Q142 · Add Column And Check Constraint To Products</strong> — Hard — ALTER TABLE ADD COLUMN · CHECK Constraint · UPDATE with CASE · NOT NULL · pg_constraint</summary>
+<summary><strong>Q191 · Add Column And Check Constraint To Products</strong> — Hard — ALTER TABLE ADD COLUMN · CHECK Constraint · UPDATE with CASE · NOT NULL · pg_constraint</summary>
 
 **Q:** Add and backfill a price_band column, enforce NOT NULL and CHECK constraints, and count products per band.
 

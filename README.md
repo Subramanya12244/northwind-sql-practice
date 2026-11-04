@@ -41,12 +41,12 @@ This repository is being built as part of a structured SQL learning journey usin
 - [x] SELF JOIN
 - [x] CROSS JOIN
 - [x] Set Operators (UNION / INTERSECT / EXCEPT)
-- [ ] Window Functions _(practice set added: Q98–Q109)_
+- [ ] Window Functions _(practice set added: Q147–Q158)_
 - [ ] Ranking Functions _(covered in the window-function set)_
-- [ ] Date & Time Analysis _(practice set added: Q110–Q119)_
-- [ ] String Functions _(practice set added: Q120–Q127)_
-- [ ] CASE & Conditional Logic _(practice set added: Q128–Q134)_
-- [ ] DML & DDL _(practice set added: Q135–Q142)_
+- [ ] Date & Time Analysis _(practice set added: Q159–Q168)_
+- [ ] String Functions _(practice set added: Q169–Q176)_
+- [ ] CASE & Conditional Logic _(practice set added: Q177–Q183)_
+- [ ] DML & DDL _(practice set added: Q184–Q191)_
 - [ ] Advanced Analytics
 - [ ] Query Optimization
 - [ ] PostgreSQL Advanced Concepts
@@ -55,7 +55,7 @@ This repository is being built as part of a structured SQL learning journey usin
 
 **Completed: 88 Northwind SQL Problems** across 11 concept areas (aggregation through set operators).
 
-**Up next: 45 new practice questions** (Q98–Q142) on window functions, date/time, string functions, CASE/conditional logic and DML/DDL (88 solved + 45 new). Each has a reference solution; its Revision Card says `🆕 not attempted yet` until I solve it and record my attempt.
+**Up next: 45 new practice questions** (Q147–Q191) on window functions, date/time, string functions, CASE/conditional logic and DML/DDL (88 solved + 45 new). Each has a reference solution; its Revision Card says `🆕 not attempted yet` until I solve it and record my attempt.
 
 > **Note on numbering:** questions are numbered in the order they were solved (Q01 onward), so some numbers are skipped where exploratory problems were later removed or merged. The numbering is a timeline, not a gap-free sequence — each file present is a complete, documented solution.
 
@@ -293,71 +293,71 @@ revenue = unit_price * quantity * (1 - discount)
 
 | # | Question | Difficulty | MD | SQL |
 |---|---|---|---|---|
-| Q98 | Latest Order Per Customer | Easy | [📄](12_Window_Functions/Q98_Latest_Order_Per_Customer.md) | [🔢](12_Window_Functions/Q98_Latest_Order_Per_Customer.sql) |
-| Q99 | Rank Vs Dense Rank Product Prices | Easy | [📄](12_Window_Functions/Q99_Rank_Vs_Dense_Rank_Product_Prices.md) | [🔢](12_Window_Functions/Q99_Rank_Vs_Dense_Rank_Product_Prices.sql) |
-| Q100 | Top 3 Products By Revenue Per Category | Medium | [📄](12_Window_Functions/Q100_Top_3_Products_By_Revenue_Per_Category.md) | [🔢](12_Window_Functions/Q100_Top_3_Products_By_Revenue_Per_Category.sql) |
-| Q101 | Running Total Of Monthly Revenue | Easy | [📄](12_Window_Functions/Q101_Running_Total_Of_Monthly_Revenue.md) | [🔢](12_Window_Functions/Q101_Running_Total_Of_Monthly_Revenue.sql) |
-| Q102 | Three Month Moving Average Revenue | Medium | [📄](12_Window_Functions/Q102_Three_Month_Moving_Average_Revenue.md) | [🔢](12_Window_Functions/Q102_Three_Month_Moving_Average_Revenue.sql) |
-| Q103 | Month Over Month Revenue Change | Medium | [📄](12_Window_Functions/Q103_Month_Over_Month_Revenue_Change.md) | [🔢](12_Window_Functions/Q103_Month_Over_Month_Revenue_Change.sql) |
-| Q104 | Days Until Next Customer Order | Medium | [📄](12_Window_Functions/Q104_Days_Until_Next_Customer_Order.md) | [🔢](12_Window_Functions/Q104_Days_Until_Next_Customer_Order.sql) |
-| Q105 | Customer Share Of Total Revenue | Medium | [📄](12_Window_Functions/Q105_Customer_Share_Of_Total_Revenue.md) | [🔢](12_Window_Functions/Q105_Customer_Share_Of_Total_Revenue.sql) |
-| Q106 | Customer Revenue Quartiles | Medium | [📄](12_Window_Functions/Q106_Customer_Revenue_Quartiles.md) | [🔢](12_Window_Functions/Q106_Customer_Revenue_Quartiles.sql) |
-| Q107 | First And Latest Product Per Customer | Hard | [📄](12_Window_Functions/Q107_First_And_Latest_Product_Per_Customer.md) | [🔢](12_Window_Functions/Q107_First_And_Latest_Product_Per_Customer.sql) |
-| Q108 | Employee Revenue Percentile Rank | Hard | [📄](12_Window_Functions/Q108_Employee_Revenue_Percentile_Rank.md) | [🔢](12_Window_Functions/Q108_Employee_Revenue_Percentile_Rank.sql) |
-| Q109 | Average Gap Between Employee Orders | Hard | [📄](12_Window_Functions/Q109_Average_Gap_Between_Employee_Orders.md) | [🔢](12_Window_Functions/Q109_Average_Gap_Between_Employee_Orders.sql) |
+| Q147 | Latest Order Per Customer | Easy | [📄](12_Window_Functions/Q147_Latest_Order_Per_Customer.md) | [🔢](12_Window_Functions/Q147_Latest_Order_Per_Customer.sql) |
+| Q148 | Rank Vs Dense Rank Product Prices | Easy | [📄](12_Window_Functions/Q148_Rank_Vs_Dense_Rank_Product_Prices.md) | [🔢](12_Window_Functions/Q148_Rank_Vs_Dense_Rank_Product_Prices.sql) |
+| Q149 | Top 3 Products By Revenue Per Category | Medium | [📄](12_Window_Functions/Q149_Top_3_Products_By_Revenue_Per_Category.md) | [🔢](12_Window_Functions/Q149_Top_3_Products_By_Revenue_Per_Category.sql) |
+| Q150 | Running Total Of Monthly Revenue | Easy | [📄](12_Window_Functions/Q150_Running_Total_Of_Monthly_Revenue.md) | [🔢](12_Window_Functions/Q150_Running_Total_Of_Monthly_Revenue.sql) |
+| Q151 | Three Month Moving Average Revenue | Medium | [📄](12_Window_Functions/Q151_Three_Month_Moving_Average_Revenue.md) | [🔢](12_Window_Functions/Q151_Three_Month_Moving_Average_Revenue.sql) |
+| Q152 | Month Over Month Revenue Change | Medium | [📄](12_Window_Functions/Q152_Month_Over_Month_Revenue_Change.md) | [🔢](12_Window_Functions/Q152_Month_Over_Month_Revenue_Change.sql) |
+| Q153 | Days Until Next Customer Order | Medium | [📄](12_Window_Functions/Q153_Days_Until_Next_Customer_Order.md) | [🔢](12_Window_Functions/Q153_Days_Until_Next_Customer_Order.sql) |
+| Q154 | Customer Share Of Total Revenue | Medium | [📄](12_Window_Functions/Q154_Customer_Share_Of_Total_Revenue.md) | [🔢](12_Window_Functions/Q154_Customer_Share_Of_Total_Revenue.sql) |
+| Q155 | Customer Revenue Quartiles | Medium | [📄](12_Window_Functions/Q155_Customer_Revenue_Quartiles.md) | [🔢](12_Window_Functions/Q155_Customer_Revenue_Quartiles.sql) |
+| Q156 | First And Latest Product Per Customer | Hard | [📄](12_Window_Functions/Q156_First_And_Latest_Product_Per_Customer.md) | [🔢](12_Window_Functions/Q156_First_And_Latest_Product_Per_Customer.sql) |
+| Q157 | Employee Revenue Percentile Rank | Hard | [📄](12_Window_Functions/Q157_Employee_Revenue_Percentile_Rank.md) | [🔢](12_Window_Functions/Q157_Employee_Revenue_Percentile_Rank.sql) |
+| Q158 | Average Gap Between Employee Orders | Hard | [📄](12_Window_Functions/Q158_Average_Gap_Between_Employee_Orders.md) | [🔢](12_Window_Functions/Q158_Average_Gap_Between_Employee_Orders.sql) |
 
 ### 13 — Date & Time _(new practice set — not yet attempted)_
 
 | # | Question | Difficulty | MD | SQL |
 |---|---|---|---|---|
-| Q110 | Orders Per Year And Month | Easy | [📄](13_Date_Time/Q110_Orders_Per_Year_And_Month.md) | [🔢](13_Date_Time/Q110_Orders_Per_Year_And_Month.sql) |
-| Q111 | Revenue By Quarter | Easy | [📄](13_Date_Time/Q111_Revenue_By_Quarter.md) | [🔢](13_Date_Time/Q111_Revenue_By_Quarter.sql) |
-| Q112 | Late Shipments With Days Late | Easy | [📄](13_Date_Time/Q112_Late_Shipments_With_Days_Late.md) | [🔢](13_Date_Time/Q112_Late_Shipments_With_Days_Late.sql) |
-| Q113 | Average Days To Ship Per Shipper | Medium | [📄](13_Date_Time/Q113_Average_Days_To_Ship_Per_Shipper.md) | [🔢](13_Date_Time/Q113_Average_Days_To_Ship_Per_Shipper.sql) |
-| Q114 | Unshipped Orders Older Than 30 Days | Medium | [📄](13_Date_Time/Q114_Unshipped_Orders_Older_Than_30_Days.md) | [🔢](13_Date_Time/Q114_Unshipped_Orders_Older_Than_30_Days.sql) |
-| Q115 | Employee Age At Hire And Tenure | Medium | [📄](13_Date_Time/Q115_Employee_Age_At_Hire_And_Tenure.md) | [🔢](13_Date_Time/Q115_Employee_Age_At_Hire_And_Tenure.sql) |
-| Q116 | Orders By Day Of Week | Medium | [📄](13_Date_Time/Q116_Orders_By_Day_Of_Week.md) | [🔢](13_Date_Time/Q116_Orders_By_Day_Of_Week.sql) |
-| Q117 | Year Over Year Revenue Growth | Hard | [📄](13_Date_Time/Q117_Year_Over_Year_Revenue_Growth.md) | [🔢](13_Date_Time/Q117_Year_Over_Year_Revenue_Growth.sql) |
-| Q118 | Customers Inactive In Last Six Months | Hard | [📄](13_Date_Time/Q118_Customers_Inactive_In_Last_Six_Months.md) | [🔢](13_Date_Time/Q118_Customers_Inactive_In_Last_Six_Months.sql) |
-| Q119 | First Order Month Cohort Size | Hard | [📄](13_Date_Time/Q119_First_Order_Month_Cohort_Size.md) | [🔢](13_Date_Time/Q119_First_Order_Month_Cohort_Size.sql) |
+| Q159 | Orders Per Year And Month | Easy | [📄](13_Date_Time/Q159_Orders_Per_Year_And_Month.md) | [🔢](13_Date_Time/Q159_Orders_Per_Year_And_Month.sql) |
+| Q160 | Revenue By Quarter | Easy | [📄](13_Date_Time/Q160_Revenue_By_Quarter.md) | [🔢](13_Date_Time/Q160_Revenue_By_Quarter.sql) |
+| Q161 | Late Shipments With Days Late | Easy | [📄](13_Date_Time/Q161_Late_Shipments_With_Days_Late.md) | [🔢](13_Date_Time/Q161_Late_Shipments_With_Days_Late.sql) |
+| Q162 | Average Days To Ship Per Shipper | Medium | [📄](13_Date_Time/Q162_Average_Days_To_Ship_Per_Shipper.md) | [🔢](13_Date_Time/Q162_Average_Days_To_Ship_Per_Shipper.sql) |
+| Q163 | Unshipped Orders Older Than 30 Days | Medium | [📄](13_Date_Time/Q163_Unshipped_Orders_Older_Than_30_Days.md) | [🔢](13_Date_Time/Q163_Unshipped_Orders_Older_Than_30_Days.sql) |
+| Q164 | Employee Age At Hire And Tenure | Medium | [📄](13_Date_Time/Q164_Employee_Age_At_Hire_And_Tenure.md) | [🔢](13_Date_Time/Q164_Employee_Age_At_Hire_And_Tenure.sql) |
+| Q165 | Orders By Day Of Week | Medium | [📄](13_Date_Time/Q165_Orders_By_Day_Of_Week.md) | [🔢](13_Date_Time/Q165_Orders_By_Day_Of_Week.sql) |
+| Q166 | Year Over Year Revenue Growth | Hard | [📄](13_Date_Time/Q166_Year_Over_Year_Revenue_Growth.md) | [🔢](13_Date_Time/Q166_Year_Over_Year_Revenue_Growth.sql) |
+| Q167 | Customers Inactive In Last Six Months | Hard | [📄](13_Date_Time/Q167_Customers_Inactive_In_Last_Six_Months.md) | [🔢](13_Date_Time/Q167_Customers_Inactive_In_Last_Six_Months.sql) |
+| Q168 | First Order Month Cohort Size | Hard | [📄](13_Date_Time/Q168_First_Order_Month_Cohort_Size.md) | [🔢](13_Date_Time/Q168_First_Order_Month_Cohort_Size.sql) |
 
 ### 14 — String Functions _(new practice set — not yet attempted)_
 
 | # | Question | Difficulty | MD | SQL |
 |---|---|---|---|---|
-| Q120 | Employee Full Name And Initials | Easy | [📄](14_String_Functions/Q120_Employee_Full_Name_And_Initials.md) | [🔢](14_String_Functions/Q120_Employee_Full_Name_And_Initials.sql) |
-| Q121 | Customers Matching Name Patterns | Easy | [📄](14_String_Functions/Q121_Customers_Matching_Name_Patterns.md) | [🔢](14_String_Functions/Q121_Customers_Matching_Name_Patterns.sql) |
-| Q122 | Longest Product Names | Easy | [📄](14_String_Functions/Q122_Longest_Product_Names.md) | [🔢](14_String_Functions/Q122_Longest_Product_Names.sql) |
-| Q123 | Split Contact Name Into First And Last | Medium | [📄](14_String_Functions/Q123_Split_Contact_Name_Into_First_And_Last.md) | [🔢](14_String_Functions/Q123_Split_Contact_Name_Into_First_And_Last.sql) |
-| Q124 | Normalize Postal Codes With Replace | Medium | [📄](14_String_Functions/Q124_Normalize_Postal_Codes_With_Replace.md) | [🔢](14_String_Functions/Q124_Normalize_Postal_Codes_With_Replace.sql) |
-| Q125 | Product List Per Category With String Agg | Medium | [📄](14_String_Functions/Q125_Product_List_Per_Category_With_String_Agg.md) | [🔢](14_String_Functions/Q125_Product_List_Per_Category_With_String_Agg.sql) |
-| Q126 | Parse Category Description Keywords | Hard | [📄](14_String_Functions/Q126_Parse_Category_Description_Keywords.md) | [🔢](14_String_Functions/Q126_Parse_Category_Description_Keywords.sql) |
-| Q127 | Customer Cities Per Country With Distinct String Agg | Hard | [📄](14_String_Functions/Q127_Customer_Cities_Per_Country_With_Distinct_String_Agg.md) | [🔢](14_String_Functions/Q127_Customer_Cities_Per_Country_With_Distinct_String_Agg.sql) |
+| Q169 | Employee Full Name And Initials | Easy | [📄](14_String_Functions/Q169_Employee_Full_Name_And_Initials.md) | [🔢](14_String_Functions/Q169_Employee_Full_Name_And_Initials.sql) |
+| Q170 | Customers Matching Name Patterns | Easy | [📄](14_String_Functions/Q170_Customers_Matching_Name_Patterns.md) | [🔢](14_String_Functions/Q170_Customers_Matching_Name_Patterns.sql) |
+| Q171 | Longest Product Names | Easy | [📄](14_String_Functions/Q171_Longest_Product_Names.md) | [🔢](14_String_Functions/Q171_Longest_Product_Names.sql) |
+| Q172 | Split Contact Name Into First And Last | Medium | [📄](14_String_Functions/Q172_Split_Contact_Name_Into_First_And_Last.md) | [🔢](14_String_Functions/Q172_Split_Contact_Name_Into_First_And_Last.sql) |
+| Q173 | Normalize Postal Codes With Replace | Medium | [📄](14_String_Functions/Q173_Normalize_Postal_Codes_With_Replace.md) | [🔢](14_String_Functions/Q173_Normalize_Postal_Codes_With_Replace.sql) |
+| Q174 | Product List Per Category With String Agg | Medium | [📄](14_String_Functions/Q174_Product_List_Per_Category_With_String_Agg.md) | [🔢](14_String_Functions/Q174_Product_List_Per_Category_With_String_Agg.sql) |
+| Q175 | Parse Category Description Keywords | Hard | [📄](14_String_Functions/Q175_Parse_Category_Description_Keywords.md) | [🔢](14_String_Functions/Q175_Parse_Category_Description_Keywords.sql) |
+| Q176 | Customer Cities Per Country With Distinct String Agg | Hard | [📄](14_String_Functions/Q176_Customer_Cities_Per_Country_With_Distinct_String_Agg.md) | [🔢](14_String_Functions/Q176_Customer_Cities_Per_Country_With_Distinct_String_Agg.sql) |
 
 ### 15 — CASE & Conditional Logic _(new practice set — not yet attempted)_
 
 | # | Question | Difficulty | MD | SQL |
 |---|---|---|---|---|
-| Q128 | Product Price Bands | Easy | [📄](15_CASE_Conditional/Q128_Product_Price_Bands.md) | [🔢](15_CASE_Conditional/Q128_Product_Price_Bands.sql) |
-| Q129 | Product Count And Average Price Per Band | Easy | [📄](15_CASE_Conditional/Q129_Product_Count_And_Average_Price_Per_Band.md) | [🔢](15_CASE_Conditional/Q129_Product_Count_And_Average_Price_Per_Band.sql) |
-| Q130 | Employee Shipping Status Counts | Medium | [📄](15_CASE_Conditional/Q130_Employee_Shipping_Status_Counts.md) | [🔢](15_CASE_Conditional/Q130_Employee_Shipping_Status_Counts.sql) |
-| Q131 | Pivot Category Revenue By Year | Medium | [📄](15_CASE_Conditional/Q131_Pivot_Category_Revenue_By_Year.md) | [🔢](15_CASE_Conditional/Q131_Pivot_Category_Revenue_By_Year.sql) |
-| Q132 | Custom Country Sort Order With CASE | Medium | [📄](15_CASE_Conditional/Q132_Custom_Country_Sort_Order_With_CASE.md) | [🔢](15_CASE_Conditional/Q132_Custom_Country_Sort_Order_With_CASE.sql) |
-| Q133 | Average Order Value With NULLIF And COALESCE | Medium | [📄](15_CASE_Conditional/Q133_Average_Order_Value_With_NULLIF_And_COALESCE.md) | [🔢](15_CASE_Conditional/Q133_Average_Order_Value_With_NULLIF_And_COALESCE.sql) |
-| Q134 | Customer Value Segment Summary | Hard | [📄](15_CASE_Conditional/Q134_Customer_Value_Segment_Summary.md) | [🔢](15_CASE_Conditional/Q134_Customer_Value_Segment_Summary.sql) |
+| Q177 | Product Price Bands | Easy | [📄](15_CASE_Conditional/Q177_Product_Price_Bands.md) | [🔢](15_CASE_Conditional/Q177_Product_Price_Bands.sql) |
+| Q178 | Product Count And Average Price Per Band | Easy | [📄](15_CASE_Conditional/Q178_Product_Count_And_Average_Price_Per_Band.md) | [🔢](15_CASE_Conditional/Q178_Product_Count_And_Average_Price_Per_Band.sql) |
+| Q179 | Employee Shipping Status Counts | Medium | [📄](15_CASE_Conditional/Q179_Employee_Shipping_Status_Counts.md) | [🔢](15_CASE_Conditional/Q179_Employee_Shipping_Status_Counts.sql) |
+| Q180 | Pivot Category Revenue By Year | Medium | [📄](15_CASE_Conditional/Q180_Pivot_Category_Revenue_By_Year.md) | [🔢](15_CASE_Conditional/Q180_Pivot_Category_Revenue_By_Year.sql) |
+| Q181 | Custom Country Sort Order With CASE | Medium | [📄](15_CASE_Conditional/Q181_Custom_Country_Sort_Order_With_CASE.md) | [🔢](15_CASE_Conditional/Q181_Custom_Country_Sort_Order_With_CASE.sql) |
+| Q182 | Average Order Value With NULLIF And COALESCE | Medium | [📄](15_CASE_Conditional/Q182_Average_Order_Value_With_NULLIF_And_COALESCE.md) | [🔢](15_CASE_Conditional/Q182_Average_Order_Value_With_NULLIF_And_COALESCE.sql) |
+| Q183 | Customer Value Segment Summary | Hard | [📄](15_CASE_Conditional/Q183_Customer_Value_Segment_Summary.md) | [🔢](15_CASE_Conditional/Q183_Customer_Value_Segment_Summary.sql) |
 
 ### 16 — DML & DDL _(new practice set — not yet attempted)_
 
 | # | Question | Difficulty | MD | SQL |
 |---|---|---|---|---|
-| Q135 | Insert New Shipper With Returning | Easy | [📄](16_DML_DDL/Q135_Insert_New_Shipper_With_Returning.md) | [🔢](16_DML_DDL/Q135_Insert_New_Shipper_With_Returning.sql) |
-| Q136 | Raise Prices For One Supplier | Easy | [📄](16_DML_DDL/Q136_Raise_Prices_For_One_Supplier.md) | [🔢](16_DML_DDL/Q136_Raise_Prices_For_One_Supplier.sql) |
-| Q137 | Update Prices Using A Join With FROM | Medium | [📄](16_DML_DDL/Q137_Update_Prices_Using_A_Join_With_FROM.md) | [🔢](16_DML_DDL/Q137_Update_Prices_Using_A_Join_With_FROM.sql) |
-| Q138 | Delete Small Order Lines With Returning | Medium | [📄](16_DML_DDL/Q138_Delete_Small_Order_Lines_With_Returning.md) | [🔢](16_DML_DDL/Q138_Delete_Small_Order_Lines_With_Returning.sql) |
-| Q139 | Upsert Customers With On Conflict | Hard | [📄](16_DML_DDL/Q139_Upsert_Customers_With_On_Conflict.md) | [🔢](16_DML_DDL/Q139_Upsert_Customers_With_On_Conflict.sql) |
-| Q140 | Create Order And Lines With Chained CTE Inserts | Hard | [📄](16_DML_DDL/Q140_Create_Order_And_Lines_With_Chained_CTE_Inserts.md) | [🔢](16_DML_DDL/Q140_Create_Order_And_Lines_With_Chained_CTE_Inserts.sql) |
-| Q141 | Create Customer Revenue Summary Table As Select | Medium | [📄](16_DML_DDL/Q141_Create_Customer_Revenue_Summary_Table_As_Select.md) | [🔢](16_DML_DDL/Q141_Create_Customer_Revenue_Summary_Table_As_Select.sql) |
-| Q142 | Add Column And Check Constraint To Products | Hard | [📄](16_DML_DDL/Q142_Add_Column_And_Check_Constraint_To_Products.md) | [🔢](16_DML_DDL/Q142_Add_Column_And_Check_Constraint_To_Products.sql) |
+| Q184 | Insert New Shipper With Returning | Easy | [📄](16_DML_DDL/Q184_Insert_New_Shipper_With_Returning.md) | [🔢](16_DML_DDL/Q184_Insert_New_Shipper_With_Returning.sql) |
+| Q185 | Raise Prices For One Supplier | Easy | [📄](16_DML_DDL/Q185_Raise_Prices_For_One_Supplier.md) | [🔢](16_DML_DDL/Q185_Raise_Prices_For_One_Supplier.sql) |
+| Q186 | Update Prices Using A Join With FROM | Medium | [📄](16_DML_DDL/Q186_Update_Prices_Using_A_Join_With_FROM.md) | [🔢](16_DML_DDL/Q186_Update_Prices_Using_A_Join_With_FROM.sql) |
+| Q187 | Delete Small Order Lines With Returning | Medium | [📄](16_DML_DDL/Q187_Delete_Small_Order_Lines_With_Returning.md) | [🔢](16_DML_DDL/Q187_Delete_Small_Order_Lines_With_Returning.sql) |
+| Q188 | Upsert Customers With On Conflict | Hard | [📄](16_DML_DDL/Q188_Upsert_Customers_With_On_Conflict.md) | [🔢](16_DML_DDL/Q188_Upsert_Customers_With_On_Conflict.sql) |
+| Q189 | Create Order And Lines With Chained CTE Inserts | Hard | [📄](16_DML_DDL/Q189_Create_Order_And_Lines_With_Chained_CTE_Inserts.md) | [🔢](16_DML_DDL/Q189_Create_Order_And_Lines_With_Chained_CTE_Inserts.sql) |
+| Q190 | Create Customer Revenue Summary Table As Select | Medium | [📄](16_DML_DDL/Q190_Create_Customer_Revenue_Summary_Table_As_Select.md) | [🔢](16_DML_DDL/Q190_Create_Customer_Revenue_Summary_Table_As_Select.sql) |
+| Q191 | Add Column And Check Constraint To Products | Hard | [📄](16_DML_DDL/Q191_Add_Column_And_Check_Constraint_To_Products.md) | [🔢](16_DML_DDL/Q191_Add_Column_And_Check_Constraint_To_Products.sql) |
 
 ---
 
@@ -387,15 +387,15 @@ revenue = unit_price * quantity * (1 - discount)
 | `UNION ALL` + `GROUP BY` in a CTE for multi-entity counts | Q86 |
 | `INTERSECT` / `EXCEPT` and set-based "above average" comparisons | Q92, Q93, Q96, Q97 |
 | `|| ` vs `CONCAT()` NULL propagation in outer joins | Q57 |
-| `ROW_NUMBER()` / `RANK()` / `DENSE_RANK()` for latest-per-group and top-N-per-group | Q98–Q100 |
-| Running totals and moving averages with `SUM`/`AVG() OVER (ORDER BY …)` | Q101, Q102 |
-| `LAG` / `LEAD` for period-over-period change and gaps | Q103, Q104, Q109 |
-| Share of total with `SUM() OVER ()`; `NTILE`, `PERCENT_RANK`, `CUME_DIST` | Q105, Q106, Q108 |
-| `DATE_TRUNC` / `EXTRACT` bucketing, date differences, `AGE` | Q110–Q116 |
-| Year-over-year growth, inactivity windows and cohorts | Q117–Q119 |
-| String functions: `||`/`CONCAT`, `SPLIT_PART`, `POSITION`, `REPLACE`, `LIKE`/`ILIKE`, `STRING_AGG` | Q120–Q127 |
-| `CASE` bucketing, conditional aggregation (`FILTER`), pivots, `CASE` in `ORDER BY`, `COALESCE`/`NULLIF` | Q128–Q134 |
-| DML with `RETURNING`, `UPDATE ... FROM`, `ON CONFLICT` upsert, data-modifying CTEs, CTAS, `ALTER TABLE` constraints | Q135–Q142 |
+| `ROW_NUMBER()` / `RANK()` / `DENSE_RANK()` for latest-per-group and top-N-per-group | Q147–Q149 |
+| Running totals and moving averages with `SUM`/`AVG() OVER (ORDER BY …)` | Q150, Q151 |
+| `LAG` / `LEAD` for period-over-period change and gaps | Q152, Q153, Q158 |
+| Share of total with `SUM() OVER ()`; `NTILE`, `PERCENT_RANK`, `CUME_DIST` | Q154, Q155, Q157 |
+| `DATE_TRUNC` / `EXTRACT` bucketing, date differences, `AGE` | Q159–Q165 |
+| Year-over-year growth, inactivity windows and cohorts | Q166–Q168 |
+| String functions: `||`/`CONCAT`, `SPLIT_PART`, `POSITION`, `REPLACE`, `LIKE`/`ILIKE`, `STRING_AGG` | Q169–Q176 |
+| `CASE` bucketing, conditional aggregation (`FILTER`), pivots, `CASE` in `ORDER BY`, `COALESCE`/`NULLIF` | Q177–Q183 |
+| DML with `RETURNING`, `UPDATE ... FROM`, `ON CONFLICT` upsert, data-modifying CTEs, CTAS, `ALTER TABLE` constraints | Q184–Q191 |
 
 ---
 
