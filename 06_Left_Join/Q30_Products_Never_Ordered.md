@@ -1,4 +1,4 @@
-# Q30 · Products Never Ordered
+# Q30 · Products Never Ordered (Join-Key Filter)
 
 > **Revision Card**
 > **Category:** LEFT JOIN | **Difficulty:** Easy

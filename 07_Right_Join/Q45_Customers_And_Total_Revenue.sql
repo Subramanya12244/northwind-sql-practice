@@ -1,5 +1,5 @@
 /* =====================================================================
-   Q45 · Customers and Total Revenue
+   Q45 · Customers and Total Revenue (RIGHT JOIN)
    Category : RIGHT JOIN          Difficulty : Medium
    Concepts : RIGHT JOIN (chained, two levels) · GROUP BY · SUM
               · NULL Handling (COALESCE) · ROUND/CAST

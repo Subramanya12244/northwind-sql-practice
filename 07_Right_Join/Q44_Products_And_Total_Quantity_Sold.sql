@@ -1,5 +1,5 @@
 /* =====================================================================
-   Q44 · Products and Total Quantity Sold
+   Q44 · Products and Total Quantity Sold (RIGHT JOIN)
    Category : RIGHT JOIN          Difficulty : Medium
    Concepts : RIGHT JOIN · GROUP BY · SUM · NULL Handling (COALESCE)
    ---------------------------------------------------------------------

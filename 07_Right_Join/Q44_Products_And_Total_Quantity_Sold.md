@@ -1,4 +1,4 @@
-# Q44 · Products and Total Quantity Sold
+# Q44 · Products and Total Quantity Sold (RIGHT JOIN)
 
 > **Revision Card**
 > **Category:** RIGHT JOIN | **Difficulty:** Medium

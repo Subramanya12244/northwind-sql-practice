@@ -1,4 +1,4 @@
-# Q45 · Customers and Total Revenue
+# Q45 · Customers and Total Revenue (RIGHT JOIN)
 
 > **Revision Card**
 > **Category:** RIGHT JOIN | **Difficulty:** Medium

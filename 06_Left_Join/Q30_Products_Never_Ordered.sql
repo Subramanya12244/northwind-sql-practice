@@ -1,5 +1,5 @@
 /* =====================================================================
-   Q30 · Products Never Ordered
+   Q30 · Products Never Ordered (Join-Key Filter)
    Category : LEFT JOIN          Difficulty : Easy
    Concepts : LEFT JOIN · NULL Handling · WHERE · NOT EXISTS (alternative)
    ---------------------------------------------------------------------
